@@ -1135,15 +1135,9 @@ body {
   font-size: 18px;
 }
 
-/* ===== Homepage Import Bar — fixed above the nav pills ===== */
+/* ===== Homepage Import Button — inline at the bottom of each view ===== */
 .home-import-bar {
-  position: fixed;
-  bottom: calc(68px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 900;
-  width: calc(100% - 32px);
-  max-width: 568px;
+  margin-top: 16px;
 }
 
 .home-import-btn {
