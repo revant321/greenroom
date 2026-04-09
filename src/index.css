@@ -1234,8 +1234,10 @@ body {
   min-height: 100%;
 }
 
-/* The list + new button section grows to fill available space */
-.view-flex-grow {
+/* Spacer between list and import button — expands to fill remaining space
+   so the import button is pushed to the bottom when few items exist.
+   When the list is long enough to scroll, this collapses to zero. */
+.view-flex-spacer {
   flex: 1;
 }
 

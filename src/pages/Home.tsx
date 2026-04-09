@@ -327,61 +327,60 @@ function ShowsView() {
   return (
     <>
       <div className="view-flex-wrapper">
-        {/* Top section: new button + list — grows to fill space */}
-        <div className="view-flex-grow">
-          {showForm ? (
-            <div className="new-show-form">
-              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Show name" className="input" autoFocus />
-              <input type="text" value={rolesInput} onChange={(e) => setRolesInput(e.target.value)} placeholder="Your role(s), comma-separated" className="input" />
-              <div className="btn-row">
-                <button className="btn btn-primary" onClick={createShow}>Create Show</button>
-                <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-              </div>
+        {showForm ? (
+          <div className="new-show-form">
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Show name" className="input" autoFocus />
+            <input type="text" value={rolesInput} onChange={(e) => setRolesInput(e.target.value)} placeholder="Your role(s), comma-separated" className="input" />
+            <div className="btn-row">
+              <button className="btn btn-primary" onClick={createShow}>Create Show</button>
+              <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
             </div>
-          ) : (
-            <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
-              + New Show
-            </button>
-          )}
-
-          <div className="show-list">
-            {activeShows === undefined ? (
-              <p className="empty-state">Loading...</p>
-            ) : activeShows.length === 0 ? (
-              <p className="empty-state">No active shows yet. Create one to get started!</p>
-            ) : (
-              activeShows.map((show) => (
-                <div key={show.id} className="show-card">
-                  {editingId === show.id ? (
-                    <div className="show-edit-form">
-                      <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Show name" className="input" />
-                      <input type="text" value={editRoles} onChange={(e) => setEditRoles(e.target.value)} placeholder="Roles (comma-separated)" className="input" />
-                      <div className="btn-row">
-                        <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                        <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="show-card-content" onClick={() => navigate(`/show/${show.id}`)}>
-                      <div className="show-info">
-                        <span className="show-name">{show.name}</span>
-                        {show.roles.length > 0 && (
-                          <span className="show-roles">{show.roles.join(', ')}</span>
-                        )}
-                      </div>
-                      <div className="show-actions" onClick={(e) => e.stopPropagation()}>
-                        <button className="icon-btn small" onClick={() => startEdit(show)} title="Edit">✏️</button>
-                        <button className="icon-btn small" onClick={() => deleteShow(show.id!)} title="Delete">🗑️</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
           </div>
+        ) : (
+          <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
+            + New Show
+          </button>
+        )}
+
+        <div className="show-list">
+          {activeShows === undefined ? (
+            <p className="empty-state">Loading...</p>
+          ) : activeShows.length === 0 ? (
+            <p className="empty-state">No active shows yet. Create one to get started!</p>
+          ) : (
+            activeShows.map((show) => (
+              <div key={show.id} className="show-card">
+                {editingId === show.id ? (
+                  <div className="show-edit-form">
+                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Show name" className="input" />
+                    <input type="text" value={editRoles} onChange={(e) => setEditRoles(e.target.value)} placeholder="Roles (comma-separated)" className="input" />
+                    <div className="btn-row">
+                      <button className="btn btn-primary" onClick={saveEdit}>Save</button>
+                      <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="show-card-content" onClick={() => navigate(`/show/${show.id}`)}>
+                    <div className="show-info">
+                      <span className="show-name">{show.name}</span>
+                      {show.roles.length > 0 && (
+                        <span className="show-roles">{show.roles.join(', ')}</span>
+                      )}
+                    </div>
+                    <div className="show-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="icon-btn small" onClick={() => startEdit(show)} title="Edit">✏️</button>
+                      <button className="icon-btn small" onClick={() => deleteShow(show.id!)} title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Import button — anchored to the bottom of the flex container */}
+        {/* Spacer: grows to push import button to bottom when list is short */}
+        <div className="view-flex-spacer" />
+
         <label className="btn btn-secondary add-show-btn home-import-btn">
           Import Show
           <input type="file" accept=".grm" onChange={handleShowImport} hidden />
@@ -627,96 +626,95 @@ function SongsView() {
   return (
     <>
       <div className="view-flex-wrapper">
-        {/* Top section: filters + new button + list — grows to fill space */}
-        <div className="view-flex-grow">
-          {/* Filter bar */}
-          <div className="song-filters">
-            <div className="song-filter-group">
-              <button className={`song-filter-pill ${filterCategory === 'all' ? 'active' : ''}`} onClick={() => setFilterCategory('all')}>All</button>
-              <button className={`song-filter-pill song-filter-vocal ${filterCategory === 'vocal' ? 'active' : ''}`} onClick={() => setFilterCategory('vocal')}>Vocal</button>
-              <button className={`song-filter-pill song-filter-guitar ${filterCategory === 'guitar' ? 'active' : ''}`} onClick={() => setFilterCategory('guitar')}>Guitar</button>
-            </div>
-            <div className="song-filter-group">
-              <button className={`song-filter-pill ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>All</button>
-              <button className={`song-filter-pill ${filterStatus === 'in-progress' ? 'active' : ''}`} onClick={() => setFilterStatus('in-progress')}>In Progress</button>
-              <button className={`song-filter-pill ${filterStatus === 'completed' ? 'active' : ''}`} onClick={() => setFilterStatus('completed')}>Completed</button>
-            </div>
+        {/* Filter bar */}
+        <div className="song-filters">
+          <div className="song-filter-group">
+            <button className={`song-filter-pill ${filterCategory === 'all' ? 'active' : ''}`} onClick={() => setFilterCategory('all')}>All</button>
+            <button className={`song-filter-pill song-filter-vocal ${filterCategory === 'vocal' ? 'active' : ''}`} onClick={() => setFilterCategory('vocal')}>Vocal</button>
+            <button className={`song-filter-pill song-filter-guitar ${filterCategory === 'guitar' ? 'active' : ''}`} onClick={() => setFilterCategory('guitar')}>Guitar</button>
           </div>
-
-          {showForm ? (
-            <div className="new-show-form">
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Song title" className="input" autoFocus />
-              <label className="checkbox-label">
-                <input type="checkbox" checked={isAudition} onChange={(e) => setIsAudition(e.target.checked)} />
-                Audition Song
-              </label>
-              <div className="btn-row">
-                <button className="btn btn-primary" onClick={createSong}>Create Song</button>
-                <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
-              </div>
-            </div>
-          ) : (
-            <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
-              + New Song
-            </button>
-          )}
-
-          <div className="song-list">
-            {filteredSongs === undefined ? (
-              <p className="empty-state">Loading...</p>
-            ) : filteredSongs.length === 0 ? (
-              songs && songs.length > 0
-                ? <p className="empty-state">No songs match these filters.</p>
-                : <p className="empty-state">No songs yet. Add one to get started!</p>
-            ) : (
-              filteredSongs.map((song) => (
-                <div key={song.id} className={`song-card ${categoryClass(song.category)}`}>
-                  {editingId === song.id ? (
-                    <div className="song-edit-form">
-                      <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Song title" className="input" />
-                      <label className="checkbox-label">
-                        <input type="checkbox" checked={editAudition} onChange={(e) => setEditAudition(e.target.checked)} />
-                        Audition Song
-                      </label>
-                      <div className="btn-row">
-                        <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                        <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="song-card-content" onClick={() => navigate(`/song/${song.id}`)}>
-                      <div className="song-info">
-                        <div className="song-title-row">
-                          <span className="song-title">{song.title}</span>
-                          {song.status === 'completed' ? (
-                            <span className="song-status-check" title="Completed">&#10003;</span>
-                          ) : (
-                            <span className="song-status-dot" title="In Progress" />
-                          )}
-                        </div>
-                        <div className="song-meta-row">
-                          {song.isAuditionSong && <span className="audition-badge">Audition</span>}
-                          {song.category && (
-                            <span className={`song-category-badge song-category-${song.category}`}>
-                              {song.category.charAt(0).toUpperCase() + song.category.slice(1)}
-                            </span>
-                          )}
-                          <span className="song-date">{formatDate(song.createdAt)}</span>
-                        </div>
-                      </div>
-                      <div className="song-actions" onClick={(e) => e.stopPropagation()}>
-                        <button className="icon-btn small" onClick={() => startEdit(song)} title="Edit">✏️</button>
-                        <button className="icon-btn small" onClick={() => deleteSong(song.id!)} title="Delete">🗑️</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
+          <div className="song-filter-group">
+            <button className={`song-filter-pill ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>All</button>
+            <button className={`song-filter-pill ${filterStatus === 'in-progress' ? 'active' : ''}`} onClick={() => setFilterStatus('in-progress')}>In Progress</button>
+            <button className={`song-filter-pill ${filterStatus === 'completed' ? 'active' : ''}`} onClick={() => setFilterStatus('completed')}>Completed</button>
           </div>
         </div>
 
-        {/* Import button — anchored to the bottom of the flex container */}
+        {showForm ? (
+          <div className="new-show-form">
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Song title" className="input" autoFocus />
+            <label className="checkbox-label">
+              <input type="checkbox" checked={isAudition} onChange={(e) => setIsAudition(e.target.checked)} />
+              Audition Song
+            </label>
+            <div className="btn-row">
+              <button className="btn btn-primary" onClick={createSong}>Create Song</button>
+              <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
+            + New Song
+          </button>
+        )}
+
+        <div className="song-list">
+          {filteredSongs === undefined ? (
+            <p className="empty-state">Loading...</p>
+          ) : filteredSongs.length === 0 ? (
+            songs && songs.length > 0
+              ? <p className="empty-state">No songs match these filters.</p>
+              : <p className="empty-state">No songs yet. Add one to get started!</p>
+          ) : (
+            filteredSongs.map((song) => (
+              <div key={song.id} className={`song-card ${categoryClass(song.category)}`}>
+                {editingId === song.id ? (
+                  <div className="song-edit-form">
+                    <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Song title" className="input" />
+                    <label className="checkbox-label">
+                      <input type="checkbox" checked={editAudition} onChange={(e) => setEditAudition(e.target.checked)} />
+                      Audition Song
+                    </label>
+                    <div className="btn-row">
+                      <button className="btn btn-primary" onClick={saveEdit}>Save</button>
+                      <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="song-card-content" onClick={() => navigate(`/song/${song.id}`)}>
+                    <div className="song-info">
+                      <div className="song-title-row">
+                        <span className="song-title">{song.title}</span>
+                        {song.status === 'completed' ? (
+                          <span className="song-status-check" title="Completed">&#10003;</span>
+                        ) : (
+                          <span className="song-status-dot" title="In Progress" />
+                        )}
+                      </div>
+                      <div className="song-meta-row">
+                        {song.isAuditionSong && <span className="audition-badge">Audition</span>}
+                        {song.category && (
+                          <span className={`song-category-badge song-category-${song.category}`}>
+                            {song.category.charAt(0).toUpperCase() + song.category.slice(1)}
+                          </span>
+                        )}
+                        <span className="song-date">{formatDate(song.createdAt)}</span>
+                      </div>
+                    </div>
+                    <div className="song-actions" onClick={(e) => e.stopPropagation()}>
+                      <button className="icon-btn small" onClick={() => startEdit(song)} title="Edit">✏️</button>
+                      <button className="icon-btn small" onClick={() => deleteSong(song.id!)} title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Spacer: grows to push import button to bottom when list is short */}
+        <div className="view-flex-spacer" />
+
         <label className="btn btn-secondary add-show-btn home-import-btn">
           Import Song
           <input
