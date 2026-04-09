@@ -189,7 +189,7 @@ body {
 .show-list, .song-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
@@ -275,6 +275,11 @@ body {
 .add-show-btn {
   width: 100%;
   margin-bottom: 14px;
+}
+
+/* Extra top spacing on Shows tab so + New Show clears the trophy/gear buttons */
+.shows-new-btn-area {
+  margin-top: 12px;
 }
 
 /* ===== Empty State ===== */
@@ -1482,7 +1487,11 @@ body {
 
 /* ===== Song Section Headers (alphabetical dividers) ===== */
 .song-section {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.song-section .song-card + .song-card {
+  margin-top: 12px;
 }
 
 .song-section-header {
@@ -1680,6 +1689,74 @@ body {
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== Delete Confirmation Modal ===== */
+.delete-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.25s var(--ease);
+}
+
+.delete-confirm-modal {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  animation: slideUp 0.35s var(--ease);
+}
+
+.delete-confirm-modal h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.delete-confirm-modal p {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-confirm-btn {
+  flex: 1;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  min-height: 44px;
+  transition: transform 0.2s var(--ease), opacity 0.2s var(--ease);
+  background: var(--surface);
+}
+
+.delete-confirm-btn:active {
+  transform: scale(0.97);
+  opacity: 0.7;
+}
+
+.delete-confirm-btn-confirm {
+  color: #34c759;
+  border: 1.5px solid #34c759;
+}
+
+.delete-confirm-btn-cancel {
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
 }
 
 /* Song export button on detail page */

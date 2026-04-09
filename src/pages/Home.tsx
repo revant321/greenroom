@@ -206,6 +206,8 @@ function ShowsView() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [rolesInput, setRolesInput] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
   // Import state — tracks the duplicate modal and import progress
   const [importModal, setImportModal] = useState<{
     showData: Record<string, unknown>;
@@ -310,20 +312,22 @@ function ShowsView() {
   return (
     <>
       <div className="view-flex-wrapper">
-        {showForm ? (
-          <div className="new-show-form">
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Show name" className="input" autoFocus />
-            <input type="text" value={rolesInput} onChange={(e) => setRolesInput(e.target.value)} placeholder="Your role(s), comma-separated" className="input" />
-            <div className="btn-row">
-              <button className="btn btn-primary" onClick={createShow}>Create Show</button>
-              <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+        <div className="shows-new-btn-area">
+          {showForm ? (
+            <div className="new-show-form">
+              <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Show name" className="input" autoFocus />
+              <input type="text" value={rolesInput} onChange={(e) => setRolesInput(e.target.value)} placeholder="Your role(s), comma-separated" className="input" />
+              <div className="btn-row">
+                <button className="btn btn-primary" onClick={createShow}>Create Show</button>
+                <button className="btn btn-secondary" onClick={() => setShowForm(false)}>Cancel</button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
-            + New Show
-          </button>
-        )}
+          ) : (
+            <button className="btn btn-primary add-show-btn" onClick={() => setShowForm(true)}>
+              + New Show
+            </button>
+          )}
+        </div>
 
         <div className="show-list">
           {activeShows === undefined ? (
@@ -341,7 +345,7 @@ function ShowsView() {
                     )}
                   </div>
                   <div className="show-actions" onClick={(e) => e.stopPropagation()}>
-                    <button className="icon-btn small delete-x-btn" onClick={() => deleteShow(show.id!)} title="Delete">×</button>
+                    <button className="icon-btn small delete-x-btn" onClick={() => setDeleteConfirmId(show.id!)} title="Delete">×</button>
                   </div>
                 </div>
               </div>
@@ -383,6 +387,23 @@ function ShowsView() {
                 className="btn btn-secondary"
                 onClick={() => setImportModal(null)}
               >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
+          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Show</h3>
+            <p>This will permanently delete this show and all its data.</p>
+            <div className="delete-confirm-actions">
+              <button className="delete-confirm-btn delete-confirm-btn-confirm" onClick={() => { deleteShow(deleteConfirmId); setDeleteConfirmId(null); }}>
+                Confirm
+              </button>
+              <button className="delete-confirm-btn delete-confirm-btn-cancel" onClick={() => setDeleteConfirmId(null)}>
                 Cancel
               </button>
             </div>
@@ -431,6 +452,7 @@ function SongsView() {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [isAudition, setIsAudition] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   // Import state
   const [importModal, setImportModal] = useState<{
@@ -602,7 +624,7 @@ function SongsView() {
             </div>
           </div>
           <div className="song-actions" onClick={(e) => e.stopPropagation()}>
-            <button className="icon-btn small delete-x-btn" onClick={() => deleteSong(song.id!)} title="Delete">×</button>
+            <button className="icon-btn small delete-x-btn" onClick={() => setDeleteConfirmId(song.id!)} title="Delete">×</button>
           </div>
         </div>
       </div>
@@ -728,6 +750,23 @@ function SongsView() {
                 className="btn btn-secondary"
                 onClick={() => setImportModal(null)}
               >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
+          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Song</h3>
+            <p>This will permanently delete this song and all its data.</p>
+            <div className="delete-confirm-actions">
+              <button className="delete-confirm-btn delete-confirm-btn-confirm" onClick={() => { deleteSong(deleteConfirmId); setDeleteConfirmId(null); }}>
+                Confirm
+              </button>
+              <button className="delete-confirm-btn delete-confirm-btn-cancel" onClick={() => setDeleteConfirmId(null)}>
                 Cancel
               </button>
             </div>
