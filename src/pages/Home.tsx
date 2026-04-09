@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Show, type Song, type SongCategory, type SongStatus } from '../db/database';
+import { db, type Song, type SongCategory, type SongStatus } from '../db/database';
 import { base64ToBlob } from '../components/SettingsPanel';
 import { importShowEntry } from '../utils/showExportImport';
 
@@ -206,10 +206,6 @@ function ShowsView() {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [rolesInput, setRolesInput] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editRoles, setEditRoles] = useState('');
-
   // Import state — tracks the duplicate modal and import progress
   const [importModal, setImportModal] = useState<{
     showData: Record<string, unknown>;
@@ -231,19 +227,6 @@ function ShowsView() {
     setName('');
     setRolesInput('');
     setShowForm(false);
-  }
-
-  function startEdit(show: Show) {
-    setEditingId(show.id!);
-    setEditName(show.name);
-    setEditRoles(show.roles.join(', '));
-  }
-
-  async function saveEdit() {
-    if (!editingId || !editName.trim()) return;
-    const roles = editRoles.split(',').map((r) => r.trim()).filter(Boolean);
-    await db.shows.update(editingId, { name: editName.trim(), roles });
-    setEditingId(null);
   }
 
   async function deleteShow(id: number) {
@@ -350,29 +333,17 @@ function ShowsView() {
           ) : (
             activeShows.map((show) => (
               <div key={show.id} className="show-card">
-                {editingId === show.id ? (
-                  <div className="show-edit-form">
-                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Show name" className="input" />
-                    <input type="text" value={editRoles} onChange={(e) => setEditRoles(e.target.value)} placeholder="Roles (comma-separated)" className="input" />
-                    <div className="btn-row">
-                      <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                      <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                    </div>
+                <div className="show-card-content" onClick={() => navigate(`/show/${show.id}`)}>
+                  <div className="show-info">
+                    <span className="show-name">{show.name}</span>
+                    {show.roles.length > 0 && (
+                      <span className="show-roles">{show.roles.join(', ')}</span>
+                    )}
                   </div>
-                ) : (
-                  <div className="show-card-content" onClick={() => navigate(`/show/${show.id}`)}>
-                    <div className="show-info">
-                      <span className="show-name">{show.name}</span>
-                      {show.roles.length > 0 && (
-                        <span className="show-roles">{show.roles.join(', ')}</span>
-                      )}
-                    </div>
-                    <div className="show-actions" onClick={(e) => e.stopPropagation()}>
-                      <button className="icon-btn small" onClick={() => startEdit(show)} title="Edit">✏️</button>
-                      <button className="icon-btn small" onClick={() => deleteShow(show.id!)} title="Delete">🗑️</button>
-                    </div>
+                  <div className="show-actions" onClick={(e) => e.stopPropagation()}>
+                    <button className="icon-btn small delete-x-btn" onClick={() => deleteShow(show.id!)} title="Delete">×</button>
                   </div>
-                )}
+                </div>
               </div>
             ))
           )}
@@ -461,10 +432,6 @@ function SongsView() {
   const [title, setTitle] = useState('');
   const [isAudition, setIsAudition] = useState(false);
 
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editTitle, setEditTitle] = useState('');
-  const [editAudition, setEditAudition] = useState(false);
-
   // Import state
   const [importModal, setImportModal] = useState<{
     songData: Record<string, unknown>;
@@ -487,18 +454,6 @@ function SongsView() {
     setIsAudition(false);
     setShowForm(false);
     navigate(`/song/${id}`);
-  }
-
-  function startEdit(song: Song) {
-    setEditingId(song.id!);
-    setEditTitle(song.title);
-    setEditAudition(song.isAuditionSong);
-  }
-
-  async function saveEdit() {
-    if (!editingId || !editTitle.trim()) return;
-    await db.songs.update(editingId, { title: editTitle.trim(), isAuditionSong: editAudition });
-    setEditingId(null);
   }
 
   async function deleteSong(id: number) {
@@ -623,6 +578,69 @@ function SongsView() {
     return '';
   }
 
+  function renderSongCard(song: Song) {
+    return (
+      <div key={song.id} className={`song-card ${categoryClass(song.category)}`}>
+        <div className="song-card-content" onClick={() => navigate(`/song/${song.id}`)}>
+          <div className="song-info">
+            <div className="song-title-row">
+              <span className="song-title">{song.title}</span>
+              {song.status === 'completed' ? (
+                <span className="song-status-check" title="Completed">&#10003;</span>
+              ) : (
+                <span className="song-status-dot" title="In Progress" />
+              )}
+            </div>
+            <div className="song-meta-row">
+              {song.isAuditionSong && <span className="audition-badge">Audition</span>}
+              {song.category && (
+                <span className={`song-category-badge song-category-${song.category}`}>
+                  {song.category.charAt(0).toUpperCase() + song.category.slice(1)}
+                </span>
+              )}
+              <span className="song-date">{formatDate(song.createdAt)}</span>
+            </div>
+          </div>
+          <div className="song-actions" onClick={(e) => e.stopPropagation()}>
+            <button className="icon-btn small delete-x-btn" onClick={() => deleteSong(song.id!)} title="Delete">×</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /** Groups songs into sections: ★ Audition first, then alphabetical letter groups */
+  function renderSongSections(songList: Song[]) {
+    const auditionSongs = songList.filter(s => s.isAuditionSong);
+    const regularSongs = songList.filter(s => !s.isAuditionSong);
+
+    // Group regular songs by first letter
+    const letterGroups: Record<string, Song[]> = {};
+    for (const song of regularSongs) {
+      const letter = song.title[0]?.toUpperCase() || '#';
+      if (!letterGroups[letter]) letterGroups[letter] = [];
+      letterGroups[letter].push(song);
+    }
+    const sortedLetters = Object.keys(letterGroups).sort();
+
+    return (
+      <>
+        {auditionSongs.length > 0 && (
+          <div className="song-section">
+            <div className="song-section-header">★ Audition</div>
+            {auditionSongs.map(renderSongCard)}
+          </div>
+        )}
+        {sortedLetters.map(letter => (
+          <div key={letter} className="song-section">
+            <div className="song-section-header">{letter}</div>
+            {letterGroups[letter].map(renderSongCard)}
+          </div>
+        ))}
+      </>
+    );
+  }
+
   return (
     <>
       <div className="view-flex-wrapper">
@@ -666,49 +684,7 @@ function SongsView() {
               ? <p className="empty-state">No songs match these filters.</p>
               : <p className="empty-state">No songs yet. Add one to get started!</p>
           ) : (
-            filteredSongs.map((song) => (
-              <div key={song.id} className={`song-card ${categoryClass(song.category)}`}>
-                {editingId === song.id ? (
-                  <div className="song-edit-form">
-                    <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Song title" className="input" />
-                    <label className="checkbox-label">
-                      <input type="checkbox" checked={editAudition} onChange={(e) => setEditAudition(e.target.checked)} />
-                      Audition Song
-                    </label>
-                    <div className="btn-row">
-                      <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                      <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="song-card-content" onClick={() => navigate(`/song/${song.id}`)}>
-                    <div className="song-info">
-                      <div className="song-title-row">
-                        <span className="song-title">{song.title}</span>
-                        {song.status === 'completed' ? (
-                          <span className="song-status-check" title="Completed">&#10003;</span>
-                        ) : (
-                          <span className="song-status-dot" title="In Progress" />
-                        )}
-                      </div>
-                      <div className="song-meta-row">
-                        {song.isAuditionSong && <span className="audition-badge">Audition</span>}
-                        {song.category && (
-                          <span className={`song-category-badge song-category-${song.category}`}>
-                            {song.category.charAt(0).toUpperCase() + song.category.slice(1)}
-                          </span>
-                        )}
-                        <span className="song-date">{formatDate(song.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="song-actions" onClick={(e) => e.stopPropagation()}>
-                      <button className="icon-btn small" onClick={() => startEdit(song)} title="Edit">✏️</button>
-                      <button className="icon-btn small" onClick={() => deleteSong(song.id!)} title="Delete">🗑️</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))
+            renderSongSections(filteredSongs)
           )}
         </div>
 

@@ -1014,6 +1014,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1056,6 +1057,9 @@ body {
   -webkit-overflow-scrolling: touch;
   flex: 1;
   box-sizing: border-box;
+  word-break: break-word;
+  /* Prevent anything inside from exceeding the viewport */
+  max-width: min(600px, 100vw);
 }
 
 .help-hero {
@@ -1089,6 +1093,8 @@ body {
   max-width: 100%;
   box-sizing: border-box;
   overflow-wrap: break-word;
+  word-break: break-word;
+  overflow: hidden;
 }
 
 .help-card p {
@@ -1209,7 +1215,11 @@ body {
 .view-flex-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  /* Explicit min-height so the spacer can push the import button to the bottom
+     even when the list is short. 100% doesn't propagate through flex containers,
+     so we use a viewport-based calc instead.
+     ~60px for the page header, ~80px for bottom nav + safe area */
+  min-height: calc(100dvh - 60px - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
 /* Spacer between list and import button — expands to fill remaining space
@@ -1459,6 +1469,33 @@ body {
   display: flex;
   gap: 0;
   flex-shrink: 0;
+}
+
+/* Minimal × delete button — replaces emoji trash icon */
+.delete-x-btn {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text-tertiary);
+  font-family: var(--sans);
+  line-height: 1;
+}
+
+/* ===== Song Section Headers (alphabetical dividers) ===== */
+.song-section {
+  margin-bottom: 4px;
+}
+
+.song-section-header {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding: 16px 4px 6px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
 }
 
 /* ===== Song Detail ===== */
