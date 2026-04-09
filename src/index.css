@@ -449,11 +449,19 @@ body {
 
 .number-card-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 14px 10px 14px 6px;
+  gap: 4px;
   cursor: pointer;
   transition: background 0.15s var(--ease);
+}
+
+.number-card-content .number-info {
+  flex: 1;
+}
+
+.number-card-content .show-actions {
+  flex-shrink: 0;
 }
 
 .number-card-content:active {
@@ -738,10 +746,18 @@ body {
 
 .scene-card-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
+  padding: 14px 10px 14px 6px;
+  gap: 4px;
   transition: background 0.15s var(--ease);
+}
+
+.scene-card-content .scene-info {
+  flex: 1;
+}
+
+.scene-card-content .show-actions {
+  flex-shrink: 0;
 }
 
 .scene-card:not(.scene-card-inactive) .scene-card-content:active {
@@ -876,6 +892,46 @@ body {
   color: #ff3b30;
   border-color: #ff3b30;
   background: rgba(255, 59, 48, 0.12);
+}
+
+/* ===== Shared Drag Handle (Number/Scene cards) ===== */
+.drag-handle {
+  font-size: 18px;
+  color: var(--text-tertiary);
+  cursor: grab;
+  padding: 4px 6px;
+  flex-shrink: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+  color: var(--text-secondary);
+}
+
+/* Original card fades out while being dragged */
+.card-dragging {
+  opacity: 0.3;
+}
+
+/* Floating clone for number/scene cards */
+.drag-clone {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius);
+  opacity: 0.92;
+}
+
+/* Drop indicator line for number/scene reordering */
+.drop-indicator {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: 2px 0;
+  animation: dropPulse 0.8s ease-in-out infinite alternate;
 }
 
 /* ===== Quick Change Drag Handle ===== */

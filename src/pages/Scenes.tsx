@@ -21,9 +21,7 @@ export default function Scenes() {
   // Add scene form state
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newOrder, setNewOrder] = useState('');
   const [newIsUserIn, setNewIsUserIn] = useState(true);
-  const [orderError, setOrderError] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   // Add quick change form state
@@ -39,35 +37,31 @@ export default function Scenes() {
   const [editQCSpeed, setEditQCSpeed] = useState<QuickChangeSpeed>('ok');
   const [editQCAfter, setEditQCAfter] = useState('');
 
-  // ===== Drag-and-drop state =====
-  // We use refs for the hot path (touchmove) to avoid React re-renders,
-  // and state only for the visual indicator (drop target) which needs to render.
-  const dragQCIdRef = useRef<number | null>(null);
+  // ===== Drag-and-drop state (shared for QCs and Scenes) =====
+  const dragTypeRef = useRef<'qc' | 'scene' | null>(null);
+  const dragItemIdRef = useRef<number | null>(null);
   const dragCloneRef = useRef<HTMLDivElement | null>(null);
   const dragOffsetY = useRef(0);
   const dragOffsetX = useRef(0);
   const listRef = useRef<HTMLDivElement>(null);
-  const [dropTarget, setDropTarget] = useState<number | null>(null); // afterSceneOrder we'd drop into
-  const [draggingId, setDraggingId] = useState<number | null>(null); // triggers re-render to hide original
+  const [dropTarget, setDropTarget] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [draggingType, setDraggingType] = useState<'qc' | 'scene' | null>(null);
 
-  // Build an ordered list of "slots" — the afterSceneOrder values between scenes.
-  // Slot 0 = before first scene, then each scene's order = after that scene.
-  // We compute their Y midpoints during drag from the DOM.
-  const getDropSlots = useCallback((): { afterOrder: number; y: number }[] => {
+  // ===== QC drop slots (between scenes) =====
+  const getQCDropSlots = useCallback((): { afterOrder: number; y: number }[] => {
     if (!listRef.current || !scenes) return [];
     const slots: { afterOrder: number; y: number }[] = [];
-    const listRect = listRef.current.getBoundingClientRect();
 
-    // Slot before first scene: top of the list
     const firstScene = listRef.current.querySelector('[data-scene-order]') as HTMLElement | null;
     if (firstScene) {
       const r = firstScene.getBoundingClientRect();
       slots.push({ afterOrder: 0, y: r.top - 6 });
     } else {
+      const listRect = listRef.current.getBoundingClientRect();
       slots.push({ afterOrder: 0, y: listRect.top });
     }
 
-    // Slot after each scene: bottom edge of each scene card
     const sceneCards = listRef.current.querySelectorAll('[data-scene-order]');
     sceneCards.forEach((el) => {
       const order = parseInt(el.getAttribute('data-scene-order')!, 10);
@@ -78,36 +72,58 @@ export default function Scenes() {
     return slots;
   }, [scenes]);
 
-  const findClosestSlot = useCallback((clientY: number): number | null => {
-    const slots = getDropSlots();
+  const findClosestQCSlot = useCallback((clientY: number): number | null => {
+    const slots = getQCDropSlots();
     if (slots.length === 0) return null;
     let closest = slots[0];
     let minDist = Math.abs(clientY - closest.y);
     for (let i = 1; i < slots.length; i++) {
       const dist = Math.abs(clientY - slots[i].y);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = slots[i];
-      }
+      if (dist < minDist) { minDist = dist; closest = slots[i]; }
     }
     return closest.afterOrder;
-  }, [getDropSlots]);
+  }, [getQCDropSlots]);
 
-  // Shared drag start — creates a floating clone positioned at the touch/mouse point
-  const startDrag = useCallback((qcId: number, clientX: number, clientY: number, sourceEl: HTMLElement) => {
-    dragQCIdRef.current = qcId;
+  // ===== Scene drop slots (reorder among scenes) =====
+  const getSceneDropSlots = useCallback((): { index: number; y: number }[] => {
+    if (!listRef.current || !scenes) return [];
+    const cards = listRef.current.querySelectorAll('[data-scene-index]');
+    const slots: { index: number; y: number }[] = [];
+    cards.forEach((el) => {
+      const idx = parseInt(el.getAttribute('data-scene-index')!, 10);
+      const r = el.getBoundingClientRect();
+      slots.push({ index: idx, y: r.top + r.height / 2 });
+    });
+    return slots;
+  }, [scenes]);
 
-    // Find the .qc-card ancestor to clone
-    const card = sourceEl.closest('.qc-card') as HTMLElement;
+  const findClosestSceneSlot = useCallback((clientY: number): number | null => {
+    const slots = getSceneDropSlots();
+    if (slots.length === 0) return null;
+    let closest = slots[0];
+    let minDist = Math.abs(clientY - closest.y);
+    for (let i = 1; i < slots.length; i++) {
+      const dist = Math.abs(clientY - slots[i].y);
+      if (dist < minDist) { minDist = dist; closest = slots[i]; }
+    }
+    return closest.index;
+  }, [getSceneDropSlots]);
+
+  // ===== Shared drag logic =====
+  const startDrag = useCallback((type: 'qc' | 'scene', itemId: number, clientX: number, clientY: number, sourceEl: HTMLElement) => {
+    dragTypeRef.current = type;
+    dragItemIdRef.current = itemId;
+
+    const cardClass = type === 'qc' ? '.qc-card' : '.scene-card';
+    const card = sourceEl.closest(cardClass) as HTMLElement;
     if (!card) return;
 
     const rect = card.getBoundingClientRect();
     dragOffsetX.current = clientX - rect.left;
     dragOffsetY.current = clientY - rect.top;
 
-    // Create floating clone
     const clone = card.cloneNode(true) as HTMLDivElement;
-    clone.classList.add('qc-drag-clone');
+    clone.classList.add(type === 'qc' ? 'qc-drag-clone' : 'drag-clone');
     clone.style.position = 'fixed';
     clone.style.left = `${rect.left}px`;
     clone.style.top = `${rect.top}px`;
@@ -117,74 +133,102 @@ export default function Scenes() {
     document.body.appendChild(clone);
     dragCloneRef.current = clone;
 
-    setDraggingId(qcId);
-    setDropTarget(findClosestSlot(clientY));
-  }, [findClosestSlot]);
+    setDraggingId(itemId);
+    setDraggingType(type);
+    setDropTarget(type === 'qc' ? findClosestQCSlot(clientY) : findClosestSceneSlot(clientY));
+  }, [findClosestQCSlot, findClosestSceneSlot]);
 
   const moveDrag = useCallback((clientX: number, clientY: number) => {
     if (!dragCloneRef.current) return;
     dragCloneRef.current.style.left = `${clientX - dragOffsetX.current}px`;
     dragCloneRef.current.style.top = `${clientY - dragOffsetY.current}px`;
-    setDropTarget(findClosestSlot(clientY));
-  }, [findClosestSlot]);
+    const type = dragTypeRef.current;
+    setDropTarget(type === 'qc' ? findClosestQCSlot(clientY) : findClosestSceneSlot(clientY));
+  }, [findClosestQCSlot, findClosestSceneSlot]);
 
   const endDrag = useCallback(async () => {
-    const qcId = dragQCIdRef.current;
+    const type = dragTypeRef.current;
+    const itemId = dragItemIdRef.current;
     const target = dropTarget;
 
-    // Clean up clone
     if (dragCloneRef.current) {
       dragCloneRef.current.remove();
       dragCloneRef.current = null;
     }
-    dragQCIdRef.current = null;
+    dragTypeRef.current = null;
+    dragItemIdRef.current = null;
     setDraggingId(null);
+    setDraggingType(null);
     setDropTarget(null);
 
-    // Update DB if we have a valid drop
-    if (qcId !== null && target !== null) {
-      await db.quickChanges.update(qcId, { afterSceneOrder: target });
-    }
-  }, [dropTarget]);
+    if (itemId === null || target === null) return;
 
-  // Touch handlers for the drag handle
-  const onHandleTouchStart = useCallback((e: React.TouchEvent, qcId: number) => {
-    // Prevent the page from scrolling while we decide if this is a drag
+    if (type === 'qc') {
+      await db.quickChanges.update(itemId, { afterSceneOrder: target });
+    } else if (type === 'scene' && scenes) {
+      const ordered = [...scenes];
+      const fromIdx = ordered.findIndex(s => s.id === itemId);
+      if (fromIdx === -1) return;
+
+      const [moved] = ordered.splice(fromIdx, 1);
+      const toIdx = target > fromIdx ? target - 1 : target;
+      ordered.splice(toIdx, 0, moved);
+
+      // Build old→new order mapping for QC afterSceneOrder updates
+      const oldOrders = scenes.map(s => s.order);
+      const newOrderMap = new Map<number, number>();
+      for (let i = 0; i < ordered.length; i++) {
+        newOrderMap.set(ordered[i].order, i + 1);
+      }
+
+      await db.transaction('rw', [db.scenes, db.quickChanges], async () => {
+        // Update scene orders
+        for (let i = 0; i < ordered.length; i++) {
+          if (ordered[i].order !== i + 1) {
+            await db.scenes.update(ordered[i].id!, { order: i + 1 });
+          }
+        }
+        // Update QC afterSceneOrder to match new scene orders
+        if (quickChanges) {
+          for (const qc of quickChanges) {
+            const newOrder = newOrderMap.get(qc.afterSceneOrder);
+            if (newOrder !== undefined && newOrder !== qc.afterSceneOrder) {
+              await db.quickChanges.update(qc.id!, { afterSceneOrder: newOrder });
+            }
+          }
+        }
+      });
+    }
+  }, [dropTarget, scenes, quickChanges]);
+
+  // Touch handlers
+  const onHandleTouchStart = useCallback((e: React.TouchEvent, type: 'qc' | 'scene', itemId: number) => {
     const touch = e.touches[0];
-    const el = e.currentTarget as HTMLElement;
-    startDrag(qcId, touch.clientX, touch.clientY, el);
+    startDrag(type, itemId, touch.clientX, touch.clientY, e.currentTarget as HTMLElement);
   }, [startDrag]);
 
   const onHandleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!dragQCIdRef.current) return;
-    e.preventDefault(); // prevent scroll while dragging
+    if (!dragItemIdRef.current) return;
+    e.preventDefault();
     const touch = e.touches[0];
     moveDrag(touch.clientX, touch.clientY);
   }, [moveDrag]);
 
   const onHandleTouchEnd = useCallback(() => {
-    if (!dragQCIdRef.current) return;
+    if (!dragItemIdRef.current) return;
     endDrag();
   }, [endDrag]);
 
-  // Mouse handlers for desktop
-  const onHandleMouseDown = useCallback((e: React.MouseEvent, qcId: number) => {
+  // Mouse handlers
+  const onHandleMouseDown = useCallback((e: React.MouseEvent, type: 'qc' | 'scene', itemId: number) => {
     e.preventDefault();
-    const el = e.currentTarget as HTMLElement;
-    startDrag(qcId, e.clientX, e.clientY, el);
+    startDrag(type, itemId, e.clientX, e.clientY, e.currentTarget as HTMLElement);
   }, [startDrag]);
 
-  // Global mouse move/up listeners — attached when dragging
   useEffect(() => {
     if (draggingId === null) return;
-
-    const onMouseMove = (e: MouseEvent) => {
-      moveDrag(e.clientX, e.clientY);
-    };
-    const onMouseUp = () => {
-      endDrag();
-    };
-
+    const onMouseMove = (e: MouseEvent) => moveDrag(e.clientX, e.clientY);
+    const onMouseUp = () => endDrag();
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
     return () => {
@@ -197,17 +241,8 @@ export default function Scenes() {
 
   async function addScene() {
     if (!newName.trim()) return;
-    const order = newOrder.trim()
-      ? parseInt(newOrder, 10)
-      : (scenes?.length ?? 0) + 1;
+    const order = (scenes?.length ?? 0) + 1;
 
-    const duplicate = scenes?.find(s => s.order === order);
-    if (duplicate) {
-      setOrderError(`Order #${order} is already used by "${duplicate.name}".`);
-      return;
-    }
-
-    setOrderError('');
     await db.scenes.add({
       showId: id,
       name: newName.trim(),
@@ -218,7 +253,6 @@ export default function Scenes() {
     });
 
     setNewName('');
-    setNewOrder('');
     setNewIsUserIn(true);
     setShowAddForm(false);
   }
@@ -227,6 +261,29 @@ export default function Scenes() {
     await db.transaction('rw', [db.scenes, db.sceneRecordings], async () => {
       await db.sceneRecordings.where('sceneId').equals(sceneId).delete();
       await db.scenes.delete(sceneId);
+    });
+
+    // Recalculate sequential orders after deletion
+    const remaining = await db.scenes.where('showId').equals(id).sortBy('order');
+    const oldToNew = new Map<number, number>();
+    for (let i = 0; i < remaining.length; i++) {
+      oldToNew.set(remaining[i].order, i + 1);
+    }
+
+    await db.transaction('rw', [db.scenes, db.quickChanges], async () => {
+      for (let i = 0; i < remaining.length; i++) {
+        if (remaining[i].order !== i + 1) {
+          await db.scenes.update(remaining[i].id!, { order: i + 1 });
+        }
+      }
+      // Update QC afterSceneOrder
+      const qcs = await db.quickChanges.where('showId').equals(id).toArray();
+      for (const qc of qcs) {
+        const newOrder = oldToNew.get(qc.afterSceneOrder);
+        if (newOrder !== undefined && newOrder !== qc.afterSceneOrder) {
+          await db.quickChanges.update(qc.id!, { afterSceneOrder: newOrder });
+        }
+      }
     });
   }
 
@@ -282,8 +339,8 @@ export default function Scenes() {
   function renderInterleavedList() {
     const items: React.ReactElement[] = [];
 
-    // Drop indicator before first scene (slot 0)
-    if (dropTarget === 0) {
+    // Drop indicator before first scene (QC drag, slot 0)
+    if (draggingType === 'qc' && dropTarget === 0) {
       items.push(<div key="drop-0" className="qc-drop-indicator" />);
     }
 
@@ -291,13 +348,20 @@ export default function Scenes() {
     const beforeFirst = quickChanges!.filter(qc => qc.afterSceneOrder === 0);
     beforeFirst.forEach(qc => items.push(renderQuickChangeCard(qc)));
 
-    for (const scene of scenes!) {
+    for (let i = 0; i < scenes!.length; i++) {
+      const scene = scenes![i];
+      const isBeingDragged = draggingType === 'scene' && draggingId === scene.id;
+
       items.push(
         <div
           key={`scene-${scene.id}`}
           data-scene-order={scene.order}
-          className={`scene-card ${!scene.isUserInScene ? 'scene-card-inactive' : ''}`}
+          data-scene-index={i}
+          className={`scene-card ${!scene.isUserInScene ? 'scene-card-inactive' : ''} ${isBeingDragged ? 'card-dragging' : ''}`}
         >
+          {draggingType === 'scene' && dropTarget === i && draggingId !== scene.id && (
+            <div className="drop-indicator" />
+          )}
           <div
             className="scene-card-content"
             onClick={scene.isUserInScene
@@ -305,6 +369,16 @@ export default function Scenes() {
               : undefined}
             style={scene.isUserInScene ? { cursor: 'pointer' } : { cursor: 'default' }}
           >
+            <span
+              className="drag-handle"
+              onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => onHandleTouchStart(e, 'scene', scene.id!)}
+              onTouchMove={onHandleTouchMove}
+              onTouchEnd={onHandleTouchEnd}
+              onMouseDown={(e) => { e.stopPropagation(); onHandleMouseDown(e, 'scene', scene.id!); }}
+            >
+              ≡
+            </span>
             <div className="scene-info">
               <span className="scene-order">#{scene.order}</span>
               <span className="scene-name">{scene.name}</span>
@@ -321,8 +395,8 @@ export default function Scenes() {
         </div>
       );
 
-      // Drop indicator after this scene
-      if (dropTarget === scene.order) {
+      // Drop indicator after this scene (QC drag)
+      if (draggingType === 'qc' && dropTarget === scene.order) {
         items.push(<div key={`drop-${scene.order}`} className="qc-drop-indicator" />);
       }
 
@@ -331,7 +405,7 @@ export default function Scenes() {
       afterThis.forEach(qc => items.push(renderQuickChangeCard(qc)));
     }
 
-    // Orphaned quick changes (afterSceneOrder beyond any existing scene)
+    // Orphaned quick changes
     const maxOrder = scenes!.length > 0 ? Math.max(...scenes!.map(s => s.order)) : 0;
     const orphaned = quickChanges!.filter(qc =>
       qc.afterSceneOrder > maxOrder && qc.afterSceneOrder !== 0
@@ -343,7 +417,7 @@ export default function Scenes() {
 
   function renderQuickChangeCard(qc: { id?: number; label: string; speed: QuickChangeSpeed; afterSceneOrder: number }) {
     const speedClass = `qc-speed-${qc.speed}`;
-    const isBeingDragged = draggingId === qc.id;
+    const isBeingDragged = draggingType === 'qc' && draggingId === qc.id;
 
     if (editingQCId === qc.id) {
       return (
@@ -393,13 +467,12 @@ export default function Scenes() {
         className={`qc-card ${isBeingDragged ? 'qc-card-dragging' : ''}`}
       >
         <div className="qc-card-content">
-          {/* Drag handle — touch/mouse drag ONLY activates here */}
           <span
             className="qc-drag-handle"
-            onTouchStart={(e) => onHandleTouchStart(e, qc.id!)}
+            onTouchStart={(e) => onHandleTouchStart(e, 'qc', qc.id!)}
             onTouchMove={onHandleTouchMove}
             onTouchEnd={onHandleTouchEnd}
-            onMouseDown={(e) => onHandleMouseDown(e, qc.id!)}
+            onMouseDown={(e) => onHandleMouseDown(e, 'qc', qc.id!)}
           >
             ≡
           </span>
@@ -450,14 +523,6 @@ export default function Scenes() {
             className="input"
             autoFocus
           />
-          <input
-            type="text"
-            value={newOrder}
-            onChange={(e) => setNewOrder(e.target.value)}
-            placeholder="Order in show (optional)"
-            className="input"
-            inputMode="numeric"
-          />
           <label className="checkbox-label">
             <input
               type="checkbox"
@@ -466,10 +531,9 @@ export default function Scenes() {
             />
             I'm in this scene
           </label>
-          {orderError && <p className="error-text">{orderError}</p>}
           <div className="btn-row">
             <button className="btn btn-primary" onClick={addScene}>Add Scene</button>
-            <button className="btn btn-secondary" onClick={() => { setShowAddForm(false); setOrderError(''); }}>Cancel</button>
+            <button className="btn btn-secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
           </div>
         </div>
       ) : (
