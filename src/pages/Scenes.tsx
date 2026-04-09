@@ -175,7 +175,6 @@ export default function Scenes() {
       ordered.splice(toIdx, 0, moved);
 
       // Build old→new order mapping for QC afterSceneOrder updates
-      const oldOrders = scenes.map(s => s.order);
       const newOrderMap = new Map<number, number>();
       for (let i = 0; i < ordered.length; i++) {
         newOrderMap.set(ordered[i].order, i + 1);
