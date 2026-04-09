@@ -773,15 +773,10 @@ body {
 
 .qc-card-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  cursor: pointer;
+  padding: 10px 10px 10px 6px;
+  gap: 4px;
   transition: background 0.15s var(--ease);
-}
-
-.qc-card-content:active {
-  background: var(--surface-secondary);
 }
 
 .qc-info {
@@ -789,6 +784,12 @@ body {
   align-items: center;
   gap: 8px;
   min-width: 0;
+  flex: 1;
+  cursor: pointer;
+}
+
+.qc-info:active {
+  opacity: 0.7;
 }
 
 .qc-icon {
@@ -815,19 +816,22 @@ body {
   flex-shrink: 0;
 }
 
+/* Slow = green (relaxed, you have time) */
 .qc-speed-slow {
-  color: #ff3b30;
-  background: rgba(255, 59, 48, 0.12);
+  color: #34c759;
+  background: rgba(52, 199, 89, 0.12);
 }
 
+/* OK = yellow (moderate) */
 .qc-speed-ok {
   color: #d97706;
   background: rgba(217, 119, 6, 0.12);
 }
 
+/* Fast = red (urgent, rush!) */
 .qc-speed-fast {
-  color: #34c759;
-  background: rgba(52, 199, 89, 0.12);
+  color: #ff3b30;
+  background: rgba(255, 59, 48, 0.12);
 }
 
 /* Speed pill selectors in the add/edit form */
@@ -857,9 +861,9 @@ body {
 }
 
 .qc-speed-pill.qc-speed-slow.active {
-  color: #ff3b30;
-  border-color: #ff3b30;
-  background: rgba(255, 59, 48, 0.12);
+  color: #34c759;
+  border-color: #34c759;
+  background: rgba(52, 199, 89, 0.12);
 }
 
 .qc-speed-pill.qc-speed-ok.active {
@@ -869,9 +873,57 @@ body {
 }
 
 .qc-speed-pill.qc-speed-fast.active {
-  color: #34c759;
-  border-color: #34c759;
-  background: rgba(52, 199, 89, 0.12);
+  color: #ff3b30;
+  border-color: #ff3b30;
+  background: rgba(255, 59, 48, 0.12);
+}
+
+/* ===== Quick Change Drag Handle ===== */
+/* The grip icon on the left — ONLY this element initiates a drag.
+   Using touch-action:none tells the browser not to scroll when
+   the user touches this element, so our JS drag takes over. */
+.qc-drag-handle {
+  font-size: 18px;
+  color: var(--text-tertiary);
+  cursor: grab;
+  padding: 4px 6px;
+  flex-shrink: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1;
+}
+
+.qc-drag-handle:active {
+  cursor: grabbing;
+  color: var(--text-secondary);
+}
+
+/* The original card fades out while being dragged */
+.qc-card-dragging {
+  opacity: 0.3;
+}
+
+/* Floating clone — follows the finger/mouse during drag */
+.qc-drag-clone {
+  transform: scale(1.04);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  opacity: 0.92;
+}
+
+/* Drop indicator line — shows where the card will land */
+.qc-drop-indicator {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: 2px 20px;
+  animation: dropPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes dropPulse {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
 }
 
 .qc-edit-form {
