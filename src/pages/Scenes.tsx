@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type QuickChangeSpeed } from '../db/database';
@@ -126,7 +126,7 @@ export default function Scenes() {
   // For each scene, after rendering it, render any quick changes where
   // afterSceneOrder matches that scene's order.
   function renderInterleavedList() {
-    const items: JSX.Element[] = [];
+    const items: React.ReactElement[] = [];
 
     // Quick changes that come before the first scene (afterSceneOrder = 0)
     const beforeFirst = quickChanges!.filter(qc => qc.afterSceneOrder === 0);
