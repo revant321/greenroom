@@ -266,9 +266,11 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
                   <p>1. Audio recordings (harmonies + scene recordings)</p>
                   <p>2. Video files (uploaded/recorded videos)</p>
                   <p>3. External links</p>
-                  <p>4. Notes are always cleared</p>
+                  <p>4. Sheet music PDFs</p>
                   <div className="help-card-sep" />
-                  <p>The show structure (numbers, scenes, which scenes you were in) is always preserved. Access completed shows anytime via the <strong>trophy icon</strong> on the home screen.</p>
+                  <p>Notes are always cleared. The show structure (numbers, scenes, which scenes you were in, and your roles) is always preserved.</p>
+                  <div className="help-card-sep" />
+                  <p>Access completed shows anytime via the <strong>trophy icon</strong> on the home screen. You can also delete any remaining saved data later from the completed show's detail page.</p>
                 </div>
               </div>
 
