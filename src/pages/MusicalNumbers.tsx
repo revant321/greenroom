@@ -19,6 +19,7 @@ export default function MusicalNumbers() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newOrder, setNewOrder] = useState('');
+  const [orderError, setOrderError] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   async function addNumber() {
@@ -29,11 +30,19 @@ export default function MusicalNumbers() {
       ? parseInt(newOrder, 10)
       : (numbers?.length ?? 0) + 1;
 
+    // Check for duplicate order within this show
+    const duplicate = numbers?.find(n => n.order === order);
+    if (duplicate) {
+      setOrderError(`Order #${order} is already used by "${duplicate.name}".`);
+      return;
+    }
+
+    setOrderError('');
     await db.musicalNumbers.add({
       showId: id,
       name: newName.trim(),
       order,
-      notes: '',           // starts empty — user fills in on the detail page
+      notes: '',
       createdAt: new Date(),
     });
 
@@ -110,9 +119,10 @@ export default function MusicalNumbers() {
             className="input"
             inputMode="numeric"
           />
+          {orderError && <p className="error-text">{orderError}</p>}
           <div className="btn-row">
             <button className="btn btn-primary" onClick={addNumber}>Add Number</button>
-            <button className="btn btn-secondary" onClick={() => setShowAddForm(false)}>Cancel</button>
+            <button className="btn btn-secondary" onClick={() => { setShowAddForm(false); setOrderError(''); }}>Cancel</button>
           </div>
         </div>
       ) : (

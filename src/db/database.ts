@@ -109,6 +109,19 @@ export interface SongSheetMusic {
   createdAt: Date;
 }
 
+// ----- Quick Changes (between scenes) -----
+
+export type QuickChangeSpeed = 'slow' | 'ok' | 'fast';
+
+export interface QuickChange {
+  id?: number;
+  showId: number;
+  label: string;
+  speed: QuickChangeSpeed;
+  afterSceneOrder: number;  // appears after the scene with this order number
+  createdAt: Date;
+}
+
 // ----- Database class -----
 
 class GreenroomDB extends Dexie {
@@ -119,6 +132,7 @@ class GreenroomDB extends Dexie {
   sheetMusic!: Table<SheetMusic, number>;
   scenes!: Table<Scene, number>;
   sceneRecordings!: Table<SceneRecording, number>;
+  quickChanges!: Table<QuickChange, number>;
   songs!: Table<Song, number>;
   songParts!: Table<SongPart, number>;
   songTracks!: Table<SongTrack, number>;
@@ -163,6 +177,11 @@ class GreenroomDB extends Dexie {
         if (song.category === undefined) song.category = null;
         if (song.status === undefined) song.status = 'in-progress';
       });
+    });
+
+    // Version 5 — quick changes between scenes (costume/prop changes)
+    this.version(5).stores({
+      quickChanges: '++id, showId, afterSceneOrder',
     });
   }
 }

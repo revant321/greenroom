@@ -233,7 +233,7 @@ function ShowsView() {
   }
 
   async function deleteShow(id: number) {
-    await db.transaction('rw', [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings], async () => {
+    await db.transaction('rw', [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings, db.quickChanges], async () => {
       const numbers = await db.musicalNumbers.where('showId').equals(id).toArray();
       const numberIds = numbers.map((n) => n.id!);
       await db.harmonies.where('musicalNumberId').anyOf(numberIds).delete();
@@ -244,6 +244,7 @@ function ShowsView() {
       const sceneIds = scenes.map((s) => s.id!);
       await db.sceneRecordings.where('sceneId').anyOf(sceneIds).delete();
       await db.scenes.where('showId').equals(id).delete();
+      await db.quickChanges.where('showId').equals(id).delete();
       await db.shows.delete(id);
     });
   }

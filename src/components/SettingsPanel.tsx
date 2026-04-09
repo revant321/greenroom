@@ -73,7 +73,7 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
 
       const json = JSON.stringify(exportData, null, 2);
       const blob = new Blob([json], { type: 'application/octet-stream' });
-      downloadBlob(blob, `greenroom-all-songs-${Date.now()}.grm`);
+      downloadBlob(blob, 'all-songs.grm');
       setExportMsg(`Exported ${songs.length} song(s).`);
     } catch (err) {
       setExportMsg('Export failed. Please try again.');
@@ -103,7 +103,7 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
 
       const json = JSON.stringify(exportData, null, 2);
       const blob = new Blob([json], { type: 'application/octet-stream' });
-      downloadBlob(blob, `greenroom-all-shows-${Date.now()}.grm`);
+      downloadBlob(blob, 'all-shows.grm');
       setExportShowsMsg(`Exported ${shows.length} show(s).`);
     } catch (err) {
       setExportShowsMsg('Export failed. Please try again.');

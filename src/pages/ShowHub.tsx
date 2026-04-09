@@ -44,7 +44,8 @@ export default function ShowHub() {
 
   async function markCompleted() {
     // Run all deletions in a single transaction for atomicity
-    await db.transaction('rw', [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings], async () => {
+    // Quick changes are structural — they stay on completion (like scenes/numbers).
+    await db.transaction('rw', [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings, db.quickChanges], async () => {
       const numbers = await db.musicalNumbers.where('showId').equals(id).toArray();
       const numberIds = numbers.map((n) => n.id!);
       const scenes = await db.scenes.where('showId').equals(id).toArray();

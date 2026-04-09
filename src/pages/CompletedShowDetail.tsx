@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Harmony, type DanceVideo, type SheetMusic, type SceneRecording } from '../db/database';
+import { db, type Harmony, type DanceVideo, type SheetMusic, type SceneRecording, type QuickChange } from '../db/database';
 import { exportShowAsGrm } from '../utils/showExportImport';
 
 /**
@@ -30,6 +30,10 @@ export default function CompletedShowDetail() {
   );
   const scenes = useLiveQuery(
     () => db.scenes.where('showId').equals(id).sortBy('order'),
+    [id]
+  );
+  const quickChanges = useLiveQuery(
+    () => db.quickChanges.where('showId').equals(id).toArray(),
     [id]
   );
 
@@ -166,19 +170,28 @@ export default function CompletedShowDetail() {
         )}
       </section>
 
-      {/* Scenes Section */}
+      {/* Scenes Section (with quick changes interleaved) */}
       <section className="detail-section">
         <h3 className="detail-section-title">Scenes</h3>
         {scenes && scenes.length > 0 ? (
           <div className="completed-items-list">
+            {/* Quick changes before first scene */}
+            {(quickChanges || []).filter(qc => qc.afterSceneOrder === 0).map(qc => (
+              <CompletedQuickChangeCard key={`qc-${qc.id}`} qc={qc} />
+            ))}
             {scenes.map((scene) => (
-              <CompletedSceneCard
-                key={scene.id}
-                name={scene.name}
-                order={scene.order}
-                isUserInScene={scene.isUserInScene}
-                recordings={(allSceneRecordings || []).filter((r) => r.sceneId === scene.id)}
-              />
+              <div key={scene.id}>
+                <CompletedSceneCard
+                  name={scene.name}
+                  order={scene.order}
+                  isUserInScene={scene.isUserInScene}
+                  recordings={(allSceneRecordings || []).filter((r) => r.sceneId === scene.id)}
+                />
+                {/* Quick changes after this scene */}
+                {(quickChanges || []).filter(qc => qc.afterSceneOrder === scene.order).map(qc => (
+                  <CompletedQuickChangeCard key={`qc-${qc.id}`} qc={qc} />
+                ))}
+              </div>
             ))}
           </div>
         ) : (
@@ -471,6 +484,24 @@ function ReadOnlyRecording({ recording }: { recording: SceneRecording }) {
       ) : mediaUrl ? (
         <video controls src={mediaUrl} className="recording-video" />
       ) : null}
+    </div>
+  );
+}
+
+// ---------- Completed Quick Change Card ----------
+
+function CompletedQuickChangeCard({ qc }: { qc: QuickChange }) {
+  return (
+    <div className="qc-card" style={{ margin: '4px 0 4px 20px' }}>
+      <div className="qc-card-content" style={{ cursor: 'default' }}>
+        <div className="qc-info">
+          <span className="qc-icon">⚡</span>
+          <span className="qc-label">{qc.label}</span>
+          <span className={`qc-speed-badge qc-speed-${qc.speed}`}>
+            {qc.speed.charAt(0).toUpperCase() + qc.speed.slice(1)}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

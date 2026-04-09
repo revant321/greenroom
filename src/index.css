@@ -760,6 +760,127 @@ body {
   font-style: italic;
 }
 
+/* ===== Quick Change Cards ===== */
+/* Visually distinct from scene cards — narrower, orange accent border,
+   italic text to clearly signal "this is not a scene." */
+.qc-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border-left: 3px solid #f59e0b;
+  margin: 4px 0 4px 20px;
+}
+
+.qc-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+
+.qc-card-content:active {
+  background: var(--surface-secondary);
+}
+
+.qc-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.qc-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.qc-label {
+  font-size: 15px;
+  font-weight: 500;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qc-speed-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.qc-speed-slow {
+  color: #ff3b30;
+  background: rgba(255, 59, 48, 0.12);
+}
+
+.qc-speed-ok {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+}
+
+.qc-speed-fast {
+  color: #34c759;
+  background: rgba(52, 199, 89, 0.12);
+}
+
+/* Speed pill selectors in the add/edit form */
+.qc-speed-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.qc-speed-pill {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--separator);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  min-height: 44px;
+  text-align: center;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.qc-speed-pill:active {
+  transform: scale(0.97);
+}
+
+.qc-speed-pill.qc-speed-slow.active {
+  color: #ff3b30;
+  border-color: #ff3b30;
+  background: rgba(255, 59, 48, 0.12);
+}
+
+.qc-speed-pill.qc-speed-ok.active {
+  color: #d97706;
+  border-color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+}
+
+.qc-speed-pill.qc-speed-fast.active {
+  color: #34c759;
+  border-color: #34c759;
+  background: rgba(52, 199, 89, 0.12);
+}
+
+.qc-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
 /* ===== Checkbox Label ===== */
 .checkbox-label {
   display: flex;

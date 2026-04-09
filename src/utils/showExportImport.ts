@@ -115,6 +115,15 @@ export async function exportShowData(showId: number): Promise<Record<string, unk
     };
   }));
 
+  // Fetch quick changes for this show
+  const quickChanges = await db.quickChanges.where('showId').equals(showId).toArray();
+  const quickChangesExport = quickChanges.map(qc => ({
+    label: qc.label,
+    speed: qc.speed,
+    afterSceneOrder: qc.afterSceneOrder,
+    createdAt: qc.createdAt,
+  }));
+
   return {
     type: 'show',
     show: {
@@ -126,6 +135,7 @@ export async function exportShowData(showId: number): Promise<Record<string, unk
     },
     musicalNumbers,
     scenes: scenesExport,
+    quickChanges: quickChangesExport,
   };
 }
 
@@ -138,7 +148,7 @@ export async function exportShowAsGrm(showId: number, showName: string): Promise
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/octet-stream' });
   const safeName = showName.replace(/[^a-zA-Z0-9-_ ]/g, '').trim().replace(/\s+/g, '-');
-  downloadBlob(blob, `${safeName}-${Date.now()}.grm`);
+  downloadBlob(blob, `${safeName}-show.grm`);
 }
 
 // ==================== IMPORT ====================
@@ -158,7 +168,7 @@ export async function importShowEntry(
 ): Promise<void> {
   await db.transaction(
     'rw',
-    [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings],
+    [db.shows, db.musicalNumbers, db.harmonies, db.danceVideos, db.sheetMusic, db.scenes, db.sceneRecordings, db.quickChanges],
     async () => {
       // If replacing, delete the old show and all its children first
       if (replaceId) {
@@ -250,6 +260,18 @@ export async function importShowEntry(
           });
         }
       }
+
+      // Import quick changes
+      const qcEntries = (entry.quickChanges || []) as Record<string, unknown>[];
+      for (const qc of qcEntries) {
+        await db.quickChanges.add({
+          showId,
+          label: qc.label as string,
+          speed: qc.speed as 'slow' | 'ok' | 'fast',
+          afterSceneOrder: qc.afterSceneOrder as number,
+          createdAt: new Date(qc.createdAt as string),
+        });
+      }
     }
   );
 }
@@ -274,6 +296,7 @@ async function deleteShowData(showId: number): Promise<void> {
     await db.sceneRecordings.where('sceneId').anyOf(sceneIds).delete();
   }
   await db.scenes.where('showId').equals(showId).delete();
+  await db.quickChanges.where('showId').equals(showId).delete();
 
   await db.shows.delete(showId);
 }

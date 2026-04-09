@@ -87,8 +87,8 @@ export default function SongDetail() {
 
     const json = JSON.stringify(exportData, null, 2);
     const blob = new Blob([json], { type: 'application/octet-stream' });
-    const safeName = song.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
-    downloadBlob(blob, `${safeName}.grm`);
+    const safeName = song.title.replace(/[^a-zA-Z0-9-_ ]/g, '').trim().replace(/\s+/g, '-');
+    downloadBlob(blob, `${safeName}-song.grm`);
   }
 
   if (song === undefined) return <div className="page"><p>Loading...</p></div>;
