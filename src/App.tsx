@@ -15,7 +15,7 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       {/* Settings gear — always visible in top-right corner of every page */}
       <button
         className="settings-gear"

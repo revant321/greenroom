@@ -7,7 +7,7 @@ const CACHE_NAME = 'greenroom-v1';
 // Vite-built assets have hashed filenames and are cached on first fetch.
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/']))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(['/greenroom/']))
   );
   // Activate immediately instead of waiting for old tabs to close
   self.skipWaiting();
@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match('/'))
+        .catch(() => caches.match('/greenroom/'))
     );
   } else {
     // Assets: try cache first, fall back to network (and cache the result)

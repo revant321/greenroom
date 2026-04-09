@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>greenroom</title>
+    <script>
+      // GitHub Pages SPA redirect trick:
+      // GH Pages serves this 404.html for any route that isn't a real file.
+      // We redirect to index.html, encoding the original path in a query param
+      // so the SPA can pick it up and navigate to the right route.
+      var pathSegmentsToKeep = 1; // keep '/greenroom' prefix
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
