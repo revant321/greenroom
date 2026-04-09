@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Scene } from '../db/database';
+import { db } from '../db/database';
 
 export default function Scenes() {
   const { showId } = useParams<{ showId: string }>();
@@ -20,12 +20,7 @@ export default function Scenes() {
   const [newName, setNewName] = useState('');
   const [newOrder, setNewOrder] = useState('');
   const [newIsUserIn, setNewIsUserIn] = useState(true);
-
-  // Edit state — tracks which scene is being edited
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editOrder, setEditOrder] = useState('');
-  const [editIsUserIn, setEditIsUserIn] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   async function addScene() {
     if (!newName.trim()) return;
@@ -47,25 +42,6 @@ export default function Scenes() {
     setNewOrder('');
     setNewIsUserIn(true);
     setShowAddForm(false);
-  }
-
-  function startEdit(scene: Scene) {
-    setEditingId(scene.id!);
-    setEditName(scene.name);
-    setEditOrder(String(scene.order));
-    setEditIsUserIn(scene.isUserInScene);
-  }
-
-  async function saveEdit() {
-    if (!editingId || !editName.trim()) return;
-
-    await db.scenes.update(editingId, {
-      name: editName.trim(),
-      order: parseInt(editOrder, 10) || 0,
-      isUserInScene: editIsUserIn,
-    });
-
-    setEditingId(null);
   }
 
   async function deleteScene(sceneId: number) {
@@ -100,64 +76,26 @@ export default function Scenes() {
               key={scene.id}
               className={`scene-card ${!scene.isUserInScene ? 'scene-card-inactive' : ''}`}
             >
-              {editingId === scene.id ? (
-                /* Inline edit form — same pattern as MusicalNumbers */
-                <div className="scene-edit-form">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    placeholder="Scene name"
-                    className="input"
-                    autoFocus
-                  />
-                  <input
-                    type="text"
-                    value={editOrder}
-                    onChange={(e) => setEditOrder(e.target.value)}
-                    placeholder="Order in show"
-                    className="input"
-                    inputMode="numeric"
-                  />
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={editIsUserIn}
-                      onChange={(e) => setEditIsUserIn(e.target.checked)}
-                    />
-                    I'm in this scene
-                  </label>
-                  <div className="btn-row">
-                    <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                    <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                  </div>
+              <div
+                className="scene-card-content"
+                onClick={scene.isUserInScene
+                  ? () => navigate(`/show/${id}/scenes/${scene.id}`)
+                  : undefined}
+                style={scene.isUserInScene ? { cursor: 'pointer' } : { cursor: 'default' }}
+              >
+                <div className="scene-info">
+                  <span className="scene-order">#{scene.order}</span>
+                  <span className="scene-name">{scene.name}</span>
+                  {!scene.isUserInScene && (
+                    <span className="scene-not-in-badge">Not in scene</span>
+                  )}
                 </div>
-              ) : (
-                <div
-                  className="scene-card-content"
-                  /* Only tappable if the user is in the scene */
-                  onClick={scene.isUserInScene
-                    ? () => navigate(`/show/${id}/scenes/${scene.id}`)
-                    : undefined}
-                  style={scene.isUserInScene ? { cursor: 'pointer' } : { cursor: 'default' }}
-                >
-                  <div className="scene-info">
-                    <span className="scene-order">#{scene.order}</span>
-                    <span className="scene-name">{scene.name}</span>
-                    {!scene.isUserInScene && (
-                      <span className="scene-not-in-badge">Not in scene</span>
-                    )}
-                  </div>
-                  <div className="show-actions" onClick={(e) => e.stopPropagation()}>
-                    <button className="icon-btn small" onClick={() => startEdit(scene)} title="Edit">
-                      ✏️
-                    </button>
-                    <button className="icon-btn small" onClick={() => deleteScene(scene.id!)} title="Delete">
-                      🗑️
-                    </button>
-                  </div>
+                <div className="show-actions" onClick={(e) => e.stopPropagation()}>
+                  <button className="icon-btn small delete-x-btn" onClick={() => setDeleteConfirmId(scene.id!)} title="Delete">
+                    ×
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           ))
         )}
@@ -199,6 +137,23 @@ export default function Scenes() {
         <button className="btn btn-primary add-show-btn" onClick={() => setShowAddForm(true)}>
           + Add Scene
         </button>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
+          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Scene</h3>
+            <p>This will permanently delete this scene and all its recordings.</p>
+            <div className="delete-confirm-actions">
+              <button className="delete-confirm-btn delete-confirm-btn-confirm" onClick={() => { deleteScene(deleteConfirmId); setDeleteConfirmId(null); }}>
+                Confirm
+              </button>
+              <button className="delete-confirm-btn delete-confirm-btn-cancel" onClick={() => setDeleteConfirmId(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

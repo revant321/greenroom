@@ -136,7 +136,7 @@ export async function exportShowData(showId: number): Promise<Record<string, unk
 export async function exportShowAsGrm(showId: number, showName: string): Promise<void> {
   const data = await exportShowData(showId);
   const json = JSON.stringify(data, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
+  const blob = new Blob([json], { type: 'application/octet-stream' });
   const safeName = showName.replace(/[^a-zA-Z0-9-_ ]/g, '').trim().replace(/\s+/g, '-');
   downloadBlob(blob, `${safeName}-${Date.now()}.grm`);
 }

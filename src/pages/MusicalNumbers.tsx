@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type MusicalNumber } from '../db/database';
+import { db } from '../db/database';
 
 export default function MusicalNumbers() {
   const { showId } = useParams<{ showId: string }>();
@@ -19,11 +19,7 @@ export default function MusicalNumbers() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newOrder, setNewOrder] = useState('');
-
-  // Edit state — tracks which number is being edited
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editOrder, setEditOrder] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   async function addNumber() {
     if (!newName.trim()) return;
@@ -44,23 +40,6 @@ export default function MusicalNumbers() {
     setNewName('');
     setNewOrder('');
     setShowAddForm(false);
-  }
-
-  function startEdit(num: MusicalNumber) {
-    setEditingId(num.id!);
-    setEditName(num.name);
-    setEditOrder(String(num.order));
-  }
-
-  async function saveEdit() {
-    if (!editingId || !editName.trim()) return;
-
-    await db.musicalNumbers.update(editingId, {
-      name: editName.trim(),
-      order: parseInt(editOrder, 10) || 0,
-    });
-
-    setEditingId(null);
   }
 
   async function deleteNumber(numberId: number) {
@@ -93,48 +72,20 @@ export default function MusicalNumbers() {
         ) : (
           numbers.map((num) => (
             <div key={num.id} className="number-card">
-              {editingId === num.id ? (
-                <div className="number-edit-form">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    placeholder="Number name"
-                    className="input"
-                    autoFocus
-                  />
-                  <input
-                    type="text"
-                    value={editOrder}
-                    onChange={(e) => setEditOrder(e.target.value)}
-                    placeholder="Order in show"
-                    className="input"
-                    inputMode="numeric"
-                  />
-                  <div className="btn-row">
-                    <button className="btn btn-primary" onClick={saveEdit}>Save</button>
-                    <button className="btn btn-secondary" onClick={() => setEditingId(null)}>Cancel</button>
-                  </div>
+              <div
+                className="number-card-content"
+                onClick={() => navigate(`/show/${id}/numbers/${num.id}`)}
+              >
+                <div className="number-info">
+                  <span className="number-order">#{num.order}</span>
+                  <span className="number-name">{num.name}</span>
                 </div>
-              ) : (
-                <div
-                  className="number-card-content"
-                  onClick={() => navigate(`/show/${id}/numbers/${num.id}`)}
-                >
-                  <div className="number-info">
-                    <span className="number-order">#{num.order}</span>
-                    <span className="number-name">{num.name}</span>
-                  </div>
-                  <div className="show-actions" onClick={(e) => e.stopPropagation()}>
-                    <button className="icon-btn small" onClick={() => startEdit(num)} title="Edit">
-                      ✏️
-                    </button>
-                    <button className="icon-btn small" onClick={() => deleteNumber(num.id!)} title="Delete">
-                      🗑️
-                    </button>
-                  </div>
+                <div className="show-actions" onClick={(e) => e.stopPropagation()}>
+                  <button className="icon-btn small delete-x-btn" onClick={() => setDeleteConfirmId(num.id!)} title="Delete">
+                    ×
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
           ))
         )}
@@ -168,6 +119,23 @@ export default function MusicalNumbers() {
         <button className="btn btn-primary add-show-btn" onClick={() => setShowAddForm(true)}>
           + Add Musical Number
         </button>
+      )}
+
+      {deleteConfirmId !== null && (
+        <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
+          <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete Number</h3>
+            <p>This will permanently delete this musical number and all its data.</p>
+            <div className="delete-confirm-actions">
+              <button className="delete-confirm-btn delete-confirm-btn-confirm" onClick={() => { deleteNumber(deleteConfirmId); setDeleteConfirmId(null); }}>
+                Confirm
+              </button>
+              <button className="delete-confirm-btn delete-confirm-btn-cancel" onClick={() => setDeleteConfirmId(null)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

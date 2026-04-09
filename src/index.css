@@ -436,36 +436,15 @@ body {
 .number-list, .scene-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
-/* Grouped card style for number/scene lists */
+/* Individual floating cards for numbers and scenes */
 .number-card, .scene-card {
   background: var(--surface);
-  border-radius: 0;
-  box-shadow: none;
-  overflow: hidden;
-}
-
-.number-list .number-card:first-child,
-.scene-list .scene-card:first-child {
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-
-.number-list .number-card:last-child,
-.scene-list .scene-card:last-child {
-  border-radius: 0 0 var(--radius) var(--radius);
-}
-
-.number-list .number-card:only-child,
-.scene-list .scene-card:only-child {
   border-radius: var(--radius);
-}
-
-.number-list .number-card:not(:last-child),
-.scene-list .scene-card:not(:last-child) {
-  border-bottom: 0.5px solid var(--separator);
+  overflow: hidden;
 }
 
 .number-card-content {

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Song, type SongCategory, type SongStatus } from '../db/database';
@@ -394,7 +395,7 @@ function ShowsView() {
         </div>
       )}
 
-      {deleteConfirmId !== null && (
+      {deleteConfirmId !== null && createPortal(
         <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
           <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Delete Show</h3>
@@ -408,7 +409,8 @@ function ShowsView() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
@@ -757,7 +759,7 @@ function SongsView() {
         </div>
       )}
 
-      {deleteConfirmId !== null && (
+      {deleteConfirmId !== null && createPortal(
         <div className="delete-confirm-backdrop" onClick={() => setDeleteConfirmId(null)}>
           <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
             <h3>Delete Song</h3>
@@ -771,7 +773,8 @@ function SongsView() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

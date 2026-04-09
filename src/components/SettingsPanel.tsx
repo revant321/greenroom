@@ -72,7 +72,7 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
       }
 
       const json = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
+      const blob = new Blob([json], { type: 'application/octet-stream' });
       downloadBlob(blob, `greenroom-all-songs-${Date.now()}.grm`);
       setExportMsg(`Exported ${songs.length} song(s).`);
     } catch (err) {
@@ -102,7 +102,7 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
       }
 
       const json = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([json], { type: 'application/json' });
+      const blob = new Blob([json], { type: 'application/octet-stream' });
       downloadBlob(blob, `greenroom-all-shows-${Date.now()}.grm`);
       setExportShowsMsg(`Exported ${shows.length} show(s).`);
     } catch (err) {

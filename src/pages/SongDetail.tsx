@@ -86,7 +86,7 @@ export default function SongDetail() {
     };
 
     const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: 'application/octet-stream' });
     const safeName = song.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     downloadBlob(blob, `${safeName}.grm`);
   }
