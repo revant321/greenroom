@@ -36,6 +36,7 @@ export default function Home() {
   const touchStartY = useRef(0);
   const isDragging = useRef(false);
   const isVerticalScroll = useRef(false);
+  const swipeOffsetRef = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
@@ -71,36 +72,44 @@ export default function Home() {
     const rawTarget = baseTranslate + dx;
 
     // Boundaries: can't go further left than 0 (songs) or further right than -containerWidth (shows)
+    let offset: number;
     if (rawTarget > 0) {
-      setSwipeOffset(dx / 3); // rubber-band
+      offset = dx / 3; // rubber-band
     } else if (rawTarget < -containerWidth) {
-      setSwipeOffset(dx / 3); // rubber-band
+      offset = dx / 3; // rubber-band
     } else {
-      setSwipeOffset(dx);
+      offset = dx;
     }
+    swipeOffsetRef.current = offset;
+    setSwipeOffset(offset);
   }, [pageIndex]);
 
   const onTouchEnd = useCallback(() => {
     if (!isDragging.current) {
+      swipeOffsetRef.current = 0;
       setSwipeOffset(0);
       return;
     }
 
+    // Read from ref — React 18 batches state updates, so the state value
+    // captured in this closure may be stale. The ref is set synchronously
+    // in onTouchMove so it always reflects the latest drag position.
+    const currentOffset = swipeOffsetRef.current;
     const containerWidth = containerRef.current?.offsetWidth || window.innerWidth;
-    // If the user dragged more than 25% of the width, switch pages
     const threshold = containerWidth * 0.25;
 
     let newIndex = pageIndex;
-    if (swipeOffset < -threshold && pageIndex === 0) {
+    if (currentOffset < -threshold && pageIndex === 0) {
       newIndex = 1; // swiped left → go to Shows
-    } else if (swipeOffset > threshold && pageIndex === 1) {
+    } else if (currentOffset > threshold && pageIndex === 1) {
       newIndex = 0; // swiped right → go to Songs
     }
 
     setPageIndex(newIndex);
+    swipeOffsetRef.current = 0;
     setSwipeOffset(0);
     isDragging.current = false;
-  }, [pageIndex, swipeOffset]);
+  }, [pageIndex]);
 
   // Calculate the slider translation. During a drag, add the live offset.
   // When idle (swipeOffset=0), just translate based on pageIndex.
@@ -129,14 +138,16 @@ export default function Home() {
     <div className="page home-page-content">
       <header className="page-header">
         <h1>greenroom</h1>
-        <button
-          className="icon-btn"
-          onClick={() => navigate('/completed')}
-          title="Completed Shows"
-        >
-          🏆
-        </button>
       </header>
+
+      {/* Trophy icon — fixed circle next to the settings gear */}
+      <button
+        className="trophy-btn"
+        onClick={() => navigate('/completed')}
+        title="Completed Shows"
+      >
+        🏆
+      </button>
 
       {/* Swipeable container — holds both views side by side */}
       <div
@@ -317,6 +328,14 @@ function ShowsView() {
 
   return (
     <>
+      {/* Import button — above the show list */}
+      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
+        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
+          Import Show
+          <input type="file" accept=".grm" onChange={handleShowImport} hidden />
+        </label>
+      </div>
+
       <div className="show-list">
         {activeShows === undefined ? (
           <p className="empty-state">Loading...</p>
@@ -351,14 +370,6 @@ function ShowsView() {
             </div>
           ))
         )}
-      </div>
-
-      {/* Import Show button */}
-      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
-        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
-          Import Show
-          <input type="file" accept=".grm" onChange={handleShowImport} hidden />
-        </label>
       </div>
 
       {showForm ? (
@@ -628,6 +639,20 @@ function SongsView() {
         </div>
       </div>
 
+      {/* Import button — below filters, above list */}
+      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
+        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
+          Import Song
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".grm"
+            onChange={handleImportFile}
+            hidden
+          />
+        </label>
+      </div>
+
       <div className="song-list">
         {filteredSongs === undefined ? (
           <p className="empty-state">Loading...</p>
@@ -681,20 +706,6 @@ function SongsView() {
             </div>
           ))
         )}
-      </div>
-
-      {/* Import + Create buttons */}
-      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
-        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
-          Import Song
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".grm"
-            onChange={handleImportFile}
-            hidden
-          />
-        </label>
       </div>
 
       {showForm ? (
