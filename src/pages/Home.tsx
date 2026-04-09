@@ -181,16 +181,14 @@ export default function Home() {
           style={songsPillStyle}
           onClick={() => { setPageIndex(0); setSwipeOffset(0); }}
         >
-          <span className="home-nav-icon">🎵</span>
-          <span className="home-nav-label">Songs</span>
+          Songs
         </button>
         <button
           className="home-nav-item"
           style={showsPillStyle}
           onClick={() => { setPageIndex(1); setSwipeOffset(0); }}
         >
-          <span className="home-nav-icon">🎭</span>
-          <span className="home-nav-label">Shows</span>
+          Shows
         </button>
       </nav>
     </div>
@@ -328,14 +326,6 @@ function ShowsView() {
 
   return (
     <>
-      {/* Import button — above the show list */}
-      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
-        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
-          Import Show
-          <input type="file" accept=".grm" onChange={handleShowImport} hidden />
-        </label>
-      </div>
-
       <div className="show-list">
         {activeShows === undefined ? (
           <p className="empty-state">Loading...</p>
@@ -386,6 +376,14 @@ function ShowsView() {
           + New Show
         </button>
       )}
+
+      {/* Import button — pinned at the bottom of the page, above nav pills */}
+      <div className="home-import-bar">
+        <label className="btn btn-secondary home-import-btn">
+          Import Show
+          <input type="file" accept=".grm" onChange={handleShowImport} hidden />
+        </label>
+      </div>
 
       {/* Duplicate show detection modal */}
       {importModal && (
@@ -639,20 +637,6 @@ function SongsView() {
         </div>
       </div>
 
-      {/* Import button — below filters, above list */}
-      <div className="btn-row" style={{ gap: 8, marginBottom: 12 }}>
-        <label className="btn btn-secondary" style={{ flex: 1, textAlign: 'center', cursor: 'pointer' }}>
-          Import Song
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".grm"
-            onChange={handleImportFile}
-            hidden
-          />
-        </label>
-      </div>
-
       <div className="song-list">
         {filteredSongs === undefined ? (
           <p className="empty-state">Loading...</p>
@@ -725,6 +709,20 @@ function SongsView() {
           + New Song
         </button>
       )}
+
+      {/* Import button — pinned at the bottom of the page, above nav pills */}
+      <div className="home-import-bar">
+        <label className="btn btn-secondary home-import-btn">
+          Import Song
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".grm"
+            onChange={handleImportFile}
+            hidden
+          />
+        </label>
+      </div>
 
       {/* Duplicate detection modal */}
       {importModal && (

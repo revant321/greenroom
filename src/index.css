@@ -1135,10 +1135,26 @@ body {
   font-size: 18px;
 }
 
+/* ===== Homepage Import Bar — fixed above the nav pills ===== */
+.home-import-bar {
+  position: fixed;
+  bottom: calc(68px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 900;
+  width: calc(100% - 32px);
+  max-width: 568px;
+}
+
+.home-import-btn {
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+}
+
 /* ===== Homepage Bottom Nav — Floating Pill Bubbles ===== */
 .home-bottom-nav {
   position: fixed;
-  /* Slightly lower — 10px base + safe area keeps it above the home indicator */
   bottom: calc(10px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
@@ -1150,19 +1166,17 @@ body {
 .home-nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  /* Larger pills — increased padding all around */
-  padding: 14px 30px;
+  justify-content: center;
+  padding: 14px 34px;
   border: none;
   border-radius: 999px;
   cursor: pointer;
   font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   min-height: 48px;
   background: var(--surface);
   color: var(--text-secondary);
-  /* Subtle shadow for floating effect */
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.25s var(--ease), opacity 0.2s var(--ease);
 }
@@ -1172,25 +1186,20 @@ body {
   opacity: 0.7;
 }
 
-.home-nav-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.home-nav-label {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-/* Add bottom padding to home page so content doesn't hide behind the nav bar */
+/* Add bottom padding to home page so content doesn't hide behind import bar + nav */
 .home-page-content {
-  padding-bottom: 100px;
+  padding-bottom: 140px;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
 /* ===== Swipe Container for Homepage ===== */
 .swipe-container {
   overflow: hidden;
-  min-height: 200px;
+  /* Fill all remaining vertical space so swipe works across the full screen */
+  flex: 1;
+  min-height: 0;
 }
 
 .swipe-slider {
@@ -1803,10 +1812,9 @@ body {
     border-color: rgba(217, 119, 6, 0.35);
   }
 
-  /* Slightly brighter home nav pills in dark mode */
   .home-nav-item {
     background: #1c1c1e;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
   }
 }
 
