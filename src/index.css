@@ -1,0 +1,794 @@
+/* ===== CSS Variables — Light Mode ===== */
+:root {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --text: #1c1c1e;
+  --text-secondary: #8e8e93;
+  --accent: #5856d6;
+  --accent-hover: #4a48c4;
+  --danger: #ff3b30;
+  --border: #d1d1d6;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  --sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ===== Dark Mode ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a1a;
+    --surface: #1c1c1e;
+    --text: #f2f2f7;
+    --text-secondary: #98989d;
+    --accent: #7b79e8;
+    --accent-hover: #6b69d6;
+    --danger: #ff453a;
+    --border: #38383a;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ===== Reset & Base ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: 0 16px env(safe-area-inset-bottom);
+}
+
+/* ===== Page Layout ===== */
+.page {
+  padding: 16px 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--border);
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.icon-btn:hover {
+  background: var(--surface);
+}
+
+.icon-btn.small {
+  font-size: 18px;
+}
+
+/* ===== Show Cards ===== */
+.show-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.show-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.show-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.show-card-content:hover {
+  background: var(--bg);
+}
+
+.show-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.show-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.show-roles {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.show-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* ===== Forms ===== */
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: var(--sans);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.new-show-form,
+.show-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.add-show-btn {
+  width: 100%;
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 40px 0;
+  font-size: 16px;
+}
+
+/* ===== Back Button ===== */
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* ===== Link-Style Button ===== */
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--sans);
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+/* ===== Show Hub ===== */
+.hub-title-section {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.hub-show-name {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.hub-show-roles {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.hub-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.hub-nav-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.hub-nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: var(--surface);
+  border: none;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.hub-nav-btn:hover {
+  background: var(--bg);
+}
+
+.hub-nav-btn:active {
+  transform: scale(0.97);
+}
+
+.hub-nav-icon {
+  font-size: 32px;
+}
+
+.hub-nav-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--sans);
+}
+
+.hub-complete-section {
+  margin-top: 16px;
+}
+
+.complete-btn {
+  width: 100%;
+}
+
+.complete-confirm {
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.complete-confirm p {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.complete-hint {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.complete-confirm .btn-row {
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* ===== Musical Numbers List ===== */
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.number-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.number-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.number-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.number-card-content:hover {
+  background: var(--bg);
+}
+
+.number-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.number-order {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 28px;
+}
+
+.number-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.number-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ===== Musical Number Detail ===== */
+.detail-title-section {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.detail-order {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.detail-name {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.notes-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: var(--sans);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.5;
+  transition: border-color 0.15s;
+}
+
+.notes-textarea:focus {
+  border-color: var(--accent);
+}
+
+.save-notes-btn {
+  margin-top: 8px;
+}
+
+/* ===== Harmonies ===== */
+.harmony-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.harmony-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.harmony-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.harmony-measure {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.harmony-caption {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.harmony-audio {
+  width: 100%;
+  height: 36px;
+}
+
+.harmony-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+/* ===== Harmony Recorder ===== */
+.harmony-recorder {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+}
+
+.audio-input-methods {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio-input-or {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.upload-label {
+  cursor: pointer;
+  text-align: center;
+}
+
+.audio-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.audio-preview audio {
+  width: 100%;
+  height: 36px;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+
+.error-text {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* ===== Audio Waveform Visualizer ===== */
+.audio-waveform {
+  width: 100%;
+  height: 60px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+/* ===== Measure Number Inputs ===== */
+.measure-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.measure-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-family: var(--sans);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.15s;
+  /* Hide spinner arrows on number inputs for a cleaner look */
+  -moz-appearance: textfield;
+}
+
+.measure-input::-webkit-inner-spin-button,
+.measure-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.measure-input:focus {
+  border-color: var(--accent);
+}
+
+.measure-dash {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.measure-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: -4px;
+}
+
+.empty-state-small {
+  padding: 20px 0;
+}
+
+/* ===== Scenes List ===== */
+.scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.scene-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Grayed-out style for scenes the user is NOT in */
+.scene-card-inactive {
+  opacity: 0.45;
+}
+
+.scene-card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  transition: background 0.15s;
+}
+
+/* Only show hover effect on tappable (active) scenes */
+.scene-card:not(.scene-card-inactive) .scene-card-content:hover {
+  background: var(--bg);
+}
+
+.scene-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scene-order {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 28px;
+}
+
+.scene-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.scene-not-in-badge {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.scene-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+}
+
+/* ===== Checkbox Label ===== */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+/* ===== Scene Recordings ===== */
+.recording-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.recording-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.recording-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recording-caption {
+  font-size: 14px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.recording-type-badge {
+  font-size: 16px;
+}
+
+.recording-delete {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.recording-audio {
+  width: 100%;
+  height: 36px;
+}
+
+.recording-video {
+  width: 100%;
+  border-radius: 8px;
+}
+
+/* ===== Scene Recorder ===== */
+.scene-recorder {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 12px;
+}
+
+.media-type-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.media-type-toggle .btn {
+  flex: 1;
+}
+
+.media-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.media-preview audio {
+  width: 100%;
+  height: 36px;
+}
+
+.video-preview {
+  width: 100%;
+  border-radius: 8px;
+}
