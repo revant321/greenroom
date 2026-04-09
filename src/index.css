@@ -996,6 +996,7 @@ body {
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
 }
 
 .settings-panel-open {
@@ -1014,6 +1015,28 @@ body {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.3px;
+}
+
+/* Inner slider — two views side-by-side, translateX to switch */
+.settings-slider {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  transition: transform 0.4s var(--ease);
+}
+
+.settings-slider-help {
+  transform: translateX(-100%);
+}
+
+/* Each view takes the full width of the panel */
+.settings-view {
+  min-width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .settings-content {
@@ -1036,6 +1059,70 @@ body {
   font-size: 14px;
   color: var(--text-secondary);
   text-align: center;
+}
+
+.settings-divider {
+  height: 0.5px;
+  background: var(--separator);
+  margin: 8px 0;
+}
+
+/* ===== Help Page ===== */
+.help-content {
+  padding: 24px 20px 40px;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+
+.help-hero {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.help-subtitle {
+  font-size: 17px;
+  color: var(--text-secondary);
+  margin-bottom: 28px;
+}
+
+.help-section {
+  margin-bottom: 24px;
+}
+
+.help-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.help-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.help-card p {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.help-card strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.help-card-sep {
+  height: 0.5px;
+  background: var(--separator);
+  margin: 12px 0;
 }
 
 /* ===== Dance Video Cards ===== */
