@@ -185,43 +185,20 @@ body {
   border-bottom: 0.5px solid var(--separator);
 }
 
-/* ===== Show Cards (Home page) ===== */
+/* ===== Show & Song Cards (Home page) ===== */
 .show-list, .song-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 10px;
   margin-bottom: 20px;
 }
 
-/* Wrap all show cards in a single grouped container */
+/* Each card is its own floating pill */
 .show-list .show-card,
 .song-list .song-card {
   background: var(--surface);
-  border-radius: 0;
-  box-shadow: none;
-  overflow: hidden;
-}
-
-/* First child gets top rounded corners, last gets bottom */
-.show-list .show-card:first-child,
-.song-list .song-card:first-child {
-  border-radius: var(--radius) var(--radius) 0 0;
-}
-
-.show-list .show-card:last-child,
-.song-list .song-card:last-child {
-  border-radius: 0 0 var(--radius) var(--radius);
-}
-
-.show-list .show-card:only-child,
-.song-list .song-card:only-child {
   border-radius: var(--radius);
-}
-
-/* Separator lines between cards */
-.show-list .show-card:not(:last-child),
-.song-list .song-card:not(:last-child) {
-  border-bottom: 0.5px solid var(--separator);
+  overflow: hidden;
 }
 
 .show-card-content {
@@ -297,6 +274,7 @@ body {
 
 .add-show-btn {
   width: 100%;
+  margin-bottom: 14px;
 }
 
 /* ===== Empty State ===== */
