@@ -4,21 +4,20 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import HarmonyRecorder from '../components/HarmonyRecorder';
 import HarmonyPlayer from '../components/HarmonyPlayer';
+import DanceVideoRecorder from '../components/DanceVideoRecorder';
+import DanceVideoPlayer from '../components/DanceVideoPlayer';
 
 export default function MusicalNumberDetail() {
   const { showId, numberId } = useParams<{ showId: string; numberId: string }>();
   const navigate = useNavigate();
   const numId = Number(numberId);
 
-  // Live-subscribe to this musical number's data
   const number = useLiveQuery(() => db.musicalNumbers.get(numId), [numId]);
 
-  // Notes are edited locally, then saved on blur or button press.
-  // This avoids writing to IndexedDB on every keystroke.
+  // Notes — smart-save on blur
   const [notes, setNotes] = useState('');
   const [notesDirty, setNotesDirty] = useState(false);
 
-  // When the number loads (or changes externally), sync local notes state
   useEffect(() => {
     if (number) {
       setNotes(number.notes);
@@ -43,13 +42,12 @@ export default function MusicalNumberDetail() {
         </button>
       </header>
 
-      {/* Number title with order badge */}
       <div className="detail-title-section">
         <span className="detail-order">#{number.order}</span>
         <h1 className="detail-name">{number.name}</h1>
       </div>
 
-      {/* Notes section — the main Phase 2 feature for this page */}
+      {/* Notes */}
       <section className="detail-section">
         <h3 className="detail-section-title">Notes</h3>
         <textarea
@@ -70,36 +68,26 @@ export default function MusicalNumberDetail() {
         )}
       </section>
 
-      {/* Harmonies section — record or upload audio with measure number + caption */}
+      {/* Harmonies */}
       <HarmoniesSection musicalNumberId={numId} />
 
-      <section className="detail-section">
-        <h3 className="detail-section-title">Dance Videos</h3>
-        <p className="empty-state">Dance video links & uploads coming in Phase 5.</p>
-      </section>
+      {/* Dance Videos */}
+      <DanceVideosSection musicalNumberId={numId} />
+
+      {/* Sheet Music */}
+      <SheetMusicSection musicalNumberId={numId} />
     </div>
   );
 }
 
-/**
- * HarmoniesSection is a sub-component that manages the full harmonies UI:
- * - Lists all saved harmonies for this musical number (via useLiveQuery)
- * - Each harmony renders as a HarmonyPlayer with playback + delete
- * - A toggle button shows/hides the HarmonyRecorder form for adding new ones
- *
- * It's defined here (same file) rather than in components/ because it's
- * specific to MusicalNumberDetail and not reused elsewhere.
- */
+// ---------- Harmonies ----------
+
 function HarmoniesSection({ musicalNumberId }: { musicalNumberId: number }) {
   const [showRecorder, setShowRecorder] = useState(false);
 
-  // Live query — re-renders automatically whenever harmonies are added/deleted.
-  // We sort by start measure number so the list reads top-to-bottom in show order.
-  // The measureNumber field stores "16" or "16-18", so we parse the start number.
   const harmonies = useLiveQuery(
     () => db.harmonies.where('musicalNumberId').equals(musicalNumberId).toArray()
       .then(items => items.sort((a, b) => {
-        // Parse the start measure from the stored string ("16" or "16-18")
         const startA = parseInt(a.measureNumber.split('-')[0], 10) || Infinity;
         const startB = parseInt(b.measureNumber.split('-')[0], 10) || Infinity;
         return startA - startB;
@@ -115,7 +103,6 @@ function HarmoniesSection({ musicalNumberId }: { musicalNumberId: number }) {
     <section className="detail-section">
       <h3 className="detail-section-title">Harmonies</h3>
 
-      {/* List of saved harmonies */}
       {harmonies && harmonies.length > 0 ? (
         <div className="harmony-list">
           {harmonies.map((h) => (
@@ -130,7 +117,6 @@ function HarmoniesSection({ musicalNumberId }: { musicalNumberId: number }) {
         )
       )}
 
-      {/* Add harmony form (toggled) */}
       {showRecorder ? (
         <HarmonyRecorder
           musicalNumberId={musicalNumberId}
@@ -142,6 +128,172 @@ function HarmoniesSection({ musicalNumberId }: { musicalNumberId: number }) {
           onClick={() => setShowRecorder(true)}
         >
           + Add Harmony
+        </button>
+      )}
+    </section>
+  );
+}
+
+// ---------- Dance Videos ----------
+
+/**
+ * DanceVideosSection lists all dance videos for a musical number and provides
+ * a toggle to show the DanceVideoRecorder form for adding new ones.
+ * Each video can be an external link or an uploaded/recorded file.
+ */
+function DanceVideosSection({ musicalNumberId }: { musicalNumberId: number }) {
+  const [showForm, setShowForm] = useState(false);
+
+  const videos = useLiveQuery(
+    () => db.danceVideos.where('musicalNumberId').equals(musicalNumberId).toArray(),
+    [musicalNumberId]
+  );
+
+  async function deleteVideo(id: number) {
+    await db.danceVideos.delete(id);
+  }
+
+  return (
+    <section className="detail-section">
+      <h3 className="detail-section-title">Dance Videos</h3>
+
+      {videos && videos.length > 0 ? (
+        <div className="dance-video-list">
+          {videos.map((v) => (
+            <DanceVideoPlayer key={v.id} video={v} onDelete={deleteVideo} />
+          ))}
+        </div>
+      ) : (
+        !showForm && (
+          <p className="empty-state empty-state-small">
+            No dance videos yet. Add a link or upload one!
+          </p>
+        )
+      )}
+
+      {showForm ? (
+        <DanceVideoRecorder
+          musicalNumberId={musicalNumberId}
+          onDone={() => setShowForm(false)}
+        />
+      ) : (
+        <button
+          className="btn btn-primary add-show-btn"
+          onClick={() => setShowForm(true)}
+        >
+          + Add Dance Video
+        </button>
+      )}
+    </section>
+  );
+}
+
+// ---------- Sheet Music ----------
+
+/**
+ * SheetMusicSection lets users upload PDFs for a musical number.
+ * Tapping a sheet music card opens the PDF in a new browser tab via
+ * URL.createObjectURL — no server needed, works fully offline.
+ */
+function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
+  const [showForm, setShowForm] = useState(false);
+  const [title, setTitle] = useState('');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  const sheets = useLiveQuery(
+    () => db.sheetMusic.where('musicalNumberId').equals(musicalNumberId).toArray(),
+    [musicalNumberId]
+  );
+
+  function openPdf(blob: Blob) {
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  }
+
+  async function deleteSheet(id: number) {
+    await db.sheetMusic.delete(id);
+  }
+
+  async function save() {
+    if (!pdfFile) return;
+    await db.sheetMusic.add({
+      musicalNumberId,
+      pdfBlob: pdfFile,
+      title: title.trim() || pdfFile.name,
+      createdAt: new Date(),
+    });
+    setTitle('');
+    setPdfFile(null);
+    setShowForm(false);
+  }
+
+  return (
+    <section className="detail-section">
+      <h3 className="detail-section-title">Sheet Music</h3>
+
+      {sheets && sheets.length > 0 ? (
+        <div className="sheet-music-list">
+          {sheets.map((s) => (
+            <div
+              key={s.id}
+              className="sheet-music-card"
+              onClick={() => openPdf(s.pdfBlob)}
+            >
+              <span className="sheet-music-title">
+                <span className="sheet-music-badge">📄</span>
+                {s.title}
+              </span>
+              <button
+                className="icon-btn small"
+                onClick={(e) => { e.stopPropagation(); deleteSheet(s.id!); }}
+                title="Delete"
+              >
+                🗑️
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        !showForm && (
+          <p className="empty-state empty-state-small">
+            No sheet music yet. Upload a PDF!
+          </p>
+        )
+      )}
+
+      {showForm ? (
+        <div className="dance-video-form">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title (e.g. 'Vocal Score')"
+            className="input"
+          />
+          <label className="btn btn-secondary upload-label">
+            {pdfFile ? `✓ ${pdfFile.name}` : '📁 Choose PDF'}
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+              hidden
+            />
+          </label>
+          <div className="btn-row">
+            <button className="btn btn-primary" onClick={save} disabled={!pdfFile}>
+              Save Sheet Music
+            </button>
+            <button className="btn btn-secondary" onClick={() => { setShowForm(false); setPdfFile(null); setTitle(''); }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          className="btn btn-primary add-show-btn"
+          onClick={() => setShowForm(true)}
+        >
+          + Add Sheet Music
         </button>
       )}
     </section>

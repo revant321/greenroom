@@ -65,19 +65,28 @@ src/
 | 2     | Show Hub + Musical Numbers list + detail with notes| DONE        |
 | 3     | Harmony recording/upload + measure numbers/captions| DONE        |
 | 4     | Scenes list (active/grayed) + detail + recordings  | DONE        |
-| 5     | Dance video links/uploads                          | NOT STARTED |
-| 6     | Completed Shows (archive, view, storage cleanup)   | NOT STARTED |
-| 7     | Export/import (.grm) + duplicate detection          | NOT STARTED |
-| 8     | PWA + theming + iOS polish                         | NOT STARTED |
+| 5     | Dance videos + sheet music + standalone songs      | DONE        |
+| 6     | Completed Shows (archive, view, storage cleanup)   | DONE        |
+| 7     | Export/import (.grm) + duplicate detection          | DONE        |
+| 8     | PWA + theming + iOS polish                         | DONE        |
+
+## Database Tables (updated)
+
+Original tables plus:
+- `sheetMusic` — id, musicalNumberId, pdfBlob, title, createdAt
+- `songs` — id, title, isAuditionSong, category (vocal/guitar/null), status (in-progress/completed), notes, createdAt
+- `songParts` — id, songId, audioBlob, measureNumber, caption, createdAt
+- `songTracks` — id, songId, type (link/audio/video), url/blob, title, createdAt
+- `songSheetMusic` — id, songId, pdfBlob, title, createdAt
 
 ## Current Session State
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-04-08
-**Currently working on:** Phase 4 complete — ready for Phase 5
-**Completed this session:** Scenes.tsx (list page with grayed-out inactive scenes), SceneDetail.tsx (notes with smart-save + recordings section), SceneRecorder.tsx (audio/video record-or-upload), SceneRecordingPlayer.tsx (playback + delete), updated App.tsx routes, CSS for scenes and recordings
-**Next steps:** Phase 5 — Dance video links/uploads
+**Last session:** 2026-04-09
+**Currently working on:** All phases complete
+**Completed this session:** Phase 8 — PWA setup (manifest, service worker, offline caching, iOS meta tags, app icons), Apple Liquid Glass UI overhaul (pure black dark mode, grouped card containers with separator lines, minimal shadows, clean typography hierarchy), iOS polish (44px tap targets, safe-area-insets, Apple-style ease curves, scale-down touch feedback on all tappable elements), viewport-fit=cover for edge-to-edge display. Fixed pre-existing TS error in ShowHub (scene recording type mismatch).
+**Next steps:** Ship it! All 8 phases complete.
 **Blockers:** None
 
 ## Session Rules

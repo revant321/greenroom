@@ -8,15 +8,18 @@ interface Props {
 
 /**
  * Renders a single scene recording card.
- * Handles both audio and video — checks recording.type to decide
- * which HTML element to use for playback.
  *
- * useMemo creates the object URL once per blob so we don't re-create
- * it on every render (createObjectURL allocates memory each call).
+ * Two display modes based on recording.type:
+ * - 'link'  → shows the URL as a clickable link (opens in new tab)
+ * - 'video' → shows a <video> player with the uploaded blob
+ *
+ * useMemo on the blob URL prevents re-creating object URLs on every render
+ * (each createObjectURL call allocates memory).
  */
 export default function SceneRecordingPlayer({ recording, onDelete }: Props) {
+  // Only create an object URL if there's actually a blob (video type)
   const mediaUrl = useMemo(
-    () => URL.createObjectURL(recording.blob),
+    () => recording.blob ? URL.createObjectURL(recording.blob) : null,
     [recording.blob]
   );
 
@@ -26,9 +29,6 @@ export default function SceneRecordingPlayer({ recording, onDelete }: Props) {
         {recording.caption && (
           <span className="recording-caption">{recording.caption}</span>
         )}
-        <span className="recording-type-badge">
-          {recording.type === 'audio' ? '🎙' : '📹'}
-        </span>
         <button
           className="icon-btn small recording-delete"
           onClick={() => onDelete(recording.id!)}
@@ -38,11 +38,20 @@ export default function SceneRecordingPlayer({ recording, onDelete }: Props) {
         </button>
       </div>
 
-      {recording.type === 'audio' ? (
-        <audio controls src={mediaUrl} className="recording-audio" />
-      ) : (
+      {recording.type === 'link' && recording.url ? (
+        // Clickable link — opens in a new tab
+        <a
+          href={recording.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="scene-recording-link"
+        >
+          {recording.url}
+        </a>
+      ) : mediaUrl ? (
+        // Uploaded video — native player
         <video controls src={mediaUrl} className="recording-video" />
-      )}
+      ) : null}
     </div>
   );
 }
