@@ -149,7 +149,6 @@ export default function AudioWaveform({ stream, isRecording }: Props) {
 
       for (let i = startIdx; i < bars.length; i++) {
         // Position: newest bar is flush right, older bars scroll left
-        const barIndex = i - startIdx;
         const x = width - (bars.length - i) * BAR_STEP;
 
         // Bar height: minimum 2px so even silence shows a tiny dot
