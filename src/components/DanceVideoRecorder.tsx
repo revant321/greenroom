@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { db } from '../db/database';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 interface Props {
   musicalNumberId: number;
@@ -24,6 +25,7 @@ export default function DanceVideoRecorder({ musicalNumberId, onDone }: Props) {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   async function startRecording() {
     setRecordingError('');
@@ -50,6 +52,7 @@ export default function DanceVideoRecorder({ musicalNumberId, onDone }: Props) {
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      await requestWakeLock();
     } catch {
       setRecordingError('Could not access camera. Check permissions.');
     }
@@ -60,6 +63,7 @@ export default function DanceVideoRecorder({ musicalNumberId, onDone }: Props) {
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
+    releaseWakeLock();
   }
 
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {

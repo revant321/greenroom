@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { db } from '../db/database';
 import AudioWaveform from './AudioWaveform';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 interface Props {
   musicalNumberId: number;
@@ -42,6 +43,9 @@ export default function HarmonyRecorder({ musicalNumberId, onDone }: Props) {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  // Wake lock — keeps the screen on during recording
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
+
   // ---- RECORD via microphone ----
 
   async function startRecording() {
@@ -77,6 +81,7 @@ export default function HarmonyRecorder({ musicalNumberId, onDone }: Props) {
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      await requestWakeLock(); // Keep screen on during recording
     } catch {
       setRecordingError('Could not access microphone. Check permissions.');
     }
@@ -87,6 +92,7 @@ export default function HarmonyRecorder({ musicalNumberId, onDone }: Props) {
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
+    releaseWakeLock(); // Allow screen to lock again
   }
 
   // ---- UPLOAD a file ----

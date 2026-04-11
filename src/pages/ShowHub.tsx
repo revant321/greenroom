@@ -77,7 +77,11 @@ export default function ShowHub() {
       }
 
       if (deleteSheetMusic) {
-        await db.sheetMusic.where('musicalNumberId').anyOf(numberIds).delete();
+        // Only delete uploaded PDFs — links take no storage and are preserved
+        const fileSheetIds = (await db.sheetMusic.where('musicalNumberId').anyOf(numberIds).toArray())
+          .filter((s) => s.type === 'file')
+          .map((s) => s.id!);
+        if (fileSheetIds.length) await db.sheetMusic.bulkDelete(fileSheetIds);
       }
 
       // Notes are always deleted
@@ -181,7 +185,7 @@ export default function ShowHub() {
               </label>
               <label className="checkbox-label">
                 <input type="checkbox" checked={deleteSheetMusic} onChange={(e) => setDeleteSheetMusic(e.target.checked)} />
-                Delete sheet music PDFs
+                Delete uploaded sheet music PDFs
               </label>
             </div>
 

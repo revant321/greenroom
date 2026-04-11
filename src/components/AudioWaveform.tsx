@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 interface Props {
   /** The live MediaStream from getUserMedia — the waveform reads audio from this */
@@ -8,23 +8,26 @@ interface Props {
 }
 
 /**
- * AudioWaveform draws a real-time audio waveform on a <canvas>, similar to
- * Apple Voice Memos. Here's how it works:
+ * AudioWaveform draws a scrolling bar visualizer, similar to Apple Voice Memos.
+ *
+ * How it works:
  *
  * 1. We create a Web Audio API AudioContext and connect the mic stream to an
- *    AnalyserNode. The AnalyserNode does FFT (Fast Fourier Transform) on the
- *    incoming audio, giving us time-domain data — essentially the raw waveform
- *    amplitude at each point in time.
+ *    AnalyserNode, which gives us real-time audio amplitude data.
  *
- * 2. Every animation frame, we read that time-domain data into a Uint8Array.
- *    Each value is 0–255, where 128 = silence (center line). Values above 128
- *    mean the wave is above center; below 128 means below.
+ * 2. Every ~50ms, we sample the current audio level by computing the RMS
+ *    (root mean square) of the time-domain data. RMS gives a smooth amplitude
+ *    reading — louder audio = higher value.
  *
- * 3. We draw those values as a smooth line across the canvas, mapping each
- *    array index to an X position and each value to a Y position.
+ * 3. Each sample becomes a vertical bar. New bars appear on the right edge
+ *    and old ones scroll left, creating the signature Voice Memos scrolling
+ *    effect. Bar height maps to amplitude (louder = taller).
  *
- * The AnalyserNode's `fftSize` controls resolution — 2048 gives us 1024 data
- * points per frame, which is plenty smooth for a nice waveform.
+ * 4. A subtle center line and a mm:ss timer complete the look.
+ *
+ * The drawing loop runs at 60fps via requestAnimationFrame for smooth
+ * scrolling, but new bars are only added at the sampling interval so the
+ * bar density stays consistent regardless of frame rate.
  */
 export default function AudioWaveform({ stream, isRecording }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -33,10 +36,24 @@ export default function AudioWaveform({ stream, isRecording }: Props) {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
+  // Accumulated bar amplitudes — each value is 0..1
+  const barsRef = useRef<number[]>([]);
+  // Timestamp of last bar sample, used to control bar density
+  const lastBarTimeRef = useRef<number>(0);
+  // Recording start time for the timer
+  const startTimeRef = useRef<number>(0);
+
+  const [elapsed, setElapsed] = useState(0);
+
+  // Bar appearance constants
+  const BAR_WIDTH = 3;
+  const BAR_GAP = 1;
+  const BAR_STEP = BAR_WIDTH + BAR_GAP; // 4px per bar
+  const SAMPLE_INTERVAL = 50; // ms between new bars (~20 bars/sec)
+
   useEffect(() => {
-    // Only start the visualizer when we have a stream and are recording
     if (!stream || !isRecording) {
-      // If we stopped recording, clean up the audio context
+      // Clean up audio context when recording stops
       if (audioCtxRef.current) {
         audioCtxRef.current.close();
         audioCtxRef.current = null;
@@ -44,34 +61,120 @@ export default function AudioWaveform({ stream, isRecording }: Props) {
         sourceRef.current = null;
       }
       cancelAnimationFrame(animFrameRef.current);
-      // Draw a flat line on the canvas (idle state)
-      drawIdle();
       return;
     }
 
-    // --- Set up the Web Audio API pipeline ---
+    // Reset bars and timer for a new recording
+    barsRef.current = [];
+    lastBarTimeRef.current = 0;
+    const startTime = performance.now();
+    startTimeRef.current = startTime;
+    setElapsed(0);
 
-    // AudioContext is the main entry point for all Web Audio operations.
-    // It represents an audio-processing graph.
+    // --- Set up the Web Audio API pipeline ---
     const audioCtx = new AudioContext();
     audioCtxRef.current = audioCtx;
 
-    // AnalyserNode provides real-time frequency and time-domain analysis.
-    // We use time-domain data (getByteTimeDomainData) for the waveform.
     const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048; // Higher = more data points = smoother wave
+    analyser.fftSize = 2048;
     analyserRef.current = analyser;
 
-    // Connect the mic stream → AnalyserNode.
-    // createMediaStreamSource wraps the raw mic stream into the Web Audio graph.
     const source = audioCtx.createMediaStreamSource(stream);
     sourceRef.current = source;
     source.connect(analyser);
-    // Note: we do NOT connect analyser to audioCtx.destination — that would
-    // play the mic audio through the speakers (feedback loop!). We just analyze.
+    // Don't connect to destination — we only analyze, never play back through speakers
 
-    // Start the drawing loop
-    draw();
+    // Buffer for reading time-domain data each frame
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    function renderFrame(now: number) {
+      animFrameRef.current = requestAnimationFrame(renderFrame);
+
+      const canvas = canvasRef.current;
+      const currentAnalyser = analyserRef.current;
+      if (!canvas || !currentAnalyser) return;
+
+      // Update the timer (triggers re-render for the mm:ss display)
+      const elapsedSec = Math.floor((now - startTime) / 1000);
+      setElapsed(elapsedSec);
+
+      // Sample a new bar at the fixed interval
+      if (now - lastBarTimeRef.current >= SAMPLE_INTERVAL) {
+        lastBarTimeRef.current = now;
+
+        // Read time-domain waveform data (0–255, 128 = silence)
+        currentAnalyser.getByteTimeDomainData(dataArray);
+
+        // Compute RMS (root mean square) for a smooth amplitude reading.
+        // Each value is centered at 128. We normalize to -1..1, square,
+        // average, then sqrt. Result is 0..1 where 0 = silence.
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          const v = (dataArray[i] - 128) / 128;
+          sum += v * v;
+        }
+        const rms = Math.sqrt(sum / dataArray.length);
+
+        // Boost quiet signals so they're visible — voice rarely exceeds
+        // 0.3 RMS, so we scale up and clamp to 0..1
+        const amplitude = Math.min(rms * 3, 1);
+        barsRef.current.push(amplitude);
+      }
+
+      // --- Draw ---
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const { width, height } = canvas;
+      const centerY = height / 2;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Get accent color from CSS custom property
+      const accent = getComputedStyle(document.documentElement)
+        .getPropertyValue('--accent').trim() || '#5856d6';
+
+      // Subtle center line
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(136, 136, 136, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
+      ctx.stroke();
+
+      // How many bars fit on screen
+      const maxBars = Math.ceil(width / BAR_STEP);
+      const bars = barsRef.current;
+      // Only draw the most recent bars that fit on screen
+      const startIdx = Math.max(0, bars.length - maxBars);
+
+      for (let i = startIdx; i < bars.length; i++) {
+        // Position: newest bar is flush right, older bars scroll left
+        const barIndex = i - startIdx;
+        const x = width - (bars.length - i) * BAR_STEP;
+
+        // Bar height: minimum 2px so even silence shows a tiny dot
+        const amp = bars[i];
+        const barHeight = Math.max(2, amp * (height - 4));
+        const halfBar = barHeight / 2;
+
+        // Opacity varies with amplitude — louder bars are more opaque
+        const opacity = 0.4 + amp * 0.6;
+        ctx.fillStyle = accent;
+        ctx.globalAlpha = opacity;
+
+        // Draw bar extending both up and down from center (like Voice Memos)
+        ctx.fillRect(
+          x,
+          centerY - halfBar,
+          BAR_WIDTH,
+          barHeight
+        );
+      }
+
+      ctx.globalAlpha = 1;
+    }
+
+    animFrameRef.current = requestAnimationFrame(renderFrame);
 
     return () => {
       cancelAnimationFrame(animFrameRef.current);
@@ -82,89 +185,21 @@ export default function AudioWaveform({ stream, isRecording }: Props) {
     };
   }, [stream, isRecording]);
 
-  /** Draw a flat center line when not recording */
-  function drawIdle() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const { width, height } = canvas;
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw a subtle center line
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(136, 136, 136, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.moveTo(0, height / 2);
-    ctx.lineTo(width, height / 2);
-    ctx.stroke();
-  }
-
-  /** The main animation loop — reads audio data and draws the waveform */
-  function draw() {
-    const canvas = canvasRef.current;
-    const analyser = analyserRef.current;
-    if (!canvas || !analyser) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // bufferLength = fftSize / 2. This is how many data points we get per frame.
-    const bufferLength = analyser.frequencyBinCount;
-    // Uint8Array to hold the time-domain data (waveform amplitudes, 0–255)
-    const dataArray = new Uint8Array(bufferLength);
-
-    function renderFrame() {
-      animFrameRef.current = requestAnimationFrame(renderFrame);
-
-      // Fill dataArray with the current waveform data
-      analyser!.getByteTimeDomainData(dataArray);
-
-      const { width, height } = canvas!;
-      const ctx2 = canvas!.getContext('2d')!;
-
-      // Clear the previous frame
-      ctx2.clearRect(0, 0, width, height);
-
-      // Set up the line style — accent-colored, slightly thick
-      ctx2.lineWidth = 2;
-      ctx2.strokeStyle = getComputedStyle(document.documentElement)
-        .getPropertyValue('--accent')
-        .trim() || '#5856d6';
-      ctx2.beginPath();
-
-      // Each data point maps to a horizontal slice of the canvas
-      const sliceWidth = width / bufferLength;
-      let x = 0;
-
-      for (let i = 0; i < bufferLength; i++) {
-        // Normalize: 0–255 → 0.0–1.0, then map to canvas height.
-        // 128 (silence) maps to height/2 (center).
-        const v = dataArray[i] / 128.0;
-        const y = (v * height) / 2;
-
-        if (i === 0) {
-          ctx2.moveTo(x, y);
-        } else {
-          ctx2.lineTo(x, y);
-        }
-        x += sliceWidth;
-      }
-
-      ctx2.lineTo(width, height / 2);
-      ctx2.stroke();
-    }
-
-    renderFrame();
+  function formatTime(totalSeconds: number): string {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="audio-waveform"
-      width={600}
-      height={80}
-    />
+    <div className="waveform-container">
+      <canvas
+        ref={canvasRef}
+        className="audio-waveform"
+        width={600}
+        height={80}
+      />
+      <span className="waveform-timer">{formatTime(elapsed)}</span>
+    </div>
   );
 }

@@ -42,7 +42,9 @@ export interface DanceVideo {
 export interface SheetMusic {
   id?: number;
   musicalNumberId: number; // foreign key → musicalNumbers.id
-  pdfBlob: Blob;
+  type: 'file' | 'link';
+  pdfBlob: Blob | null;
+  url: string | null;
   title: string;
   createdAt: Date;
 }
@@ -104,7 +106,9 @@ export interface SongTrack {
 export interface SongSheetMusic {
   id?: number;
   songId: number;
-  pdfBlob: Blob;
+  type: 'file' | 'link';
+  pdfBlob: Blob | null;
+  url: string | null;
   title: string;
   createdAt: Date;
 }
@@ -182,6 +186,21 @@ class GreenroomDB extends Dexie {
     // Version 5 — quick changes between scenes (costume/prop changes)
     this.version(5).stores({
       quickChanges: '++id, showId, afterSceneOrder',
+    });
+
+    // Version 6 — sheet music now supports links (type + url fields).
+    // Backfill existing records as type='file' with url=null.
+    this.version(6).stores({}).upgrade(tx => {
+      return Promise.all([
+        tx.table('sheetMusic').toCollection().modify(s => {
+          if (s.type === undefined) s.type = 'file';
+          if (s.url === undefined) s.url = null;
+        }),
+        tx.table('songSheetMusic').toCollection().modify(s => {
+          if (s.type === undefined) s.type = 'file';
+          if (s.url === undefined) s.url = null;
+        }),
+      ]);
     });
   }
 }

@@ -191,13 +191,15 @@ function DanceVideosSection({ musicalNumberId }: { musicalNumberId: number }) {
 // ---------- Sheet Music ----------
 
 /**
- * SheetMusicSection lets users upload PDFs for a musical number.
- * Tapping a sheet music card opens the PDF in a new browser tab via
- * URL.createObjectURL — no server needed, works fully offline.
+ * SheetMusicSection lets users add sheet music as either a PDF upload or a link.
+ * Uses the same link/file toggle pattern as DanceVideoRecorder.
+ * PDFs open via URL.createObjectURL; links open in a new browser tab.
  */
 function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
   const [showForm, setShowForm] = useState(false);
+  const [inputType, setInputType] = useState<'file' | 'link'>('file');
   const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const sheets = useLiveQuery(
@@ -205,27 +207,52 @@ function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
     [musicalNumberId]
   );
 
-  function openPdf(blob: Blob) {
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+  function openSheet(s: { type: 'file' | 'link'; pdfBlob: Blob | null; url: string | null }) {
+    if (s.type === 'link' && s.url) {
+      window.open(s.url, '_blank');
+    } else if (s.pdfBlob) {
+      window.open(URL.createObjectURL(s.pdfBlob), '_blank');
+    }
   }
 
   async function deleteSheet(id: number) {
     await db.sheetMusic.delete(id);
   }
 
-  async function save() {
-    if (!pdfFile) return;
-    await db.sheetMusic.add({
-      musicalNumberId,
-      pdfBlob: pdfFile,
-      title: title.trim() || pdfFile.name,
-      createdAt: new Date(),
-    });
-    setTitle('');
-    setPdfFile(null);
+  function resetForm() {
     setShowForm(false);
+    setInputType('file');
+    setTitle('');
+    setUrl('');
+    setPdfFile(null);
   }
+
+  async function save() {
+    if (inputType === 'link') {
+      if (!url.trim()) return;
+      await db.sheetMusic.add({
+        musicalNumberId,
+        type: 'link',
+        pdfBlob: null,
+        url: url.trim(),
+        title: title.trim() || url.trim(),
+        createdAt: new Date(),
+      });
+    } else {
+      if (!pdfFile) return;
+      await db.sheetMusic.add({
+        musicalNumberId,
+        type: 'file',
+        pdfBlob: pdfFile,
+        url: null,
+        title: title.trim() || pdfFile.name,
+        createdAt: new Date(),
+      });
+    }
+    resetForm();
+  }
+
+  const canSave = inputType === 'link' ? url.trim().length > 0 : pdfFile !== null;
 
   return (
     <section className="detail-section">
@@ -237,10 +264,10 @@ function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
             <div
               key={s.id}
               className="sheet-music-card"
-              onClick={() => openPdf(s.pdfBlob)}
+              onClick={() => openSheet(s)}
             >
               <span className="sheet-music-title">
-                <span className="sheet-music-badge">📄</span>
+                <span className="sheet-music-badge">{s.type === 'link' ? '🔗' : '📄'}</span>
                 {s.title}
               </span>
               <button
@@ -256,13 +283,29 @@ function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
       ) : (
         !showForm && (
           <p className="empty-state empty-state-small">
-            No sheet music yet. Upload a PDF!
+            No sheet music yet. Upload a PDF or add a link!
           </p>
         )
       )}
 
       {showForm ? (
         <div className="dance-video-form">
+          {/* Toggle between link and file — same pattern as dance videos */}
+          <div className="media-type-toggle">
+            <button
+              className={`btn ${inputType === 'file' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => { setInputType('file'); setUrl(''); }}
+            >
+              Upload PDF
+            </button>
+            <button
+              className={`btn ${inputType === 'link' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => { setInputType('link'); setPdfFile(null); }}
+            >
+              Link
+            </button>
+          </div>
+
           <input
             type="text"
             value={title}
@@ -270,20 +313,32 @@ function SheetMusicSection({ musicalNumberId }: { musicalNumberId: number }) {
             placeholder="Title (e.g. 'Vocal Score')"
             className="input"
           />
-          <label className="btn btn-secondary upload-label">
-            {pdfFile ? `✓ ${pdfFile.name}` : '📁 Choose PDF'}
+
+          {inputType === 'link' ? (
             <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
-              hidden
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://..."
+              className="input"
             />
-          </label>
+          ) : (
+            <label className="btn btn-secondary upload-label">
+              {pdfFile ? `✓ ${pdfFile.name}` : '📁 Choose PDF'}
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                hidden
+              />
+            </label>
+          )}
+
           <div className="btn-row">
-            <button className="btn btn-primary" onClick={save} disabled={!pdfFile}>
+            <button className="btn btn-primary" onClick={save} disabled={!canSave}>
               Save Sheet Music
             </button>
-            <button className="btn btn-secondary" onClick={() => { setShowForm(false); setPdfFile(null); setTitle(''); }}>
+            <button className="btn btn-secondary" onClick={resetForm}>
               Cancel
             </button>
           </div>

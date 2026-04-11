@@ -86,7 +86,9 @@ export async function exportShowData(showId: number): Promise<Record<string, unk
         createdAt: v.createdAt,
       }))),
       sheetMusic: await Promise.all(sheets.map(async (s) => ({
-        pdfBlob: await blobToBase64(s.pdfBlob),
+        type: s.type,
+        url: s.url,
+        pdfBlob: s.pdfBlob ? await blobToBase64(s.pdfBlob) : null,
         title: s.title,
         createdAt: s.createdAt,
       }))),
@@ -222,12 +224,16 @@ export async function importShowEntry(
           });
         }
 
-        // Sheet music
+        // Sheet music — supports both links and PDF uploads.
+        // Old .grm files without a type field are treated as 'file'.
         const sheets = (numEntry.sheetMusic || []) as Record<string, unknown>[];
         for (const s of sheets) {
+          const sheetType = (s.type as string) || 'file';
           await db.sheetMusic.add({
             musicalNumberId: numberId,
-            pdfBlob: base64ToBlob(s.pdfBlob as string),
+            type: sheetType as 'file' | 'link',
+            pdfBlob: s.pdfBlob ? base64ToBlob(s.pdfBlob as string) : null,
+            url: (s.url as string | null) || null,
             title: s.title as string,
             createdAt: new Date(s.createdAt as string),
           });

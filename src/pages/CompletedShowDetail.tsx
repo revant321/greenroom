@@ -451,15 +451,18 @@ function ReadOnlyDanceVideo({ video }: { video: DanceVideo }) {
 }
 
 function ReadOnlySheetMusic({ sheet }: { sheet: SheetMusic }) {
-  function openPdf() {
-    const url = URL.createObjectURL(sheet.pdfBlob);
-    window.open(url, '_blank');
+  function openSheet() {
+    if (sheet.type === 'link' && sheet.url) {
+      window.open(sheet.url, '_blank');
+    } else if (sheet.pdfBlob) {
+      window.open(URL.createObjectURL(sheet.pdfBlob), '_blank');
+    }
   }
 
   return (
-    <div className="sheet-music-card" onClick={openPdf}>
+    <div className="sheet-music-card" onClick={openSheet}>
       <span className="sheet-music-title">
-        <span className="sheet-music-badge">📄</span>
+        <span className="sheet-music-badge">{sheet.type === 'link' ? '🔗' : '📄'}</span>
         {sheet.title}
       </span>
     </div>

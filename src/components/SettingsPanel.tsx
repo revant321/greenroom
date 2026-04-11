@@ -64,7 +64,9 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
             createdAt: t.createdAt,
           }))),
           sheetMusic: await Promise.all(sheets.map(async (s) => ({
-            pdfBlob: await blobToBase64(s.pdfBlob),
+            type: s.type,
+            url: s.url,
+            pdfBlob: s.pdfBlob ? await blobToBase64(s.pdfBlob) : null,
             title: s.title,
             createdAt: s.createdAt,
           }))),

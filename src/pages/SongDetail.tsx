@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type SongPart, type SongTrack, type SongCategory } from '../db/database';
 import AudioWaveform from '../components/AudioWaveform';
 import { blobToBase64, downloadBlob } from '../components/SettingsPanel';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 /**
  * SongDetail is the detail page for a standalone song (not tied to a show).
@@ -79,7 +80,9 @@ export default function SongDetail() {
         createdAt: t.createdAt,
       }))),
       sheetMusic: await Promise.all(sheets.map(async (s) => ({
-        pdfBlob: await blobToBase64(s.pdfBlob),
+        type: s.type,
+        url: s.url,
+        pdfBlob: s.pdfBlob ? await blobToBase64(s.pdfBlob) : null,
         title: s.title,
         createdAt: s.createdAt,
       }))),
@@ -185,7 +188,9 @@ export default function SongDetail() {
 
 function SongSheetMusicSection({ songId }: { songId: number }) {
   const [showForm, setShowForm] = useState(false);
+  const [inputType, setInputType] = useState<'file' | 'link'>('file');
   const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const sheets = useLiveQuery(
@@ -193,27 +198,52 @@ function SongSheetMusicSection({ songId }: { songId: number }) {
     [songId]
   );
 
-  function openPdf(blob: Blob) {
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+  function openSheet(s: { type: 'file' | 'link'; pdfBlob: Blob | null; url: string | null }) {
+    if (s.type === 'link' && s.url) {
+      window.open(s.url, '_blank');
+    } else if (s.pdfBlob) {
+      window.open(URL.createObjectURL(s.pdfBlob), '_blank');
+    }
   }
 
   async function deleteSheet(id: number) {
     await db.songSheetMusic.delete(id);
   }
 
-  async function save() {
-    if (!pdfFile) return;
-    await db.songSheetMusic.add({
-      songId,
-      pdfBlob: pdfFile,
-      title: title.trim() || pdfFile.name,
-      createdAt: new Date(),
-    });
-    setTitle('');
-    setPdfFile(null);
+  function resetForm() {
     setShowForm(false);
+    setInputType('file');
+    setTitle('');
+    setUrl('');
+    setPdfFile(null);
   }
+
+  async function save() {
+    if (inputType === 'link') {
+      if (!url.trim()) return;
+      await db.songSheetMusic.add({
+        songId,
+        type: 'link',
+        pdfBlob: null,
+        url: url.trim(),
+        title: title.trim() || url.trim(),
+        createdAt: new Date(),
+      });
+    } else {
+      if (!pdfFile) return;
+      await db.songSheetMusic.add({
+        songId,
+        type: 'file',
+        pdfBlob: pdfFile,
+        url: null,
+        title: title.trim() || pdfFile.name,
+        createdAt: new Date(),
+      });
+    }
+    resetForm();
+  }
+
+  const canSave = inputType === 'link' ? url.trim().length > 0 : pdfFile !== null;
 
   return (
     <section className="detail-section">
@@ -222,9 +252,9 @@ function SongSheetMusicSection({ songId }: { songId: number }) {
       {sheets && sheets.length > 0 ? (
         <div className="sheet-music-list">
           {sheets.map((s) => (
-            <div key={s.id} className="sheet-music-card" onClick={() => openPdf(s.pdfBlob)}>
+            <div key={s.id} className="sheet-music-card" onClick={() => openSheet(s)}>
               <span className="sheet-music-title">
-                <span className="sheet-music-badge">📄</span>
+                <span className="sheet-music-badge">{s.type === 'link' ? '🔗' : '📄'}</span>
                 {s.title}
               </span>
               <button
@@ -243,14 +273,41 @@ function SongSheetMusicSection({ songId }: { songId: number }) {
 
       {showForm ? (
         <div className="dance-video-form">
+          <div className="media-type-toggle">
+            <button
+              className={`btn ${inputType === 'file' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => { setInputType('file'); setUrl(''); }}
+            >
+              Upload PDF
+            </button>
+            <button
+              className={`btn ${inputType === 'link' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => { setInputType('link'); setPdfFile(null); }}
+            >
+              Link
+            </button>
+          </div>
+
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="input" />
-          <label className="btn btn-secondary upload-label">
-            {pdfFile ? `✓ ${pdfFile.name}` : '📁 Choose PDF'}
-            <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} hidden />
-          </label>
+
+          {inputType === 'link' ? (
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://..."
+              className="input"
+            />
+          ) : (
+            <label className="btn btn-secondary upload-label">
+              {pdfFile ? `✓ ${pdfFile.name}` : '📁 Choose PDF'}
+              <input type="file" accept="application/pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} hidden />
+            </label>
+          )}
+
           <div className="btn-row">
-            <button className="btn btn-primary" onClick={save} disabled={!pdfFile}>Save</button>
-            <button className="btn btn-secondary" onClick={() => { setShowForm(false); setPdfFile(null); setTitle(''); }}>Cancel</button>
+            <button className="btn btn-primary" onClick={save} disabled={!canSave}>Save</button>
+            <button className="btn btn-secondary" onClick={resetForm}>Cancel</button>
           </div>
         </div>
       ) : (
@@ -278,6 +335,7 @@ function SongTracksSection({ songId }: { songId: number }) {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   const tracks = useLiveQuery(
     () => db.songTracks.where('songId').equals(songId).toArray(),
@@ -316,6 +374,7 @@ function SongTracksSection({ songId }: { songId: number }) {
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      await requestWakeLock();
     } catch {
       setRecordingError(`Could not access ${trackType === 'audio' ? 'microphone' : 'camera'}.`);
     }
@@ -326,6 +385,7 @@ function SongTracksSection({ songId }: { songId: number }) {
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
+    releaseWakeLock();
   }
 
   function clearMedia() {
@@ -554,6 +614,7 @@ function SongPartRecorder({ songId, onDone }: { songId: number; onDone: () => vo
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
   async function startRecording() {
     setRecordingError('');
@@ -572,6 +633,7 @@ function SongPartRecorder({ songId, onDone }: { songId: number; onDone: () => vo
       recorder.start();
       mediaRecorderRef.current = recorder;
       setIsRecording(true);
+      await requestWakeLock();
     } catch {
       setRecordingError('Could not access microphone.');
     }
@@ -582,6 +644,7 @@ function SongPartRecorder({ songId, onDone }: { songId: number; onDone: () => vo
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
+    releaseWakeLock();
   }
 
   function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {

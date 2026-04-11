@@ -571,12 +571,16 @@ function SongsView() {
           });
         }
 
-        // Import sheet music
+        // Import sheet music — supports both links and PDF uploads.
+        // Old .grm files without a type field are treated as 'file'.
         const sheets = (entry.sheetMusic || []) as Record<string, unknown>[];
         for (const s of sheets) {
+          const sheetType = (s.type as string) || 'file';
           await db.songSheetMusic.add({
             songId,
-            pdfBlob: base64ToBlob(s.pdfBlob as string),
+            type: sheetType as 'file' | 'link',
+            pdfBlob: s.pdfBlob ? base64ToBlob(s.pdfBlob as string) : null,
+            url: (s.url as string | null) || null,
             title: s.title as string,
             createdAt: new Date(s.createdAt as string),
           });
