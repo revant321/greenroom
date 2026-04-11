@@ -231,7 +231,7 @@ export default function HarmonyRecorder({ musicalNumberId, onDone }: Props) {
             📁 Upload File
             <input
               type="file"
-              accept="audio/*"
+              accept="audio/*,.m4a,.mp3,.wav,.aac,.mp4,audio/mp4,audio/x-m4a"
               onChange={handleFileUpload}
               hidden
             />

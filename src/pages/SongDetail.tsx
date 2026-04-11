@@ -473,7 +473,7 @@ function SongTracksSection({ songId }: { songId: number }) {
               <span className="audio-input-or">or</span>
               <label className="btn btn-secondary upload-label">
                 📁 Upload
-                <input type="file" accept={trackType === 'audio' ? 'audio/*' : 'video/*'}
+                <input type="file" accept={trackType === 'audio' ? 'audio/*,.m4a,.mp3,.wav,.aac,.mp4,audio/mp4,audio/x-m4a' : 'video/*'}
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) setMediaBlob(f); }} hidden />
               </label>
             </div>
@@ -714,7 +714,7 @@ function SongPartRecorder({ songId, onDone }: { songId: number; onDone: () => vo
           <span className="audio-input-or">or</span>
           <label className="btn btn-secondary upload-label">
             📁 Upload File
-            <input type="file" accept="audio/*" onChange={handleFileUpload} hidden />
+            <input type="file" accept="audio/*,.m4a,.mp3,.wav,.aac,.mp4,audio/mp4,audio/x-m4a" onChange={handleFileUpload} hidden />
           </label>
         </div>
       )}
