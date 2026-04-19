@@ -83,11 +83,11 @@ Original tables plus:
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-04-09
-**Currently working on:** All phases complete
-**Completed this session:** Phase 8 — PWA setup (manifest, service worker, offline caching, iOS meta tags, app icons), Apple Liquid Glass UI overhaul (pure black dark mode, grouped card containers with separator lines, minimal shadows, clean typography hierarchy), iOS polish (44px tap targets, safe-area-insets, Apple-style ease curves, scale-down touch feedback on all tappable elements), viewport-fit=cover for edge-to-edge display. Fixed pre-existing TS error in ShowHub (scene recording type mismatch).
-**Next steps:** Ship it! All 8 phases complete.
-**Blockers:** None
+**Last session:** 2026-04-19
+**Currently working on:** Supabase cloud sync migration (new phase, per `docs/superpowers/specs/2026-04-12-supabase-auth-and-sync-design.md`)
+**Completed this session:** Installed `@supabase/supabase-js`. Added `.env.example` with `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY` (modern publishable key, not legacy anon). Added `src/services/supabaseClient.ts`, `src/services/authService.ts` (Google + Apple OAuth), `src/hooks/useAuth.tsx` (AuthProvider + useAuth), `src/components/ProtectedRoute.tsx`, `src/pages/LoginPage.tsx`. Wrapped all routes in `ProtectedRoute`, added `/login` route, added sign-out + signed-in email in `SettingsPanel`. Updated spec to use publishable key naming.
+**Next steps:** (1) User creates Supabase project and configures Google + Apple OAuth in provider dashboards + Supabase dashboard — see OAuth setup notes at bottom of the design spec. (2) Once auth works end-to-end, start schema migration (tables, RLS, storage bucket). (3) Port each service from Dexie to Supabase (showService first).
+**Blockers:** User action required — Apple Developer account enrollment (can take days), Google Cloud OAuth client setup, Supabase project creation. No code blocker.
 
 ## Session Rules
 
