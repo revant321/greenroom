@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { db } from '../db/database';
 import { exportShowData } from '../utils/showExportImport';
+import { signOut } from '../services/authService';
+import { useAuth } from '../hooks/useAuth';
 
 interface Props {
   isOpen: boolean;
@@ -16,11 +18,17 @@ interface Props {
  * so the transition animates both ways (not just on mount).
  */
 export default function SettingsPanel({ isOpen, onClose }: Props) {
+  const { user } = useAuth();
   const [showHelp, setShowHelp] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState('');
   const [exportingShows, setExportingShows] = useState(false);
   const [exportShowsMsg, setExportShowsMsg] = useState('');
+
+  async function handleSignOut() {
+    await signOut();
+    onClose();
+  }
 
   function handleClose() {
     onClose();
@@ -161,6 +169,22 @@ export default function SettingsPanel({ isOpen, onClose }: Props) {
               >
                 How to Use greenroom
               </button>
+
+              {user && (
+                <>
+                  <div className="settings-divider" />
+                  <div className="settings-account">
+                    <div className="settings-account-label">Signed in as</div>
+                    <div className="settings-account-email">{user.email}</div>
+                  </div>
+                  <button
+                    className="btn btn-secondary settings-action-btn settings-signout-btn"
+                    onClick={handleSignOut}
+                  >
+                    Sign Out
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
