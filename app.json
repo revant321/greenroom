@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "greenroom-scaffold",
-    "slug": "greenroom-scaffold",
+    "name": "greenroom",
+    "slug": "greenroom",
+    "scheme": "greenroom",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,7 +14,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jesseluo.greenroom"
     },
     "android": {
       "adaptiveIcon": {
@@ -25,6 +27,10 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": { "typedRoutes": true }
   }
 }
