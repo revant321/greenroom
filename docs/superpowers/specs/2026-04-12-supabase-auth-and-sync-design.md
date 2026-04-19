@@ -179,7 +179,7 @@ App load
 ## 6. Environment & Config
 
 - `VITE_SUPABASE_URL` — Supabase project URL
-- `VITE_SUPABASE_ANON_KEY` — Supabase publishable anon key (safe for frontend)
+- `VITE_SUPABASE_PUBLISHABLE_KEY` — Supabase publishable key (`sb_publishable_…`), safe for frontend. Replaces the legacy `anon` key.
 - These go in `.env` (gitignored) with a `.env.example` committed to the repo
 
 ---
