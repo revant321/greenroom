@@ -1,9 +1,15 @@
-import { Text, View } from "react-native";
+import { Redirect } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
+import { useAuth } from "@/hooks/useAuth";
 
-export default function Home() {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text>greenroom — scaffold works</Text>
-    </View>
-  );
+export default function Index() {
+  const { session, loading } = useAuth();
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+  return <Redirect href={(session ? "/(app)" : "/(auth)/login") as any} />;
 }
