@@ -10,6 +10,27 @@
 - **Full spec:** `greenroom-project-spec.md` (always reference this for detailed requirements)
 - **Target devices:** iPhone (iOS-only; Expo Go during development, TestFlight for long-term installs)
 
+## Who's working on this
+
+The primary collaborator writing and testing code on this codebase is a **high school student** who is a capable beginner — comfortable with the command line and basic JavaScript, but new to React Native, Expo, Supabase, OAuth, and most of the rest of the stack. They are learning by doing. **Write for them, not for a senior engineer.**
+
+### How this changes your work
+
+- **Explain what and why, not just code.** Before a non-trivial change, say in one or two sentences what you're about to do and why. After it, say what changed.
+- **Define jargon the first time per conversation.** The first time you say "OAuth", "RLS", "migration", "persister", "mutation", "signed URL", "TanStack Query", "SQLite", "EAS", etc., add a one-line plain-English explanation. Don't repeat definitions forever — but don't skip them either.
+- **Prefer plain English over shorthand in prose.** "The file that lists dependencies (`package.json`)" rather than "package.json."
+- **In PR descriptions and `npm` / `git` commands given to the user:** include a short "what this does" sentence. Assume they may not have seen the command before.
+- **Code comments are fine to explain non-obvious *why*** — but still follow the project rule of no comments for obvious *what*. Default is still "no comments."
+- **When breaking work into steps, each step should do one clear thing** and be runnable on its own. Avoid cascading changes across many files in a single command the student has to trust blindly.
+- **If a step depends on something the student needs to do outside the editor** (e.g., click around in Supabase dashboard, enroll in Apple Developer, add a key to `.env`), state it separately with explicit clicks/paths, not as an assumed prereq.
+- **Pointers and tradeoffs over decisions:** when a choice has genuine tradeoffs, name them briefly rather than silently picking. The student is learning to reason, not just type.
+
+### How this does NOT change your work
+
+- Technical rigor stays the same. Simpler language ≠ simpler code or looser quality standards. TDD, small commits, clean interfaces, etc. still apply.
+- You are still the technical authority. If the student (or another assistant writing on their behalf) proposes something that contradicts the design spec or breaks project patterns, say so — don't just agree.
+- Don't dumb down the architecture. This app uses real production-grade tools. Explain them; don't replace them with toy alternatives.
+
 ## Tech Stack
 
 - Expo (managed workflow) + React Native + TypeScript
@@ -101,5 +122,6 @@ Note that later phases will add more under `src/` (services, components, etc.) p
    - `docs/superpowers/specs/2026-04-19-react-native-expo-migration-design.md` — native migration design
    - `docs/superpowers/plans/` — per-phase implementation plans
 3. **Update "Current Session State"** at the end of every session.
-4. **Explain what code does** — the developer is learning and wants to understand, not just receive code.
-5. **Commit often** with descriptive messages.
+4. **Explain what code does, and why** — see the "Who's working on this" section. The developer is a high school student learning this stack for the first time. Simplify prose, define jargon on first use, and walk through changes instead of dropping diffs.
+5. **Commit often** with descriptive messages. Prefer many small commits over one big one — easier for the student to review and understand.
+6. **Spell out manual steps.** When the student has to do something outside the editor (open a dashboard, enroll in a program, paste a key into `.env`, install an app on their phone), write it out click-by-click rather than assuming.
