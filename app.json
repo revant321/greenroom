@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jesseluo.greenroom"
+      "bundleIdentifier": "com.codeflixacademy.greenroom"
     },
     "android": {
       "adaptiveIcon": {

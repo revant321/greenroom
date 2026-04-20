@@ -167,7 +167,7 @@ Inside the existing `expo` object, ensure these fields exist (merge with what's 
     "scheme": "greenroom",
     "plugins": ["expo-router"],
     "experiments": { "typedRoutes": true },
-    "ios": { "bundleIdentifier": "com.jesseluo.greenroom" }
+    "ios": { "bundleIdentifier": "com.codeflixacademy.greenroom" }
   }
 }
 ```
