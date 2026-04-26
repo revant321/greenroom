@@ -572,7 +572,7 @@ Provide a 1024×1024 `icon.png` and a splash image (or keep Expo defaults for V1
       "backgroundColor": "#FFFFFF"
     },
     "ios": {
-      "bundleIdentifier": "com.jesseluo.greenroom",
+      "bundleIdentifier": "com.codeflixacademy.greenroom",
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "infoPlist": {
@@ -681,7 +681,7 @@ If anything fails, fix it, rebuild, and repeat.
 
 - [ ] **Step 1: Create an App Store Connect record**
 
-In https://appstoreconnect.apple.com → My Apps → + → New App → iOS, name "greenroom," bundle ID `com.jesseluo.greenroom`, SKU `greenroom-ios`. Note the ASC App ID.
+In https://appstoreconnect.apple.com → My Apps → + → New App → iOS, name "greenroom," bundle ID `com.codeflixacademy.greenroom`, SKU `greenroom-ios`. Note the ASC App ID.
 
 - [ ] **Step 2: Fill in submit config**
 
