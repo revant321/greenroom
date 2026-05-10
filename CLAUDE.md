@@ -70,22 +70,34 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 
 ```
 app/
-├── _layout.tsx                # Root: AuthProvider (+ QueryClient, Theme in later phases)
+├── _layout.tsx                # Root: PersistQueryClientProvider + AuthProvider
 ├── index.tsx                  # Redirect based on auth
 ├── (auth)/
 │   └── login.tsx              # Apple + Google sign-in
 └── (app)/
-    ├── _layout.tsx            # Session gate; redirects to /login if unauth
-    ├── index.tsx              # Home
-    └── settings.tsx           # Sign-out
+    ├── _layout.tsx            # Session gate; declares stack screens (modal for shows/new)
+    ├── index.tsx              # Home: active shows list + FAB
+    ├── completed.tsx          # Completed shows archive
+    ├── settings.tsx           # Sign-out + link to completed shows
+    └── shows/
+        └── new.tsx            # New show modal
 src/
+├── db/
+│   ├── sqlite.ts              # expo-sqlite handle + kv_store table
+│   └── kvStore.ts             # KV wrapper used by the query persister
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
-│   └── supabase.ts            # Supabase client
+│   ├── supabase.ts            # Supabase client
+│   ├── queryClient.ts         # TanStack QueryClient + persister
+│   └── types.ts               # Row types (Show, NewShow, ShowUpdate, …)
 ├── hooks/
 │   └── useAuth.tsx            # AuthProvider + useAuth
 └── services/
-    └── authService.ts         # signInWithApple / signInWithGoogle / signOut
+    ├── authService.ts         # signInWithApple / signInWithGoogle / signOut
+    └── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
+supabase/
+└── migrations/
+    └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
 __tests__/                     # Jest unit tests
 ```
 
@@ -96,7 +108,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | Phase | Focus                                                    | Status      |
 | ----- | -------------------------------------------------------- | ----------- |
 | N1    | Expo scaffold + Expo Router + Supabase auth (Apple + Google) | DONE        |
-| N2    | Postgres schema + RLS + TanStack Query persister + shows CRUD | PENDING     |
+| N2    | Postgres schema + RLS + TanStack Query persister + shows CRUD | DONE        |
 | N3    | Musical numbers + scenes (row-only features)              | PENDING     |
 | N4    | Audio harmonies + media cache + expo-av                   | PENDING     |
 | N5    | Video (expo-video) + PDFs (WebView) + external URLs        | PENDING     |
@@ -108,11 +120,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-04-19
-**Currently working on:** Phase N2 (next): Supabase schema migration + TanStack Query persister + shows CRUD. Phase N1 (scaffold + auth) complete on `feat/phase-n1-scaffold-auth` branch, tag `phase-n1-complete`.
-**Completed this session:** Replaced the Vite/React/Dexie PWA with an Expo managed TypeScript app. Expo Router wired with `(auth)` / `(app)` route groups. Supabase client configured with SecureStore session persistence. AuthProvider + useAuth hook; Apple Sign In (via expo-apple-authentication) and Google Sign In (via expo-auth-session) both wired through Supabase signInWithIdToken. Settings screen with sign-out. 11 Jest tests covering SecureStore adapter, authService, and useAuth hook. All 15 tasks of the Phase N1 plan complete.
-**Next steps:** (1) Verify end-to-end sign-in on device via Expo Go — requires the user to provide real Supabase URL + publishable key and Google OAuth client IDs in `.env`, plus Supabase Dashboard configuration for Apple + Google providers. (2) Start Phase N2 per `docs/superpowers/plans/2026-04-19-phase-n2-data-foundation-and-shows.md`.
-**Blockers:** User action required — fill `.env` with real credentials; complete Supabase Auth provider setup for Apple + Google; ensure Apple Developer Program membership + Sign In with Apple capability on the bundle identifier `com.codeflixacademy.greenroom`; complete Google Cloud OAuth iOS + Web client ID setup.
+**Last session:** 2026-05-10
+**Currently working on:** Phase N3 (next): musical numbers + scenes as row-only features under a show detail screen.
+**Completed this session:** Phase N2 data foundation complete. Authored the initial Supabase schema migration (`supabase/migrations/20260419000001_init_schema.sql`) — all 11 tables, owner-only RLS policies wired through a `do $$` block, and a private `media` Storage bucket with per-user folder-prefix policies. Each `user_id` column has `default auth.uid()` so client-side inserts don't need to know the user id and still satisfy RLS. Installed `@tanstack/react-query`, `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client`, `expo-sqlite`. Added `src/db/sqlite.ts` + `src/db/kvStore.ts` (kv table that the query persister writes its cache into), `src/lib/queryClient.ts`, and wrapped the root layout in `PersistQueryClientProvider`. Added typed row shapes in `src/lib/types.ts`. Built `src/services/showService.ts` with `useShows` / `useShow` / `useCreateShow` / `useUpdateShow` / `useCompleteShow` / `useDeleteShow` (all backed by Supabase, with query-key invalidation on success). New screens: Home active shows list with pull-to-refresh and FAB, Add-show modal, Completed shows archive (unarchive + delete). Settings now links to Completed shows. 9 new Jest tests; 22 total, all passing. `npx tsc --noEmit` clean.
+**Next steps:** (1) **User action — apply the migration:** open Supabase Dashboard → SQL Editor → paste the contents of `supabase/migrations/20260419000001_init_schema.sql` → Run. Then Table Editor → confirm all 11 tables exist with an "RLS" badge, and Storage → confirm the `media` bucket exists. (2) **User action — device acceptance test:** sign in via Expo Go, add a show, mark complete, delete, unarchive. Confirm enabling airplane mode + relaunching still shows the cached list. (3) Tag `phase-n2-complete` once user accepts. (4) Start Phase N3 per `docs/superpowers/plans/2026-04-19-phase-n3-musical-numbers-and-scenes.md`.
+**Blockers:** None blocking N3 design, but the user must apply the SQL migration in Supabase before any of the new shows screens will work on device.
 
 ## Session Rules
 
