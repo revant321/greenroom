@@ -106,3 +106,65 @@ export type NewSheetMusic = Pick<
 >;
 
 export type SheetMusicUpdate = Partial<Pick<SheetMusic, "title">>;
+
+export type SongCategory = "vocal" | "guitar" | null;
+export type SongStatus = "in-progress" | "completed";
+
+export type Song = {
+  id: string;
+  user_id: string;
+  title: string;
+  is_audition_song: boolean;
+  category: SongCategory;
+  status: SongStatus;
+  notes: string;
+  created_at: string;
+};
+export type NewSong = Pick<Song, "title"> &
+  Partial<Pick<Song, "is_audition_song" | "category" | "status">>;
+export type SongUpdate = Partial<
+  Pick<Song, "title" | "is_audition_song" | "category" | "status" | "notes">
+>;
+
+export type SongPart = {
+  id: string;
+  user_id: string;
+  song_id: string;
+  storage_path: string;
+  measure_number: number | null;
+  caption: string;
+  created_at: string;
+};
+export type NewSongPart = Pick<SongPart, "song_id" | "storage_path"> &
+  Partial<Pick<SongPart, "measure_number" | "caption">>;
+export type SongPartUpdate = Partial<Pick<SongPart, "measure_number" | "caption">>;
+
+export type SongTrackKind = "audio" | "video" | "link";
+export type SongTrack = {
+  id: string;
+  user_id: string;
+  song_id: string;
+  kind: SongTrackKind;
+  title: string;
+  storage_path: string | null;
+  external_url: string | null;
+  created_at: string;
+};
+export type NewSongTrack =
+  | { song_id: string; kind: "audio" | "video"; storage_path: string; title?: string }
+  | { song_id: string; kind: "link"; external_url: string; title?: string };
+export type SongTrackUpdate = Partial<Pick<SongTrack, "title">>;
+
+export type SongSheetMusic = {
+  id: string;
+  user_id: string;
+  song_id: string;
+  title: string;
+  storage_path: string;
+  created_at: string;
+};
+export type NewSongSheetMusic = Pick<
+  SongSheetMusic,
+  "song_id" | "title" | "storage_path"
+>;
+export type SongSheetMusicUpdate = Partial<Pick<SongSheetMusic, "title">>;
