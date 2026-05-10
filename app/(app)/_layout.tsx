@@ -23,6 +23,7 @@ export default function AppLayout() {
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="completed" options={{ title: "Completed" }} />
       <Stack.Screen name="shows/new" options={{ presentation: "modal", title: "New Show" }} />
+      <Stack.Screen name="shows/[showId]" options={{ headerShown: false }} />
     </Stack>
   );
 }
