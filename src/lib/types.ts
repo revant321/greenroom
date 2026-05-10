@@ -54,3 +54,55 @@ export type Harmony = {
 export type NewHarmony = Pick<Harmony, "musical_number_id" | "storage_path"> &
   Partial<Pick<Harmony, "measure_number" | "caption">>;
 export type HarmonyUpdate = Partial<Pick<Harmony, "measure_number" | "caption">>;
+
+export type SceneRecording = {
+  id: string;
+  user_id: string;
+  scene_id: string;
+  kind: "audio" | "video";
+  storage_path: string;
+  caption: string;
+  created_at: string;
+};
+
+export type NewSceneRecording = Pick<
+  SceneRecording,
+  "scene_id" | "kind" | "storage_path"
+> &
+  Partial<Pick<SceneRecording, "caption">>;
+
+export type DanceVideo = {
+  id: string;
+  user_id: string;
+  musical_number_id: string;
+  title: string;
+  storage_path: string | null;
+  external_url: string | null;
+  created_at: string;
+};
+
+export type NewDanceVideo = {
+  musical_number_id: string;
+  title: string;
+} & (
+  | { storage_path: string; external_url?: null }
+  | { storage_path?: null; external_url: string }
+);
+
+export type DanceVideoUpdate = Partial<Pick<DanceVideo, "title">>;
+
+export type SheetMusic = {
+  id: string;
+  user_id: string;
+  musical_number_id: string;
+  title: string;
+  storage_path: string;
+  created_at: string;
+};
+
+export type NewSheetMusic = Pick<
+  SheetMusic,
+  "musical_number_id" | "title" | "storage_path"
+>;
+
+export type SheetMusicUpdate = Partial<Pick<SheetMusic, "title">>;
