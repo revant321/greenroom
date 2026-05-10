@@ -39,6 +39,14 @@
         {
           "microphonePermission": "Allow greenroom to use the microphone so you can record harmonies and rehearsal notes."
         }
+      ],
+      "expo-video",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow greenroom to use the camera so you can record dance videos and scene recordings.",
+          "photosPermission": "Allow greenroom to access your photos so you can pick a dance video to attach."
+        }
       ]
     ],
     "experiments": {
