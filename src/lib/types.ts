@@ -40,3 +40,17 @@ export type NewScene = Pick<Scene, "show_id" | "name" | "order"> &
 export type SceneUpdate = Partial<
   Pick<Scene, "name" | "order" | "is_user_in_scene" | "notes">
 >;
+
+export type Harmony = {
+  id: string;
+  user_id: string;
+  musical_number_id: string;
+  storage_path: string;
+  measure_number: number | null;
+  caption: string;
+  created_at: string;
+};
+
+export type NewHarmony = Pick<Harmony, "musical_number_id" | "storage_path"> &
+  Partial<Pick<Harmony, "measure_number" | "caption">>;
+export type HarmonyUpdate = Partial<Pick<Harmony, "measure_number" | "caption">>;

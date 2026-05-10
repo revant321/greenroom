@@ -33,7 +33,13 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-apple-authentication",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow greenroom to use the microphone so you can record harmonies and rehearsal notes."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
