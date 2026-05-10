@@ -37,7 +37,8 @@ The primary collaborator writing and testing code on this codebase is a **high s
 - Expo Router (file-based routing)
 - Supabase (Postgres + Auth + Storage)
 - TanStack Query + expo-sqlite (for data caching, added in Phase N2)
-- expo-av / expo-video / expo-file-system (media, added in Phase N4+)
+- expo-audio + expo-file-system (audio recording / playback / cache, added in Phase N4)
+- expo-video (videos, added in Phase N5)
 - iOS-only (iPhone)
 
 ## Architecture Rules
@@ -94,21 +95,27 @@ app/
                 └── [sceneId].tsx     # Detail with Switch + autosave
 src/
 ├── db/
-│   ├── sqlite.ts              # expo-sqlite handle + kv_store table
-│   └── kvStore.ts             # KV wrapper used by the query persister
+│   ├── sqlite.ts              # expo-sqlite handle + kv_store + media_cache tables
+│   ├── kvStore.ts             # KV wrapper used by the query persister
+│   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
-│   └── types.ts               # Row types (Show, NewShow, ShowUpdate, …)
+│   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
 ├── hooks/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
+├── components/
+│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   └── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer
 └── services/
     ├── authService.ts         # signInWithApple / signInWithGoogle / signOut
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
-    └── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
+    ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
+    ├── mediaService.ts        # uploadMedia / deleteMedia / useMedia (cached signed-URL download)
+    └── harmonyService.ts      # useHarmonies / useCreateHarmony / useUpdateHarmony / useDeleteHarmony
 supabase/
 └── migrations/
     └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
@@ -124,7 +131,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | N1    | Expo scaffold + Expo Router + Supabase auth (Apple + Google) | DONE        |
 | N2    | Postgres schema + RLS + TanStack Query persister + shows CRUD | DONE        |
 | N3    | Musical numbers + scenes (row-only features)              | DONE        |
-| N4    | Audio harmonies + media cache + expo-av                   | PENDING     |
+| N4    | Audio harmonies + media cache + expo-audio                | DONE        |
 | N5    | Video (expo-video) + PDFs (WebView) + external URLs        | PENDING     |
 | N6    | Standalone songs (parts, tracks, sheet music, filters)    | PENDING     |
 | N7    | Completed shows archive + cascading storage cleanup       | PENDING     |
@@ -135,10 +142,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-05-10
-**Currently working on:** Phase N3 code complete on branch `feat/phase-n3-musical-numbers-and-scenes` (off `auth`); PR not yet opened. Phase N2 still awaiting user device acceptance + Supabase migration apply.
-**Completed this session:** Phase N3 implemented. Added `MusicalNumber` / `Scene` row types and matching `New…` / `…Update` shapes in `src/lib/types.ts`. New services `src/services/musicalNumberService.ts` and `src/services/sceneService.ts` — each exposes list (scoped by `show_id`), detail, create, update, delete hooks, with TanStack query-key invalidation on success. New generic `src/hooks/useDebouncedSave.ts` (waits `delayMs` after value stops changing, then saves; `enabled` flag prevents re-saving the empty initial state before hydration). Route tree under `app/(app)/shows/[showId]/`: show-scoped stack `_layout.tsx`, Show Hub `index.tsx` (two tiles linking to Musical Numbers / Scenes, sets nav title from the show name), Musical Numbers list + add modal + detail with debounced autosave (`name` + `notes`), Scenes list with active/grayed styling based on `is_user_in_scene`, scenes add modal, scenes detail with iOS `Switch` for the toggle and debounced autosave for `name` + `notes` + `is_user_in_scene`. Home rows now Link to `/shows/<id>`; outer `(app)` Stack hides its header for the `[showId]` segment so the inner stack provides the only nav bar. 11 new Jest tests (5 MN + 6 scene); 33 total, all passing. `npx tsc --noEmit` clean.
-**Next steps:** (1) **User action — apply the N2 migration** if not yet done (Supabase Dashboard → SQL Editor → paste `supabase/migrations/20260419000001_init_schema.sql` → Run). Same migration covers all 11 tables, so N3 needs no new SQL. (2) **User action — device test on iPhone:** open a show → see Show Hub → Musical Numbers → add "Seasons of Love" → tap it → type notes, wait ~1s, back out, reopen → notes persisted. Same for Scenes; toggle "I'm in this scene" and verify the list grays the others. (3) Open the N3 PR when the user gives the go-ahead. (4) Tag `phase-n3-complete` once accepted on device. (5) Start Phase N4 (audio harmonies + media cache) per `docs/superpowers/plans/2026-04-19-phase-n4-audio-harmonies.md`.
-**Blockers:** Same as N2 — migration must be applied to Supabase before anything works on device.
+**Currently working on:** Phase N4 code complete on branch `feat/phase-n4-audio-harmonies` (off N3). N2 PR #4 and N3 PR #5 still open and awaiting user device acceptance + Supabase migration apply.
+**Completed this session:** Phase N4 implemented. New on-device SQLite table `media_cache` (storage_path → local file URI + size) created on first DB open in `src/db/sqlite.ts`; thin accessor in `src/db/mediaCache.ts` (get/put/remove, 3 tests). Installed `expo-audio` (replacing the deprecated `expo-av`; SDK 54 ships expo-audio as GA) and `expo-file-system`; configured `expo-audio` plugin in `app.json` with a `microphonePermission` string so future EAS builds get a proper Info.plist entry. New `src/services/mediaService.ts`: `uploadMedia(uri, subdir, ext)` reads the recorded file, uploads to Storage at `<uid>/<subdir>/<uuid>.<ext>`, copies into the local cache + registers in `media_cache`, returns the storage path; `deleteMedia(storage_path)` removes from Storage + cache + disk; `useMedia(storage_path)` TanStack Query hook returns a local `file://` URI (cache hit instant, miss fetches signed URL + downloads). Uses `expo-file-system/legacy` because v19 changed the default export to a new class-based API. New `Harmony` types + `src/services/harmonyService.ts` (useHarmonies, useCreateHarmony, useUpdateHarmony, useDeleteHarmony — delete also calls `deleteMedia` so storage stays in sync; 4 tests). New components `src/components/AudioRecorder.tsx` (uses `useAudioRecorder` + `AudioModule.requestRecordingPermissionsAsync` + `setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true })`) and `src/components/AudioPlayer.tsx` (uses `useAudioPlayer` + `useAudioPlayerStatus`, replays from 0 on finish). Musical Number detail wired up: now a ScrollView with a "Harmonies" section below notes — `+ Record` opens a page-sheet modal with the recorder; on stop the m4a is uploaded + a harmony row is inserted; the list shows the player + inline Measure # + Caption inputs (debounced-saved) + Delete (which cascades to storage). 7 new Jest tests (3 mediaCache + 4 harmonyService); 40 total, all passing. `npx tsc --noEmit` clean.
+**Next steps:** (1) **User action — apply the N2 migration to Supabase if not yet done.** Same migration includes the `harmonies` table + `media` Storage bucket, so no new SQL for N4. (2) **User action — device test on iPhone via Expo Go:** Musical Number → tap `+ Record` → grant mic permission first time → record 5 seconds → Stop → row appears with a play button → tap play → audio plays → kill app + airplane mode + reopen → tap play again → audio still plays from cache. (3) Open the N4 PR when the user gives the go-ahead. (4) Tag `phase-n4-complete` once accepted. (5) Phase N5 (video + PDFs) per `docs/superpowers/plans/2026-04-19-phase-n5-video-and-pdfs.md`.
+**Blockers:** Same as N2/N3 — migration must be applied to Supabase before anything works on device. The mic permission also requires running on a real iPhone (simulator can't record).
 
 ## Session Rules
 
