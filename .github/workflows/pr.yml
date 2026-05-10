@@ -1,0 +1,30 @@
+name: PR checks
+
+# Runs on every pull request targeting main.
+# Catches type errors and broken tests before code can be merged.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Typecheck and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the PR's code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (clean install from package-lock.json)
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run Jest tests
+        run: npm test -- --ci
