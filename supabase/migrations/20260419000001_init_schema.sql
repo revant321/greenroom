@@ -3,7 +3,7 @@
 -- Shows
 create table shows (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   name text not null,
   roles jsonb not null default '[]'::jsonb,
   is_completed boolean not null default false,
@@ -15,7 +15,7 @@ create index shows_user_idx on shows(user_id);
 -- Musical numbers
 create table musical_numbers (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   show_id uuid not null references shows(id) on delete cascade,
   name text not null,
   "order" integer not null default 0,
@@ -27,7 +27,7 @@ create index musical_numbers_show_idx on musical_numbers(show_id);
 -- Harmonies
 create table harmonies (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   musical_number_id uuid not null references musical_numbers(id) on delete cascade,
   storage_path text not null,
   measure_number integer,
@@ -39,7 +39,7 @@ create index harmonies_mn_idx on harmonies(musical_number_id);
 -- Scenes
 create table scenes (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   show_id uuid not null references shows(id) on delete cascade,
   name text not null,
   "order" integer not null default 0,
@@ -52,7 +52,7 @@ create index scenes_show_idx on scenes(show_id);
 -- Scene recordings (audio or video)
 create table scene_recordings (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   scene_id uuid not null references scenes(id) on delete cascade,
   kind text not null check (kind in ('audio','video')),
   storage_path text not null,
@@ -64,7 +64,7 @@ create index scene_recordings_scene_idx on scene_recordings(scene_id);
 -- Dance videos (file OR external url)
 create table dance_videos (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   musical_number_id uuid not null references musical_numbers(id) on delete cascade,
   title text not null default '',
   storage_path text,
@@ -77,7 +77,7 @@ create index dance_videos_mn_idx on dance_videos(musical_number_id);
 -- Sheet music (PDF)
 create table sheet_music (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   musical_number_id uuid not null references musical_numbers(id) on delete cascade,
   title text not null default '',
   storage_path text not null,
@@ -88,7 +88,7 @@ create index sheet_music_mn_idx on sheet_music(musical_number_id);
 -- Standalone songs
 create table songs (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   title text not null,
   is_audition_song boolean not null default false,
   category text check (category in ('vocal','guitar')),
@@ -101,7 +101,7 @@ create index songs_user_idx on songs(user_id);
 -- Song parts (audio clips)
 create table song_parts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   song_id uuid not null references songs(id) on delete cascade,
   storage_path text not null,
   measure_number integer,
@@ -113,7 +113,7 @@ create index song_parts_song_idx on song_parts(song_id);
 -- Song tracks (audio, video, or link)
 create table song_tracks (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   song_id uuid not null references songs(id) on delete cascade,
   kind text not null check (kind in ('audio','video','link')),
   title text not null default '',
@@ -130,7 +130,7 @@ create index song_tracks_song_idx on song_tracks(song_id);
 -- Song sheet music (PDF)
 create table song_sheet_music (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   song_id uuid not null references songs(id) on delete cascade,
   title text not null default '',
   storage_path text not null,
