@@ -1,5 +1,5 @@
 import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useShows, useCompleteShow, useDeleteShow } from "@/services/showService";
 import { Show } from "@/lib/types";
 
@@ -40,7 +40,9 @@ export default function Home() {
         }
         renderItem={({ item }: { item: Show }) => (
           <View style={styles.card}>
-            <Text style={styles.name}>{item.name}</Text>
+            <Link href={`/(app)/shows/${item.id}`} style={styles.nameLink}>
+              <Text style={styles.name}>{item.name}</Text>
+            </Link>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable onPress={() => complete.mutate(item.id)} accessibilityLabel="Mark complete">
                 <Text style={styles.action}>✓</Text>
@@ -78,7 +80,8 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#ddd",
   },
-  name: { fontSize: 17, fontWeight: "500", flex: 1 },
+  nameLink: { flex: 1 },
+  name: { fontSize: 17, fontWeight: "500" },
   action: { fontSize: 20, padding: 4 },
   fab: {
     position: "absolute",

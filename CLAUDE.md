@@ -80,7 +80,18 @@ app/
     ├── completed.tsx          # Completed shows archive
     ├── settings.tsx           # Sign-out + link to completed shows
     └── shows/
-        └── new.tsx            # New show modal
+        ├── new.tsx            # New show modal
+        └── [showId]/
+            ├── _layout.tsx           # Stack for show-scoped screens
+            ├── index.tsx             # Show Hub (Musical Numbers / Scenes tiles)
+            ├── musical-numbers/
+            │   ├── index.tsx         # List
+            │   ├── new.tsx           # Add modal
+            │   └── [numberId].tsx    # Detail with debounced autosave
+            └── scenes/
+                ├── index.tsx         # List with active/grayed styling
+                ├── new.tsx           # Add modal
+                └── [sceneId].tsx     # Detail with Switch + autosave
 src/
 ├── db/
 │   ├── sqlite.ts              # expo-sqlite handle + kv_store table
@@ -91,10 +102,13 @@ src/
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, NewShow, ShowUpdate, …)
 ├── hooks/
-│   └── useAuth.tsx            # AuthProvider + useAuth
+│   ├── useAuth.tsx            # AuthProvider + useAuth
+│   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 └── services/
     ├── authService.ts         # signInWithApple / signInWithGoogle / signOut
-    └── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
+    ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
+    ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
+    └── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
 supabase/
 └── migrations/
     └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
@@ -109,7 +123,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | ----- | -------------------------------------------------------- | ----------- |
 | N1    | Expo scaffold + Expo Router + Supabase auth (Apple + Google) | DONE        |
 | N2    | Postgres schema + RLS + TanStack Query persister + shows CRUD | DONE        |
-| N3    | Musical numbers + scenes (row-only features)              | PENDING     |
+| N3    | Musical numbers + scenes (row-only features)              | DONE        |
 | N4    | Audio harmonies + media cache + expo-av                   | PENDING     |
 | N5    | Video (expo-video) + PDFs (WebView) + external URLs        | PENDING     |
 | N6    | Standalone songs (parts, tracks, sheet music, filters)    | PENDING     |
@@ -121,10 +135,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-05-10
-**Currently working on:** Phase N3 (next): musical numbers + scenes as row-only features under a show detail screen.
-**Completed this session:** Phase N2 data foundation complete. Authored the initial Supabase schema migration (`supabase/migrations/20260419000001_init_schema.sql`) — all 11 tables, owner-only RLS policies wired through a `do $$` block, and a private `media` Storage bucket with per-user folder-prefix policies. Each `user_id` column has `default auth.uid()` so client-side inserts don't need to know the user id and still satisfy RLS. Installed `@tanstack/react-query`, `@tanstack/query-async-storage-persister`, `@tanstack/react-query-persist-client`, `expo-sqlite`. Added `src/db/sqlite.ts` + `src/db/kvStore.ts` (kv table that the query persister writes its cache into), `src/lib/queryClient.ts`, and wrapped the root layout in `PersistQueryClientProvider`. Added typed row shapes in `src/lib/types.ts`. Built `src/services/showService.ts` with `useShows` / `useShow` / `useCreateShow` / `useUpdateShow` / `useCompleteShow` / `useDeleteShow` (all backed by Supabase, with query-key invalidation on success). New screens: Home active shows list with pull-to-refresh and FAB, Add-show modal, Completed shows archive (unarchive + delete). Settings now links to Completed shows. 9 new Jest tests; 22 total, all passing. `npx tsc --noEmit` clean.
-**Next steps:** (1) **User action — apply the migration:** open Supabase Dashboard → SQL Editor → paste the contents of `supabase/migrations/20260419000001_init_schema.sql` → Run. Then Table Editor → confirm all 11 tables exist with an "RLS" badge, and Storage → confirm the `media` bucket exists. (2) **User action — device acceptance test:** sign in via Expo Go, add a show, mark complete, delete, unarchive. Confirm enabling airplane mode + relaunching still shows the cached list. (3) Tag `phase-n2-complete` once user accepts. (4) Start Phase N3 per `docs/superpowers/plans/2026-04-19-phase-n3-musical-numbers-and-scenes.md`.
-**Blockers:** None blocking N3 design, but the user must apply the SQL migration in Supabase before any of the new shows screens will work on device.
+**Currently working on:** Phase N3 code complete on branch `feat/phase-n3-musical-numbers-and-scenes` (off `auth`); PR not yet opened. Phase N2 still awaiting user device acceptance + Supabase migration apply.
+**Completed this session:** Phase N3 implemented. Added `MusicalNumber` / `Scene` row types and matching `New…` / `…Update` shapes in `src/lib/types.ts`. New services `src/services/musicalNumberService.ts` and `src/services/sceneService.ts` — each exposes list (scoped by `show_id`), detail, create, update, delete hooks, with TanStack query-key invalidation on success. New generic `src/hooks/useDebouncedSave.ts` (waits `delayMs` after value stops changing, then saves; `enabled` flag prevents re-saving the empty initial state before hydration). Route tree under `app/(app)/shows/[showId]/`: show-scoped stack `_layout.tsx`, Show Hub `index.tsx` (two tiles linking to Musical Numbers / Scenes, sets nav title from the show name), Musical Numbers list + add modal + detail with debounced autosave (`name` + `notes`), Scenes list with active/grayed styling based on `is_user_in_scene`, scenes add modal, scenes detail with iOS `Switch` for the toggle and debounced autosave for `name` + `notes` + `is_user_in_scene`. Home rows now Link to `/shows/<id>`; outer `(app)` Stack hides its header for the `[showId]` segment so the inner stack provides the only nav bar. 11 new Jest tests (5 MN + 6 scene); 33 total, all passing. `npx tsc --noEmit` clean.
+**Next steps:** (1) **User action — apply the N2 migration** if not yet done (Supabase Dashboard → SQL Editor → paste `supabase/migrations/20260419000001_init_schema.sql` → Run). Same migration covers all 11 tables, so N3 needs no new SQL. (2) **User action — device test on iPhone:** open a show → see Show Hub → Musical Numbers → add "Seasons of Love" → tap it → type notes, wait ~1s, back out, reopen → notes persisted. Same for Scenes; toggle "I'm in this scene" and verify the list grays the others. (3) Open the N3 PR when the user gives the go-ahead. (4) Tag `phase-n3-complete` once accepted on device. (5) Start Phase N4 (audio harmonies + media cache) per `docs/superpowers/plans/2026-04-19-phase-n4-audio-harmonies.md`.
+**Blockers:** Same as N2 — migration must be applied to Supabase before anything works on device.
 
 ## Session Rules
 
