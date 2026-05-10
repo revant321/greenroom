@@ -1,0 +1,40 @@
+name: Apply Supabase migrations
+
+# Runs only when a push to main changes a SQL file in supabase/migrations/.
+# Skips runs that don't touch migrations so we don't waste CI minutes.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**.sql"
+
+jobs:
+  migrate:
+    name: Push migrations to hosted Supabase project
+    runs-on: ubuntu-latest
+
+    # Secrets configured in GitHub repo Settings → Secrets and variables → Actions:
+    #   SUPABASE_ACCESS_TOKEN  — personal access token from Supabase dashboard
+    #   SUPABASE_DB_PASSWORD   — database password for this project
+    #   SUPABASE_PROJECT_REF   — the project's reference id (looks like "abcd1234efgh5678")
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Install the Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link this repo to the hosted Supabase project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Apply any new migrations
+        # --include-all applies every local migration the remote doesn't have yet.
+        # Without it the CLI prompts interactively, which fails in CI.
+        run: supabase db push --include-all

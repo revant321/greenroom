@@ -17,5 +17,12 @@ export default function AppLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return <Stack />;
+  return (
+    <Stack>
+      <Stack.Screen name="index" options={{ title: "Shows" }} />
+      <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="completed" options={{ title: "Completed" }} />
+      <Stack.Screen name="shows/new" options={{ presentation: "modal", title: "New Show" }} />
+    </Stack>
+  );
 }

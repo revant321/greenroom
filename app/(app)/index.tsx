@@ -1,24 +1,95 @@
-import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { useAuth } from "@/hooks/useAuth";
+import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import { useRouter } from "expo-router";
+import { useShows, useCompleteShow, useDeleteShow } from "@/services/showService";
+import { Show } from "@/lib/types";
 
 export default function Home() {
-  const { session } = useAuth();
+  const router = useRouter();
+  const { data, isLoading, error, refetch, isRefetching } = useShows({ completed: false });
+  const complete = useCompleteShow();
+  const del = useDeleteShow();
+
+  if (isLoading && !data) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text>Couldn't load shows.</Text>
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>greenroom</Text>
-      <Text style={styles.email}>Signed in as {session?.user.email ?? "(unknown)"}</Text>
-      <Link href="/(app)/settings" style={styles.link} asChild>
-        <Text>Settings</Text>
-      </Link>
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={data ?? []}
+        keyExtractor={(s) => s.id}
+        refreshing={isRefetching}
+        onRefresh={refetch}
+        contentContainerStyle={{ padding: 16, gap: 12 }}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No shows yet</Text>
+            <Text style={styles.emptyBody}>Tap “+” to add your first show.</Text>
+          </View>
+        }
+        renderItem={({ item }: { item: Show }) => (
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable onPress={() => complete.mutate(item.id)} accessibilityLabel="Mark complete">
+                <Text style={styles.action}>✓</Text>
+              </Pressable>
+              <Pressable onPress={() => del.mutate(item.id)} accessibilityLabel="Delete show">
+                <Text style={[styles.action, { color: "#FF3B30" }]}>🗑</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+      />
+      <Pressable
+        style={styles.fab}
+        onPress={() => router.push("/(app)/shows/new")}
+        accessibilityLabel="Add show"
+      >
+        <Text style={styles.fabPlus}>+</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  title: { fontSize: 32, fontWeight: "700" },
-  email: { fontSize: 16, color: "#666" },
-  link: { fontSize: 16, color: "#007AFF", marginTop: 12 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  empty: { padding: 32, alignItems: "center" },
+  emptyTitle: { fontSize: 18, fontWeight: "600", marginBottom: 4 },
+  emptyBody: { color: "#666" },
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#ddd",
+  },
+  name: { fontSize: 17, fontWeight: "500", flex: 1 },
+  action: { fontSize: 20, padding: 4 },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#007AFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabPlus: { color: "#fff", fontSize: 32, lineHeight: 32 },
 });
