@@ -34,7 +34,7 @@ export default function Scenes() {
           return (
             <View style={[styles.card, grayed && styles.grayed]}>
               <Link
-                href={`/(app)/shows/${showId}/scenes/${item.id}`}
+                href={`/shows/${showId}/scenes/${item.id}`}
                 style={styles.nameLink}
               >
                 <Text style={[styles.name, grayed && styles.nameGrayed]}>
@@ -50,7 +50,7 @@ export default function Scenes() {
       />
       <Pressable
         style={styles.fab}
-        onPress={() => router.push(`/(app)/shows/${showId}/scenes/new`)}
+        onPress={() => router.push(`/shows/${showId}/scenes/new`)}
         accessibilityLabel="Add scene"
       >
         <Text style={styles.fabPlus}>+</Text>

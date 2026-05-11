@@ -19,7 +19,7 @@ export default function Settings() {
       <Text style={styles.label}>Signed in as</Text>
       <Text style={styles.email}>{session?.user.email ?? "(unknown)"}</Text>
 
-      <Link href="/(app)/completed" style={styles.link}>
+      <Link href="/shows/completed" style={styles.link}>
         Completed shows →
       </Link>
 

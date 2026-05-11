@@ -26,11 +26,11 @@ export default function ShowHub() {
       <Stack.Screen options={{ title: show.name }} />
       <Text style={styles.title}>{show.name}</Text>
 
-      <Link href={`/(app)/shows/${show.id}/musical-numbers`} style={styles.tile}>
+      <Link href={`/shows/${show.id}/musical-numbers`} style={styles.tile}>
         <Text style={styles.tileText}>Musical Numbers</Text>
       </Link>
 
-      <Link href={`/(app)/shows/${show.id}/scenes`} style={styles.tile}>
+      <Link href={`/shows/${show.id}/scenes`} style={styles.tile}>
         <Text style={styles.tileText}>Scenes</Text>
       </Link>
     </View>

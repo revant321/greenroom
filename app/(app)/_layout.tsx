@@ -1,4 +1,4 @@
-import { Redirect, Stack } from "expo-router";
+import { Redirect, Slot } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -17,16 +17,5 @@ export default function AppLayout() {
     return <Redirect href="/(auth)/login" />;
   }
 
-  return (
-    <Stack>
-      <Stack.Screen name="index" options={{ title: "Shows" }} />
-      <Stack.Screen name="settings" options={{ title: "Settings" }} />
-      <Stack.Screen name="completed" options={{ title: "Completed" }} />
-      <Stack.Screen name="shows/new" options={{ presentation: "modal", title: "New Show" }} />
-      <Stack.Screen name="shows/[showId]" options={{ headerShown: false }} />
-      <Stack.Screen name="songs/index" options={{ title: "Songs" }} />
-      <Stack.Screen name="songs/new" options={{ presentation: "modal", title: "New Song" }} />
-      <Stack.Screen name="songs/[songId]" options={{ title: "" }} />
-    </Stack>
-  );
+  return <Slot />;
 }

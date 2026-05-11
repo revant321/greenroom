@@ -33,11 +33,6 @@ export default function Home() {
         refreshing={isRefetching}
         onRefresh={refetch}
         contentContainerStyle={{ padding: 16, gap: 12 }}
-        ListHeaderComponent={
-          <Link href="/(app)/songs" style={styles.songsLink}>
-            Songs →
-          </Link>
-        }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>No shows yet</Text>
@@ -46,7 +41,7 @@ export default function Home() {
         }
         renderItem={({ item }: { item: Show }) => (
           <View style={styles.card}>
-            <Link href={`/(app)/shows/${item.id}`} style={styles.nameLink}>
+            <Link href={`/shows/${item.id}`} style={styles.nameLink}>
               <Text style={styles.name}>{item.name}</Text>
             </Link>
             <View style={{ flexDirection: "row", gap: 8 }}>
@@ -71,7 +66,7 @@ export default function Home() {
       />
       <Pressable
         style={styles.fab}
-        onPress={() => router.push("/(app)/shows/new")}
+        onPress={() => router.push("/shows/new")}
         accessibilityLabel="Add show"
       >
         <Text style={styles.fabPlus}>+</Text>
@@ -95,7 +90,6 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#ddd",
   },
-  songsLink: { fontSize: 16, color: "#007AFF", padding: 12, marginBottom: 8 },
   nameLink: { flex: 1 },
   name: { fontSize: 17, fontWeight: "500" },
   action: { fontSize: 20, padding: 4 },
