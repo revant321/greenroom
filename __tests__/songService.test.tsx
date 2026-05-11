@@ -11,6 +11,9 @@ import {
 import { supabase } from "@/lib/supabase";
 
 jest.mock("@/lib/supabase", () => ({ supabase: { from: jest.fn() } }));
+jest.mock("@/services/cascadeDelete", () => ({
+  deleteSongWithMedia: jest.fn().mockResolvedValue(undefined),
+}));
 
 function makeWrapper(
   client = new QueryClient({ defaultOptions: { queries: { retry: false } } }),
@@ -115,16 +118,13 @@ describe("songService", () => {
     expect(eq).toHaveBeenCalledWith("id", "s1");
   });
 
-  test("useDeleteSong deletes", async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
-    const del = jest.fn().mockReturnValue({ eq });
-    (supabase.from as jest.Mock).mockReturnValue({ delete: del });
-
+  test("useDeleteSong calls deleteSongWithMedia so storage is cascaded", async () => {
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteSong(), { wrapper: Wrapper });
     await act(async () => {
       await result.current.mutateAsync("s1");
     });
-    expect(eq).toHaveBeenCalledWith("id", "s1");
+    const { deleteSongWithMedia } = require("@/services/cascadeDelete");
+    expect(deleteSongWithMedia).toHaveBeenCalledWith("s1");
   });
 });

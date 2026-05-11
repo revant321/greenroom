@@ -1,5 +1,13 @@
-import { FlatList, StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
-import { useShows, useUpdateShow, useDeleteShow } from "@/services/showService";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useDeleteShow, useShows, useUpdateShow } from "@/services/showService";
+import { confirm } from "@/utils/confirm";
 
 export default function Completed() {
   const { data, isLoading } = useShows({ completed: true });
@@ -27,7 +35,7 @@ export default function Completed() {
       renderItem={({ item }) => (
         <View style={styles.card}>
           <Text style={styles.name}>{item.name}</Text>
-          <View style={{ flexDirection: "row", gap: 12 }}>
+          <View style={styles.actions}>
             <Pressable
               onPress={() =>
                 update.mutate({
@@ -36,10 +44,19 @@ export default function Completed() {
                 })
               }
             >
-              <Text>↩︎ Unarchive</Text>
+              <Text style={styles.restore}>Restore</Text>
             </Pressable>
-            <Pressable onPress={() => del.mutate(item.id)}>
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
+            <Pressable
+              onPress={() =>
+                confirm(
+                  "Delete permanently?",
+                  `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF associated with it. This can't be undone.`,
+                  () => del.mutate(item.id),
+                  "Delete forever",
+                )
+              }
+            >
+              <Text style={styles.deleteForever}>Delete forever</Text>
             </Pressable>
           </View>
         </View>
@@ -62,4 +79,7 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   name: { fontSize: 17, fontWeight: "500", flex: 1 },
+  actions: { flexDirection: "row", gap: 16 },
+  restore: { color: "#007AFF", fontWeight: "500" },
+  deleteForever: { color: "#FF3B30", fontWeight: "500" },
 });

@@ -7,6 +7,7 @@ import {
   SongStatus,
   SongUpdate,
 } from "@/lib/types";
+import { deleteSongWithMedia } from "./cascadeDelete";
 
 export type SongFilter = {
   is_audition_song?: boolean;
@@ -95,8 +96,7 @@ export function useDeleteSong() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from("songs").delete().eq("id", id);
-      if (error) throw error;
+      await deleteSongWithMedia(id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: songKeys.all }),
   });

@@ -110,6 +110,8 @@ src/
 ├── hooks/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
+├── utils/
+│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
 ├── components/
 │   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer
@@ -128,7 +130,8 @@ src/
     ├── songService.ts         # useSongs (with filters) / useSong / useCreate / useUpdate / useDelete
     ├── songPartService.ts     # useSongParts / useCreate / useUpdate / useDelete (audio clips per song)
     ├── songTrackService.ts    # useSongTracks / useCreate / useUpdate / useDelete (audio/video/link)
-    └── songSheetMusicService.ts # useSongSheetMusic / useCreate / useUpdate / useDelete (PDF)
+    ├── songSheetMusicService.ts # useSongSheetMusic / useCreate / useUpdate / useDelete (PDF)
+    └── cascadeDelete.ts       # collectShowStoragePaths / collectSongStoragePaths / deleteShowWithMedia / deleteSongWithMedia
 supabase/
 └── migrations/
     └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
@@ -147,7 +150,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | N4    | Audio harmonies + media cache + expo-audio                | DONE        |
 | N5    | Video (expo-video) + PDFs (WebView) + external URLs        | DONE        |
 | N6    | Standalone songs (parts, tracks, sheet music, filters)    | DONE        |
-| N7    | Completed shows archive + cascading storage cleanup       | PENDING     |
+| N7    | Completed shows archive + cascading storage cleanup       | DONE        |
 | N8    | Theme, skeletons, toasts, SF Symbols, EAS → TestFlight    | PENDING     |
 
 ## Current Session State
@@ -155,9 +158,9 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-05-10
-**Currently working on:** Phase N6 code complete on branch `feat/phase-n6-standalone-songs` (off N5). PRs #4 (N2), #5 (N3), #6 (N4) merged; #7 (N5) closed/merged. N6 PR not yet opened.
-**Completed this session:** Phase N6 implemented — standalone songs feature. Added `Song`, `SongPart`, `SongTrack`, `SongSheetMusic` row types in `src/lib/types.ts` (`NewSongTrack` is a discriminated union over kind: audio/video require storage_path, link requires external_url). Four new services: `songService.ts` exposes a chainable filter (is_audition_song / category / status) on `useSongs` — used by the list screen's chip bar. `songPartService.ts` ≅ harmonyService. `songTrackService.ts` ≅ danceVideoService but with three kinds: delete cascades to deleteMedia only when storage_path is set (link rows skip). `songSheetMusicService.ts` ≅ sheetMusicService. 17 new tests (7 songService + 3 songPart + 4 songTrack + 3 songSheetMusic). New routes under `app/(app)/songs/`: list `index.tsx` (six filter chips: All / Audition / Vocal / Guitar / In progress / Completed), add modal `new.tsx` (title + audition switch + category chip pair — tap again to clear), and detail `[songId].tsx` — a big screen combining N4/N5 patterns: header form (title / audition / completed / notes) with debounced autosave, Parts section with audio recorder, Tracks section with three add buttons (Audio via DocumentPicker, Video via image-picker, Link via inline AddUrlSheet modal), Sheet Music section with PDF picker + fullScreen WebView viewer. Home gains a 'Songs →' link above the shows list. (app)/_layout.tsx registers the three new screens. 69 tests across 16 suites, all passing. `npx tsc --noEmit` clean. Known limitation per plan: deleting a song leaves Storage orphans for its parts/tracks/sheets — to be fixed in N7's cascade-with-storage-cleanup pattern.
-**Next steps:** (1) **User action — confirm Supabase migration is applied** (no new SQL needed; songs / song_parts / song_tracks / song_sheet_music are in the N2 init migration). (2) **User action — device test on iPhone via Expo Go**: Home → Songs → add an Audition Guitar song → filter chips show it under Audition and Guitar; open the song → record a Part → add an Audio + Video + Link track → add a PDF → toggle Completed → flip back to list and confirm filter behaviour. (3) Open the N6 PR when the user gives the go-ahead. (4) Tag `phase-n6-complete` once accepted. (5) Phase N7 (completed shows archive + cascading storage cleanup — also addresses N6's song-delete orphan limitation).
+**Currently working on:** Phase N7 code complete on branch `feat/phase-n7-completed-shows-archive` (off N6). N6 PR #9 open, awaiting user device acceptance. N7 PR not yet opened.
+**Completed this session:** Phase N7 implemented — cascading storage cleanup + confirmation UX. New `src/services/cascadeDelete.ts` exposes `collectShowStoragePaths(showId)` (walks musical_numbers → harmonies/dance_videos/sheet_music, plus scenes → scene_recordings, returning every non-null storage_path), `collectSongStoragePaths(songId)` (walks song_parts/song_tracks/song_sheet_music), `deleteShowWithMedia(id)` and `deleteSongWithMedia(id)` (each: collect descendant paths → chunked batch-remove from the 'media' bucket (chunks of 900 to stay under Supabase's 1000-per-call limit) → clear matching `media_cache` rows + delete local files → delete the parent row, with Postgres FK cascade wiping the descendant rows). `useDeleteShow` and `useDeleteSong` now route through these helpers; tests updated to mock the cascade module and assert the helper is called. New `src/utils/confirm.ts` is a thin `Alert.alert` wrapper with Cancel + destructive Delete buttons (configurable label); wired into Home, Songs list, and Completed screens. Completed screen's row pair changed from '↩︎ Unarchive' / 'Delete' to 'Restore' / 'Delete forever' with the confirm dialog. 3 new cascadeDelete tests; 72 total across 17 suites, all passing. `npx tsc --noEmit` clean. Known perf caveat: `collectShowStoragePaths` is N+1 across musical numbers + scenes — acceptable for a personal app; collapse into an RPC if it ever matters.
+**Next steps:** (1) **User action — confirm Supabase migration is applied** (no new SQL for N7). (2) **User action — device test on iPhone via Expo Go**: create a show + add a musical number + record a harmony + add a scene with a recording → complete it → Settings → Completed shows → tap 'Delete forever' → confirm dialog → confirm → check Supabase Dashboard → Storage → `media` → your uid → harmony and scene recording blobs are gone. Repeat for a song: create + add a part + delete → blobs gone. Verify Cancel on the confirm dialog leaves the row alone. (3) Open the N7 PR when the user gives the go-ahead. (4) Tag `phase-n7-complete` once accepted. (5) Phase N8 (theme, skeletons, toasts, SF Symbols, EAS → TestFlight).
 **Blockers:** Same as prior phases — migration must be applied to Supabase before anything works on device.
 
 ## Session Rules

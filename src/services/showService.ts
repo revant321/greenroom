@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { NewShow, Show, ShowUpdate } from "@/lib/types";
+import { deleteShowWithMedia } from "./cascadeDelete";
 
 export const showKeys = {
   all: ["shows"] as const,
@@ -88,8 +89,7 @@ export function useDeleteShow() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from("shows").delete().eq("id", id);
-      if (error) throw error;
+      await deleteShowWithMedia(id);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: showKeys.all }),
   });
