@@ -57,7 +57,7 @@ export default function Songs() {
           }
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Link href={`/(app)/songs/${item.id}`} style={{ flex: 1 }}>
+              <Link href={`/songs/${item.id}`} style={{ flex: 1 }}>
                 <View>
                   <Text style={styles.title}>{item.title}</Text>
                   <Text style={styles.meta}>
@@ -86,7 +86,7 @@ export default function Songs() {
           )}
         />
       )}
-      <Pressable style={styles.fab} onPress={() => router.push("/(app)/songs/new")}>
+      <Pressable style={styles.fab} onPress={() => router.push("/songs/new")}>
         <Text style={styles.fabPlus}>+</Text>
       </Pressable>
     </View>

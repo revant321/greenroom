@@ -11,5 +11,5 @@ export default function Index() {
       </View>
     );
   }
-  return <Redirect href={(session ? "/(app)" : "/(auth)/login") as any} />;
+  return <Redirect href={session ? "/shows" : "/login"} />;
 }

@@ -35,7 +35,7 @@ export default function MusicalNumbers() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Link
-              href={`/(app)/shows/${showId}/musical-numbers/${item.id}`}
+              href={`/shows/${showId}/musical-numbers/${item.id}`}
               style={styles.nameLink}
             >
               <Text style={styles.name}>{item.name}</Text>
@@ -48,7 +48,7 @@ export default function MusicalNumbers() {
       />
       <Pressable
         style={styles.fab}
-        onPress={() => router.push(`/(app)/shows/${showId}/musical-numbers/new`)}
+        onPress={() => router.push(`/shows/${showId}/musical-numbers/new`)}
         accessibilityLabel="Add musical number"
       >
         <Text style={styles.fabPlus}>+</Text>
