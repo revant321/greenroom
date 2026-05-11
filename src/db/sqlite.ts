@@ -13,6 +13,14 @@ export function getDb(): SQLite.SQLiteDatabase {
         updated_at INTEGER NOT NULL
       );
     `);
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS media_cache (
+        storage_path TEXT PRIMARY KEY,
+        local_uri TEXT NOT NULL,
+        downloaded_at INTEGER NOT NULL,
+        size_bytes INTEGER
+      );
+    `);
   }
   return db;
 }
