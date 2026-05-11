@@ -72,31 +72,34 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 ```
 app/
 ├── _layout.tsx                # Root: PersistQueryClientProvider + AuthProvider
-├── index.tsx                  # Redirect based on auth
+├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
 ├── (auth)/
 │   └── login.tsx              # Apple + Google sign-in
 └── (app)/
-    ├── _layout.tsx            # Session gate; declares stack screens (modal for shows/new)
-    ├── index.tsx              # Home: active shows list + FAB
-    ├── completed.tsx          # Completed shows archive
-    ├── settings.tsx           # Sign-out + link to completed shows
-    └── shows/
-        ├── new.tsx            # New show modal
-        └── [showId]/
-            ├── _layout.tsx           # Stack for show-scoped screens
-            ├── index.tsx             # Show Hub (Musical Numbers / Scenes tiles)
-            ├── musical-numbers/
-            │   ├── index.tsx         # List
-            │   ├── new.tsx           # Add modal
-            │   └── [numberId].tsx    # Detail with debounced autosave
-            └── scenes/
-                ├── index.tsx         # List with active/grayed styling
-                ├── new.tsx           # Add modal
-                └── [sceneId].tsx     # Detail with Switch + autosave
-    └── songs/
-        ├── index.tsx               # Standalone songs list with filter chips
-        ├── new.tsx                 # New song modal (title + audition + category)
-        └── [songId].tsx            # Detail: title/audition/completed/notes + parts/tracks/sheet music
+    ├── _layout.tsx            # Auth gate: <Slot /> after session check
+    └── (tabs)/
+        ├── _layout.tsx        # Bottom Tabs: Shows / Songs / Settings (Ionicons)
+        ├── settings.tsx       # Settings tab (single screen)
+        ├── shows/             # Shows tab — a Stack
+        │   ├── _layout.tsx    # Stack with all show-scoped screens registered flatly
+        │   ├── index.tsx      # Shows list + FAB
+        │   ├── new.tsx        # New show modal
+        │   ├── completed.tsx  # Completed shows archive (linked from Settings)
+        │   └── [showId]/
+        │       ├── index.tsx       # Show Hub (Musical Numbers / Scenes tiles)
+        │       ├── musical-numbers/
+        │       │   ├── index.tsx     # List
+        │       │   ├── new.tsx       # Add modal
+        │       │   └── [numberId].tsx # Detail with debounced autosave + harmonies/videos/PDFs
+        │       └── scenes/
+        │           ├── index.tsx     # List with active/grayed styling
+        │           ├── new.tsx       # Add modal
+        │           └── [sceneId].tsx # Detail with Switch + autosave + recordings
+        └── songs/             # Songs tab — a Stack
+            ├── _layout.tsx     # Stack: index, new (modal), [songId]
+            ├── index.tsx       # Standalone songs list with filter chips
+            ├── new.tsx         # New song modal (title + audition + category)
+            └── [songId].tsx    # Detail: title/audition/completed/notes + parts/tracks/sheet music
 src/
 ├── db/
 │   ├── sqlite.ts              # expo-sqlite handle + kv_store + media_cache tables
