@@ -16,6 +16,9 @@ jest.mock("@/lib/supabase", () => ({
     from: jest.fn(),
   },
 }));
+jest.mock("@/services/cascadeDelete", () => ({
+  deleteShowWithMedia: jest.fn().mockResolvedValue(undefined),
+}));
 
 function makeWrapper() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -139,11 +142,7 @@ describe("useCompleteShow", () => {
 describe("useDeleteShow", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  test("deletes the row", async () => {
-    const eq = jest.fn().mockResolvedValue({ error: null });
-    const del = jest.fn().mockReturnValue({ eq });
-    (supabase.from as jest.Mock).mockReturnValue({ delete: del });
-
+  test("calls deleteShowWithMedia so storage is cascaded", async () => {
     const { Wrapper } = makeWrapper();
     const { result } = renderHook(() => useDeleteShow(), { wrapper: Wrapper });
 
@@ -151,7 +150,7 @@ describe("useDeleteShow", () => {
       await result.current.mutateAsync("s1");
     });
 
-    expect(del).toHaveBeenCalled();
-    expect(eq).toHaveBeenCalledWith("id", "s1");
+    const { deleteShowWithMedia } = require("@/services/cascadeDelete");
+    expect(deleteShowWithMedia).toHaveBeenCalledWith("s1");
   });
 });
