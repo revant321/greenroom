@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useDeleteSong, useSongs, SongFilter } from "@/services/songService";
+import { confirm } from "@/utils/confirm";
 
 const PRESETS: { label: string; filter: SongFilter }[] = [
   { label: "All", filter: {} },
@@ -70,7 +71,15 @@ export default function Songs() {
                   </Text>
                 </View>
               </Link>
-              <Pressable onPress={() => del.mutate(item.id)}>
+              <Pressable
+                onPress={() =>
+                  confirm(
+                    "Delete forever?",
+                    `Removes “${item.title}” and every part, track, and PDF inside it.`,
+                    () => del.mutate(item.id),
+                  )
+                }
+              >
                 <Text style={{ color: "#FF3B30" }}>Delete</Text>
               </Pressable>
             </View>

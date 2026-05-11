@@ -2,6 +2,7 @@ import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from "
 import { Link, useRouter } from "expo-router";
 import { useShows, useCompleteShow, useDeleteShow } from "@/services/showService";
 import { Show } from "@/lib/types";
+import { confirm } from "@/utils/confirm";
 
 export default function Home() {
   const router = useRouter();
@@ -52,7 +53,16 @@ export default function Home() {
               <Pressable onPress={() => complete.mutate(item.id)} accessibilityLabel="Mark complete">
                 <Text style={styles.action}>✓</Text>
               </Pressable>
-              <Pressable onPress={() => del.mutate(item.id)} accessibilityLabel="Delete show">
+              <Pressable
+                onPress={() =>
+                  confirm(
+                    "Delete forever?",
+                    `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`,
+                    () => del.mutate(item.id),
+                  )
+                }
+                accessibilityLabel="Delete show"
+              >
                 <Text style={[styles.action, { color: "#FF3B30" }]}>🗑</Text>
               </Pressable>
             </View>
