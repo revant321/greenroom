@@ -32,6 +32,11 @@ export default function Home() {
         refreshing={isRefetching}
         onRefresh={refetch}
         contentContainerStyle={{ padding: 16, gap: 12 }}
+        ListHeaderComponent={
+          <Link href="/(app)/songs" style={styles.songsLink}>
+            Songs →
+          </Link>
+        }
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>No shows yet</Text>
@@ -80,6 +85,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "#ddd",
   },
+  songsLink: { fontSize: 16, color: "#007AFF", padding: 12, marginBottom: 8 },
   nameLink: { flex: 1 },
   name: { fontSize: 17, fontWeight: "500" },
   action: { fontSize: 20, padding: 4 },

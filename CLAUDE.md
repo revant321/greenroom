@@ -93,6 +93,10 @@ app/
                 ├── index.tsx         # List with active/grayed styling
                 ├── new.tsx           # Add modal
                 └── [sceneId].tsx     # Detail with Switch + autosave
+    └── songs/
+        ├── index.tsx               # Standalone songs list with filter chips
+        ├── new.tsx                 # New song modal (title + audition + category)
+        └── [songId].tsx            # Detail: title/audition/completed/notes + parts/tracks/sheet music
 src/
 ├── db/
 │   ├── sqlite.ts              # expo-sqlite handle + kv_store + media_cache tables
@@ -120,7 +124,11 @@ src/
     ├── harmonyService.ts      # useHarmonies / useCreateHarmony / useUpdateHarmony / useDeleteHarmony
     ├── sceneRecordingService.ts # useSceneRecordings / useCreate / useDelete (audio + video scene clips)
     ├── danceVideoService.ts   # useDanceVideos / useCreate / useUpdate / useDelete (file OR external URL)
-    └── sheetMusicService.ts   # useSheetMusic / useCreate / useUpdate / useDelete (PDF only)
+    ├── sheetMusicService.ts   # useSheetMusic / useCreate / useUpdate / useDelete (PDF only)
+    ├── songService.ts         # useSongs (with filters) / useSong / useCreate / useUpdate / useDelete
+    ├── songPartService.ts     # useSongParts / useCreate / useUpdate / useDelete (audio clips per song)
+    ├── songTrackService.ts    # useSongTracks / useCreate / useUpdate / useDelete (audio/video/link)
+    └── songSheetMusicService.ts # useSongSheetMusic / useCreate / useUpdate / useDelete (PDF)
 supabase/
 └── migrations/
     └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
@@ -138,7 +146,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | N3    | Musical numbers + scenes (row-only features)              | DONE        |
 | N4    | Audio harmonies + media cache + expo-audio                | DONE        |
 | N5    | Video (expo-video) + PDFs (WebView) + external URLs        | DONE        |
-| N6    | Standalone songs (parts, tracks, sheet music, filters)    | PENDING     |
+| N6    | Standalone songs (parts, tracks, sheet music, filters)    | DONE        |
 | N7    | Completed shows archive + cascading storage cleanup       | PENDING     |
 | N8    | Theme, skeletons, toasts, SF Symbols, EAS → TestFlight    | PENDING     |
 
@@ -147,10 +155,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-05-10
-**Currently working on:** Phase N5 code complete on branch `feat/phase-n5-video-and-pdfs` (off N4). N2 PR #4, N3 PR #5, N4 PR #6 all still open and stacked, awaiting user device acceptance + Supabase migration apply.
-**Completed this session:** Phase N5 implemented — video and PDF support reaches feature parity with the web app. Installed `expo-image-picker` (photo library / camera for videos), `expo-document-picker` (iOS file picker for PDFs), `expo-video` (modern hooks-based video player), `react-native-webview` (PDF rendering); configured `expo-image-picker` plugin in `app.json` with camera + photos permission strings for future EAS builds. Added `SceneRecording`, `DanceVideo`, `SheetMusic` row types in `src/lib/types.ts` (DanceVideo's `NewDanceVideo` is a discriminated union — storage_path XOR external_url, never neither). Three new services following the harmonyService template: `sceneRecordingService.ts` (list/create/delete; delete always cascades to deleteMedia), `danceVideoService.ts` (list/create/update/delete; delete only cascades when storage_path is set — URL rows have no blob), `sheetMusicService.ts` (list/create/update/delete; always cascades). 12 new Jest tests (3 scene-recording + 5 dance-video + 4 sheet-music). New components `src/components/VideoPlayer.tsx` (uses `useVideoPlayer` + `VideoView` with `nativeControls` + `allowsFullscreen`, 16:9 aspect ratio) and `src/components/PdfViewer.tsx` (a `WebView` pointed at the cached PDF — iOS renders PDFs natively inside a WebView, so pinch-zoom and pagination are free). Scene detail now wraps in a ScrollView with a Recordings section below notes — three buttons: Record audio (uses AudioRecorder modal from N4), Pick video (photos library), Record video (system camera); each row renders AudioPlayer or VideoPlayer based on `kind` plus a Delete that cascades to Storage. Uses the modern `expo-image-picker` API `mediaTypes: ['videos']` (the legacy `MediaTypeOptions.Videos` enum was deprecated). Musical Number detail gains two sections below Harmonies: Dance Videos (Pick video / Record video / Add URL — URL rows show an arrow-link card opening via `Linking.openURL`; file rows show inline VideoPlayer) and Sheet Music (Add PDF — DocumentPicker filtered to application/pdf; tapping a row opens a full-screen Modal hosting PdfViewer with a Done button). 52 tests across 12 suites, all passing. `npx tsc --noEmit` clean.
-**Next steps:** (1) **User action — apply the N2 migration to Supabase if not yet done.** Same migration includes `scene_recordings`, `dance_videos`, `sheet_music` tables, so no new SQL for N5. (2) **User action — device test on iPhone via Expo Go**: scene → record audio + record video + pick video → playback inline; musical number → pick video + add URL + add PDF → video plays inline, URL opens YouTube/Safari, PDF opens in fullscreen WebView modal; kill + airplane + reopen → cached media still plays/renders. (3) Open the N5 PR when the user gives the go-ahead. (4) Tag `phase-n5-complete` once accepted. (5) Phase N6 (standalone songs).
-**Blockers:** Same as N2/N3/N4 — migration must be applied to Supabase before anything works on device. Video recording also requires running on a real iPhone (simulator camera can't record).
+**Currently working on:** Phase N6 code complete on branch `feat/phase-n6-standalone-songs` (off N5). PRs #4 (N2), #5 (N3), #6 (N4) merged; #7 (N5) closed/merged. N6 PR not yet opened.
+**Completed this session:** Phase N6 implemented — standalone songs feature. Added `Song`, `SongPart`, `SongTrack`, `SongSheetMusic` row types in `src/lib/types.ts` (`NewSongTrack` is a discriminated union over kind: audio/video require storage_path, link requires external_url). Four new services: `songService.ts` exposes a chainable filter (is_audition_song / category / status) on `useSongs` — used by the list screen's chip bar. `songPartService.ts` ≅ harmonyService. `songTrackService.ts` ≅ danceVideoService but with three kinds: delete cascades to deleteMedia only when storage_path is set (link rows skip). `songSheetMusicService.ts` ≅ sheetMusicService. 17 new tests (7 songService + 3 songPart + 4 songTrack + 3 songSheetMusic). New routes under `app/(app)/songs/`: list `index.tsx` (six filter chips: All / Audition / Vocal / Guitar / In progress / Completed), add modal `new.tsx` (title + audition switch + category chip pair — tap again to clear), and detail `[songId].tsx` — a big screen combining N4/N5 patterns: header form (title / audition / completed / notes) with debounced autosave, Parts section with audio recorder, Tracks section with three add buttons (Audio via DocumentPicker, Video via image-picker, Link via inline AddUrlSheet modal), Sheet Music section with PDF picker + fullScreen WebView viewer. Home gains a 'Songs →' link above the shows list. (app)/_layout.tsx registers the three new screens. 69 tests across 16 suites, all passing. `npx tsc --noEmit` clean. Known limitation per plan: deleting a song leaves Storage orphans for its parts/tracks/sheets — to be fixed in N7's cascade-with-storage-cleanup pattern.
+**Next steps:** (1) **User action — confirm Supabase migration is applied** (no new SQL needed; songs / song_parts / song_tracks / song_sheet_music are in the N2 init migration). (2) **User action — device test on iPhone via Expo Go**: Home → Songs → add an Audition Guitar song → filter chips show it under Audition and Guitar; open the song → record a Part → add an Audio + Video + Link track → add a PDF → toggle Completed → flip back to list and confirm filter behaviour. (3) Open the N6 PR when the user gives the go-ahead. (4) Tag `phase-n6-complete` once accepted. (5) Phase N7 (completed shows archive + cascading storage cleanup — also addresses N6's song-delete orphan limitation).
+**Blockers:** Same as prior phases — migration must be applied to Supabase before anything works on device.
 
 ## Session Rules
 
