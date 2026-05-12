@@ -21,7 +21,7 @@ export const palette = {
     navActivePillBorder: "rgba(0, 0, 0, 0.14)",
     navIconActive: "#000000",
     navIconInactive: "#8E8E93",
-    navBlurTint: "light" as const,
+    navBlurTint: "light" as "light" | "dark",
   },
   dark: {
     bg: "#040406",
@@ -45,7 +45,7 @@ export const palette = {
     navActivePillBorder: "rgba(255, 255, 255, 0.18)",
     navIconActive: "#FFFFFF",
     navIconInactive: "#98989F",
-    navBlurTint: "dark" as const,
+    navBlurTint: "dark" as "light" | "dark",
   },
 };
 

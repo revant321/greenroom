@@ -2,10 +2,14 @@ import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useCreateShow } from "@/services/showService";
+import { useTheme } from "@/theme/useTheme";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewShow() {
   const router = useRouter();
   const create = useCreateShow();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [name, setName] = useState("");
 
   async function onSave() {
@@ -26,6 +30,7 @@ export default function NewShow() {
         value={name}
         onChangeText={setName}
         placeholder="Rent"
+        placeholderTextColor={colors.textMuted}
         autoFocus
         style={styles.input}
         returnKeyType="done"
@@ -33,28 +38,48 @@ export default function NewShow() {
       />
       <View style={styles.row}>
         <Pressable style={styles.cancel} onPress={() => router.back()}>
-          <Text>Cancel</Text>
+          <Text style={{ color: colors.text }}>Cancel</Text>
         </Pressable>
-        <Pressable style={styles.save} onPress={onSave} disabled={create.isPending}>
-          <Text style={styles.saveText}>{create.isPending ? "Saving…" : "Save"}</Text>
+        <Pressable
+          style={styles.save}
+          onPress={onSave}
+          disabled={create.isPending}
+        >
+          <Text style={styles.saveText}>
+            {create.isPending ? "Saving…" : "Save"}
+          </Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, gap: 12 },
-  label: { fontSize: 14, color: "#666" },
-  input: {
-    fontSize: 18,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ccc",
-    borderRadius: 8,
-  },
-  row: { flexDirection: "row", justifyContent: "flex-end", gap: 12, marginTop: 16 },
-  cancel: { padding: 12 },
-  save: { padding: 12, backgroundColor: "#007AFF", borderRadius: 8, paddingHorizontal: 20 },
-  saveText: { color: "#fff", fontWeight: "600" },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: { flex: 1, padding: spacing.xl, gap: spacing.md, backgroundColor: c.bg },
+    label: { ...type.label, color: c.textMuted },
+    input: {
+      fontSize: 18,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      backgroundColor: c.card,
+      color: c.text,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: spacing.md,
+      marginTop: spacing.lg,
+    },
+    cancel: { padding: spacing.md },
+    save: {
+      padding: spacing.md,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.xl,
+    },
+    saveText: { color: "#fff", fontWeight: "600" },
+  });
+}

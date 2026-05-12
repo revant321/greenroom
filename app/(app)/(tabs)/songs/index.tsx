@@ -8,8 +8,17 @@ import {
   View,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
-import { useDeleteSong, useSongs, SongFilter } from "@/services/songService";
+import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
 import { confirm } from "@/utils/confirm";
+import { useTheme } from "@/theme/useTheme";
+import { Icon } from "@/components/Icon";
+import {
+  ColorTokens,
+  FAB_CLEARANCE,
+  radius,
+  spacing,
+  type,
+} from "@/theme/tokens";
 
 const PRESETS: { label: string; filter: SongFilter }[] = [
   { label: "All", filter: {} },
@@ -22,12 +31,14 @@ const PRESETS: { label: string; filter: SongFilter }[] = [
 
 export default function Songs() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [preset, setPreset] = useState(0);
   const { data, isLoading } = useSongs(PRESETS[preset].filter);
   const del = useDeleteSong();
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={styles.filters}>
         {PRESETS.map((p, i) => (
           <Pressable
@@ -44,14 +55,18 @@ export default function Songs() {
         ))}
       </View>
       {isLoading && !data ? (
-        <ActivityIndicator style={{ marginTop: 24 }} />
+        <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.text} />
       ) : (
         <FlatList
           data={data ?? []}
           keyExtractor={(s) => s.id}
-          contentContainerStyle={{ padding: 16, gap: 12 }}
+          contentContainerStyle={{
+            padding: spacing.lg,
+            gap: spacing.md,
+            paddingBottom: FAB_CLEARANCE + spacing.lg,
+          }}
           ListEmptyComponent={
-            <Text style={{ color: "#666", padding: 16 }}>
+            <Text style={{ color: colors.textMuted, padding: spacing.lg }}>
               No songs match this filter.
             </Text>
           }
@@ -79,52 +94,71 @@ export default function Songs() {
                     () => del.mutate(item.id),
                   )
                 }
+                hitSlop={8}
               >
-                <Text style={{ color: "#FF3B30" }}>Delete</Text>
+                <Icon
+                  sf="trash"
+                  ion="trash-outline"
+                  size={22}
+                  color={colors.danger}
+                />
               </Pressable>
             </View>
           )}
         />
       )}
       <Pressable style={styles.fab} onPress={() => router.push("/songs/new")}>
-        <Text style={styles.fabPlus}>+</Text>
+        <Icon sf="plus" ion="add" size={28} color="#fff" />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  filters: { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: 12 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "#eee",
-  },
-  chipActive: { backgroundColor: "#007AFF" },
-  chipText: { color: "#333", fontSize: 14 },
-  chipTextActive: { color: "#fff", fontWeight: "600" },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-  },
-  title: { fontSize: 17, fontWeight: "500" },
-  meta: { fontSize: 13, color: "#666", marginTop: 2 },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 32,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#007AFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fabPlus: { color: "#fff", fontSize: 32, lineHeight: 32 },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    filters: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      padding: spacing.md,
+    },
+    chip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+      backgroundColor: c.card,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+    },
+    chipActive: { backgroundColor: c.accent, borderColor: c.accent },
+    chipText: { color: c.text, fontSize: 14 },
+    chipTextActive: { color: "#fff", fontWeight: "600" },
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      padding: spacing.lg,
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+    },
+    title: { ...type.bodyStrong, color: c.text },
+    meta: { ...type.caption, color: c.textMuted, marginTop: 2 },
+    fab: {
+      position: "absolute",
+      right: spacing.xl,
+      bottom: FAB_CLEARANCE,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+  });
+}

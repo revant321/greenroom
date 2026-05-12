@@ -1,9 +1,16 @@
 import { Stack } from "expo-router";
+import { SettingsButton } from "@/components/SettingsButton";
 
 export default function ShowsStackLayout() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ title: "Shows" }} />
+      <Stack.Screen
+        name="index"
+        options={{
+          title: "Shows",
+          headerRight: () => <SettingsButton />,
+        }}
+      />
       <Stack.Screen
         name="new"
         options={{ presentation: "modal", title: "New Show" }}

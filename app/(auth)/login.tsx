@@ -1,13 +1,29 @@
 import { useState } from "react";
-import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
-import { signInWithApple, signInWithEmail, signInWithGoogle } from "@/services/authService";
+import {
+  signInWithApple,
+  signInWithEmail,
+  signInWithGoogle,
+} from "@/services/authService";
+import { useTheme } from "@/theme/useTheme";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function Login() {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const [busy, setBusy] = useState<"apple" | "google" | "email" | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +80,11 @@ export default function Login() {
       {Platform.OS === "ios" && (
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+          buttonStyle={
+            colors === undefined
+              ? AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+              : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+          }
           cornerRadius={10}
           style={styles.appleButton}
           onPress={onApple}
@@ -75,7 +95,10 @@ export default function Login() {
         accessibilityRole="button"
         disabled={busy !== null}
         onPress={onGoogle}
-        style={({ pressed }) => [styles.googleButton, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [
+          styles.googleButton,
+          pressed && { opacity: 0.8 },
+        ]}
       >
         <Text style={styles.googleButtonText}>
           {busy === "google" ? "Signing in…" : "Continue with Google"}
@@ -88,6 +111,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="email"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -97,6 +121,7 @@ export default function Login() {
           <TextInput
             style={styles.input}
             placeholder="password"
+            placeholderTextColor={colors.textMuted}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -123,25 +148,64 @@ export default function Login() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 16 },
-  title: { fontSize: 36, fontWeight: "700", marginBottom: 4 },
-  subtitle: { fontSize: 16, color: "#666", marginBottom: 24, textAlign: "center" },
-  appleButton: { width: 260, height: 48 },
-  googleButton: {
-    width: 260, height: 48, borderRadius: 10, backgroundColor: "#fff",
-    borderWidth: 1, borderColor: "#ddd", alignItems: "center", justifyContent: "center",
-  },
-  googleButtonText: { fontSize: 16, fontWeight: "600", color: "#111" },
-  devBlock: { width: 260, marginTop: 24, gap: 8 },
-  devLabel: { fontSize: 12, color: "#888", textAlign: "center", marginBottom: 4 },
-  input: {
-    height: 44, borderRadius: 8, borderWidth: 1, borderColor: "#ddd",
-    paddingHorizontal: 12, backgroundColor: "#fff", fontSize: 15,
-  },
-  emailButton: {
-    height: 44, borderRadius: 8, backgroundColor: "#111",
-    alignItems: "center", justifyContent: "center", marginTop: 4,
-  },
-  emailButtonText: { fontSize: 15, fontWeight: "600", color: "#fff" },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xl,
+      gap: spacing.lg,
+      backgroundColor: c.bg,
+    },
+    title: { ...type.title, color: c.text, marginBottom: 4 },
+    subtitle: {
+      ...type.body,
+      color: c.textMuted,
+      marginBottom: spacing.xl,
+      textAlign: "center",
+    },
+    appleButton: { width: 260, height: 48 },
+    googleButton: {
+      width: 260,
+      height: 48,
+      borderRadius: radius.md,
+      backgroundColor: c.bgElevated,
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    googleButtonText: { ...type.bodyStrong, color: c.text },
+    devBlock: { width: 260, marginTop: spacing.xl, gap: spacing.sm },
+    devLabel: {
+      ...type.caption,
+      color: c.textMuted,
+      textAlign: "center",
+      marginBottom: 4,
+    },
+    input: {
+      height: 44,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: c.border,
+      paddingHorizontal: spacing.md,
+      backgroundColor: c.card,
+      fontSize: 15,
+      color: c.text,
+    },
+    emailButton: {
+      height: 44,
+      borderRadius: radius.md,
+      backgroundColor: c.text,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 4,
+    },
+    emailButtonText: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: c.bg,
+    },
+  });
+}
