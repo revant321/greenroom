@@ -16,6 +16,7 @@ import { Show } from "@/lib/types";
 import { confirm } from "@/utils/confirm";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { EmptyState } from "@/components/EmptyState";
 import { ColorTokens, FAB_CLEARANCE, radius, spacing, type } from "@/theme/tokens";
 
 export default function ShowsList() {
@@ -56,10 +57,13 @@ export default function ShowsList() {
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No shows yet</Text>
-            <Text style={styles.emptyBody}>Tap + to add your first show.</Text>
-          </View>
+          <EmptyState
+            icon="🎭"
+            title="No shows yet"
+            body="Tap + to add your first show."
+            actionLabel="Add show"
+            onAction={() => router.push("/shows/new")}
+          />
         }
         renderItem={({ item }: { item: Show }) => (
           <View style={styles.card}>

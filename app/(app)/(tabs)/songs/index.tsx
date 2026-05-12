@@ -12,6 +12,7 @@ import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
 import { confirm } from "@/utils/confirm";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { EmptyState } from "@/components/EmptyState";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -66,9 +67,20 @@ export default function Songs() {
             paddingBottom: FAB_CLEARANCE + spacing.lg,
           }}
           ListEmptyComponent={
-            <Text style={{ color: colors.textMuted, padding: spacing.lg }}>
-              No songs match this filter.
-            </Text>
+            preset === 0 ? (
+              <EmptyState
+                icon="🎵"
+                title="No songs yet"
+                body="Tap + to add your first song."
+                actionLabel="Add song"
+                onAction={() => router.push("/songs/new")}
+              />
+            ) : (
+              <EmptyState
+                title="No matches"
+                body="Try a different filter chip."
+              />
+            )
           }
           renderItem={({ item }) => (
             <View style={styles.card}>

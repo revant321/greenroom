@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider } from "@/hooks/useAuth";
 import { persister, queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+import { ToastProvider } from "@/components/Toast";
 
 export default function RootLayout() {
   return (
@@ -14,7 +15,9 @@ export default function RootLayout() {
       >
         <AuthProvider>
           <ThemeProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <ToastProvider>
+              <Stack screenOptions={{ headerShown: false }} />
+            </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </PersistQueryClientProvider>
