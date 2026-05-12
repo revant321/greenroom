@@ -71,15 +71,15 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 
 ```
 app/
-├── _layout.tsx                # Root: PersistQueryClientProvider + AuthProvider
+├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
 ├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
 ├── (auth)/
-│   └── login.tsx              # Apple + Google sign-in
+│   └── login.tsx              # Apple + Google sign-in (themed)
 └── (app)/
-    ├── _layout.tsx            # Auth gate: <Slot /> after session check
+    ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings modal
+    ├── settings.tsx           # Settings sheet (modal route): theme picker + Completed shows link + Sign out
     └── (tabs)/
-        ├── _layout.tsx        # Bottom Tabs: Shows / Songs / Settings (Ionicons)
-        ├── settings.tsx       # Settings tab (single screen)
+        ├── _layout.tsx        # 2-tab <Tabs tabBar={FloatingGlassTabBar}>: Shows + Songs
         ├── shows/             # Shows tab — a Stack
         │   ├── _layout.tsx    # Stack with all show-scoped screens registered flatly
         │   ├── index.tsx      # Shows list + FAB
@@ -113,13 +113,23 @@ src/
 ├── hooks/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
+├── theme/
+│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
+│   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
 │   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
 ├── components/
 │   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
-│   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer
+│   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
-│   └── PdfViewer.tsx          # WebView pointed at the cached PDF
+│   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
+│   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
+│   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
+│   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
+│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
+│   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
     ├── authService.ts         # signInWithApple / signInWithGoogle / signOut
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
@@ -160,11 +170,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-05-10
-**Currently working on:** Phase N7 code complete on branch `feat/phase-n7-completed-shows-archive` (off N6). N6 PR #9 open, awaiting user device acceptance. N7 PR not yet opened.
-**Completed this session:** Phase N7 implemented — cascading storage cleanup + confirmation UX. New `src/services/cascadeDelete.ts` exposes `collectShowStoragePaths(showId)` (walks musical_numbers → harmonies/dance_videos/sheet_music, plus scenes → scene_recordings, returning every non-null storage_path), `collectSongStoragePaths(songId)` (walks song_parts/song_tracks/song_sheet_music), `deleteShowWithMedia(id)` and `deleteSongWithMedia(id)` (each: collect descendant paths → chunked batch-remove from the 'media' bucket (chunks of 900 to stay under Supabase's 1000-per-call limit) → clear matching `media_cache` rows + delete local files → delete the parent row, with Postgres FK cascade wiping the descendant rows). `useDeleteShow` and `useDeleteSong` now route through these helpers; tests updated to mock the cascade module and assert the helper is called. New `src/utils/confirm.ts` is a thin `Alert.alert` wrapper with Cancel + destructive Delete buttons (configurable label); wired into Home, Songs list, and Completed screens. Completed screen's row pair changed from '↩︎ Unarchive' / 'Delete' to 'Restore' / 'Delete forever' with the confirm dialog. 3 new cascadeDelete tests; 72 total across 17 suites, all passing. `npx tsc --noEmit` clean. Known perf caveat: `collectShowStoragePaths` is N+1 across musical numbers + scenes — acceptable for a personal app; collapse into an RPC if it ever matters.
-**Next steps:** (1) **User action — confirm Supabase migration is applied** (no new SQL for N7). (2) **User action — device test on iPhone via Expo Go**: create a show + add a musical number + record a harmony + add a scene with a recording → complete it → Settings → Completed shows → tap 'Delete forever' → confirm dialog → confirm → check Supabase Dashboard → Storage → `media` → your uid → harmony and scene recording blobs are gone. Repeat for a song: create + add a part + delete → blobs gone. Verify Cancel on the confirm dialog leaves the row alone. (3) Open the N7 PR when the user gives the go-ahead. (4) Tag `phase-n7-complete` once accepted. (5) Phase N8 (theme, skeletons, toasts, SF Symbols, EAS → TestFlight).
-**Blockers:** Same as prior phases — migration must be applied to Supabase before anything works on device.
+**Last session:** 2026-05-11
+**Currently working on:** UI polish pass complete on branch `feat/ui-polish` (off N7 + nav-restructure). All earlier phases merged to main except N7 (PR #10) + nav-restructure (PR #11) + this polish PR.
+**Completed this session:** UI polish + native floating-glass nav. (1) Installed expo-blur, expo-symbols, @expo/vector-icons, react-native-reanimated, react-native-gesture-handler. (2) Added design-token system in `src/theme/` merging N8 structure (light/dark palettes, spacing, radius, typography) with UI_Overview's glass-pill tokens; ThemeProvider exposes `{ mode, setMode, scheme, colors }` with 'auto' | 'light' | 'dark' persisted in SecureStore. (3) Built `FloatingGlassTabBar` — a `<BlurView>` capsule with a reanimated lozenge that springs (stiffness 380, damping 30) to the active tab. (4) Reduced to **2 tabs** (Shows + Songs) with SF Symbols `theatermasks` and `music.note`. (5) Moved Settings out of tabs into a modal route reached via a top-right `gearshape` button (`SettingsButton`) on the shows + songs root screens. Settings now contains the theme picker (auto/light/dark chips). (6) Refactored every screen + media component to read from `useTheme` and build StyleSheets via `makeStyles(colors)`. FABs bumped to `FAB_CLEARANCE` so they clear the floating pill; list/scroll containers padded so the last row stays scrollable past the pill. (7) Created `Icon` wrapper (SF Symbols on iOS, Ionicons fallback). Replaced emoji throughout: ✓ → checkmark.circle, 🗑 → trash, + → plus, 📄 → doc, ↗ → arrow.up.right.square, ▶︎/⏸ → play.fill/pause.fill. (8) Added `Skeleton`, `EmptyState`, `Toast` components — EmptyState wired into Shows + Songs lists; Toast infrastructure wired into root layout (not yet swapped into Alert call sites; left for follow-up). Tests still green: 72/72 across 17 suites. `npx tsc --noEmit` clean.
+**Next steps:** (1) **User action — confirm Supabase migration is applied** (no new SQL this session). (2) **User action — device test on iPhone via Expo Go** with `npx expo start -c`: confirm floating glass pill at bottom with Shows + Songs tabs, lozenge springs between them; gear top-right of each list opens Settings sheet that slides up from bottom; theme picker switches between light/dark; back buttons appear on every detail screen. (3) Merge PR chain in order: N7 #10 → nav-restructure #11 → polish (this PR). (4) Remaining N8 items not in this polish PR: app icon, splash screen, EAS Build config, TestFlight submission. (5) Optional follow-up: swap remaining `Alert.alert` upload-error calls to `useToast().show(..., 'error')` to use the toast infrastructure that's already wired in.
+**Blockers:** Same as prior phases — Supabase migration must be applied before device acceptance; for the polish PR to compile route types on first run, do `npx expo start -c` once to regenerate `.expo/types/router.d.ts` (the gitignored typed-routes file).
 
 ## Session Rules
 
