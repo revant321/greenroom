@@ -15,8 +15,8 @@ export const palette = {
     shadow: "rgba(0, 0, 0, 0.05)",
     modalBackdrop: "rgba(0, 0, 0, 0.35)",
 
-    navGlassTint: "rgba(255, 255, 255, 0.55)",
-    navGlassBorder: "rgba(0, 0, 0, 0.10)",
+    navGlassTint: "rgba(255, 255, 255, 0.72)",
+    navGlassBorder: "rgba(0, 0, 0, 0.14)",
     navActivePill: "rgba(0, 0, 0, 0.10)",
     navActivePillBorder: "rgba(0, 0, 0, 0.14)",
     navIconActive: "#000000",
@@ -39,8 +39,8 @@ export const palette = {
     shadow: "rgba(0, 0, 0, 0.4)",
     modalBackdrop: "rgba(0, 0, 0, 0.55)",
 
-    navGlassTint: "rgba(255, 255, 255, 0.05)",
-    navGlassBorder: "rgba(255, 255, 255, 0.14)",
+    navGlassTint: "rgba(28, 28, 30, 0.55)",
+    navGlassBorder: "rgba(255, 255, 255, 0.20)",
     navActivePill: "rgba(255, 255, 255, 0.22)",
     navActivePillBorder: "rgba(255, 255, 255, 0.18)",
     navIconActive: "#FFFFFF",

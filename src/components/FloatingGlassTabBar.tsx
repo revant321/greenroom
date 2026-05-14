@@ -58,7 +58,7 @@ export function FloatingGlassTabBar({
       ]}
     >
       <BlurView
-        intensity={70}
+        intensity={100}
         tint={colors.navBlurTint}
         style={[
           styles.pill,
