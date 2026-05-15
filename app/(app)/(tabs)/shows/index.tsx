@@ -1,52 +1,87 @@
-import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Link, useRouter } from "expo-router";
-import { useShows, useCompleteShow, useDeleteShow } from "@/services/showService";
+import {
+  useCompleteShow,
+  useDeleteShow,
+  useShows,
+} from "@/services/showService";
 import { Show } from "@/lib/types";
 import { confirm } from "@/utils/confirm";
+import { useTheme } from "@/theme/useTheme";
+import { Icon } from "@/components/Icon";
+import { EmptyState } from "@/components/EmptyState";
+import { ColorTokens, FAB_CLEARANCE, radius, spacing, type } from "@/theme/tokens";
 
-export default function Home() {
+export default function ShowsList() {
   const router = useRouter();
-  const { data, isLoading, error, refetch, isRefetching } = useShows({ completed: false });
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
+  const { data, isLoading, error, refetch, isRefetching } = useShows({
+    completed: false,
+  });
   const complete = useCompleteShow();
   const del = useDeleteShow();
 
   if (isLoading && !data) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text>Couldn't load shows.</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={{ color: colors.text }}>Couldn't load shows.</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
         refreshing={isRefetching}
         onRefresh={refetch}
-        contentContainerStyle={{ padding: 16, gap: 12 }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          gap: spacing.md,
+          paddingBottom: FAB_CLEARANCE + spacing.lg,
+        }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No shows yet</Text>
-            <Text style={styles.emptyBody}>Tap “+” to add your first show.</Text>
-          </View>
+          <EmptyState
+            icon="🎭"
+            title="No shows yet"
+            body="Tap + to add your first show."
+            actionLabel="Add show"
+            onAction={() => router.push("/shows/new")}
+          />
         }
         renderItem={({ item }: { item: Show }) => (
           <View style={styles.card}>
             <Link href={`/shows/${item.id}`} style={styles.nameLink}>
               <Text style={styles.name}>{item.name}</Text>
             </Link>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <Pressable onPress={() => complete.mutate(item.id)} accessibilityLabel="Mark complete">
-                <Text style={styles.action}>✓</Text>
+            <View style={styles.actions}>
+              <Pressable
+                onPress={() => complete.mutate(item.id)}
+                accessibilityLabel="Mark complete"
+                hitSlop={8}
+              >
+                <Icon
+                  sf="checkmark.circle"
+                  ion="checkmark-circle-outline"
+                  size={24}
+                  color={colors.success}
+                />
               </Pressable>
               <Pressable
                 onPress={() =>
@@ -57,8 +92,14 @@ export default function Home() {
                   )
                 }
                 accessibilityLabel="Delete show"
+                hitSlop={8}
               >
-                <Text style={[styles.action, { color: "#FF3B30" }]}>🗑</Text>
+                <Icon
+                  sf="trash"
+                  ion="trash-outline"
+                  size={22}
+                  color={colors.danger}
+                />
               </Pressable>
             </View>
           </View>
@@ -69,40 +110,46 @@ export default function Home() {
         onPress={() => router.push("/shows/new")}
         accessibilityLabel="Add show"
       >
-        <Text style={styles.fabPlus}>+</Text>
+        <Icon sf="plus" ion="add" size={28} color="#fff" />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  empty: { padding: 32, alignItems: "center" },
-  emptyTitle: { fontSize: 18, fontWeight: "600", marginBottom: 4 },
-  emptyBody: { color: "#666" },
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-  },
-  nameLink: { flex: 1 },
-  name: { fontSize: 17, fontWeight: "500" },
-  action: { fontSize: 20, padding: 4 },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 32,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#007AFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  fabPlus: { color: "#fff", fontSize: 32, lineHeight: 32 },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    empty: { padding: spacing.xxl, alignItems: "center" },
+    emptyTitle: { ...type.bodyStrong, color: c.text, marginBottom: spacing.xs },
+    emptyBody: { color: c.textMuted },
+    card: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: spacing.lg,
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+    },
+    nameLink: { flex: 1 },
+    name: { ...type.bodyStrong, color: c.text },
+    actions: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
+    fab: {
+      position: "absolute",
+      right: spacing.xl,
+      bottom: FAB_CLEARANCE,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: c.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.25,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+  });
+}

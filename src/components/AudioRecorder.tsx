@@ -6,6 +6,8 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from "expo-audio";
+import { useTheme } from "@/theme/useTheme";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 type Props = {
   onFinish: (uri: string) => void;
@@ -13,6 +15,8 @@ type Props = {
 };
 
 export function AudioRecorder({ onFinish, onCancel }: Props) {
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [isRecording, setIsRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -20,7 +24,10 @@ export function AudioRecorder({ onFinish, onCancel }: Props) {
   useEffect(() => {
     if (!isRecording) return;
     const start = Date.now();
-    const t = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 200);
+    const t = setInterval(
+      () => setElapsed(Math.floor((Date.now() - start) / 1000)),
+      200,
+    );
     return () => clearInterval(t);
   }, [isRecording]);
 
@@ -52,11 +59,19 @@ export function AudioRecorder({ onFinish, onCancel }: Props) {
     <View style={styles.container}>
       <Text style={styles.timer}>{formatTimer(elapsed)}</Text>
       {isRecording ? (
-        <Pressable style={[styles.button, styles.stop]} onPress={stop} accessibilityLabel="Stop">
+        <Pressable
+          style={[styles.button, styles.stop]}
+          onPress={stop}
+          accessibilityLabel="Stop"
+        >
           <Text style={styles.buttonText}>Stop</Text>
         </Pressable>
       ) : (
-        <Pressable style={[styles.button, styles.record]} onPress={start} accessibilityLabel="Record">
+        <Pressable
+          style={[styles.button, styles.record]}
+          onPress={start}
+          accessibilityLabel="Record"
+        >
           <Text style={styles.buttonText}>Record</Text>
         </Pressable>
       )}
@@ -68,17 +83,38 @@ export function AudioRecorder({ onFinish, onCancel }: Props) {
 }
 
 function formatTimer(s: number) {
-  const m = Math.floor(s / 60).toString().padStart(2, "0");
+  const m = Math.floor(s / 60)
+    .toString()
+    .padStart(2, "0");
   const ss = (s % 60).toString().padStart(2, "0");
   return `${m}:${ss}`;
 }
 
-const styles = StyleSheet.create({
-  container: { alignItems: "center", padding: 24, gap: 16 },
-  timer: { fontSize: 48, fontVariant: ["tabular-nums"] },
-  button: { padding: 24, borderRadius: 999, minWidth: 140, alignItems: "center" },
-  record: { backgroundColor: "#FF3B30" },
-  stop: { backgroundColor: "#8E8E93" },
-  buttonText: { color: "#fff", fontSize: 18, fontWeight: "700" },
-  cancel: { color: "#666", padding: 12 },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: spacing.xl,
+      gap: spacing.lg,
+      backgroundColor: c.bg,
+    },
+    timer: {
+      fontSize: 48,
+      fontVariant: ["tabular-nums"],
+      color: c.text,
+      fontWeight: "300",
+    },
+    button: {
+      padding: spacing.xl,
+      borderRadius: radius.pill,
+      minWidth: 140,
+      alignItems: "center",
+    },
+    record: { backgroundColor: c.danger },
+    stop: { backgroundColor: c.textMuted },
+    buttonText: { color: "#fff", fontSize: 18, fontWeight: "700" },
+    cancel: { color: c.textMuted, padding: spacing.md, ...type.body },
+  });
+}

@@ -36,12 +36,23 @@ import { AudioRecorder } from "@/components/AudioRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { PdfViewer } from "@/components/PdfViewer";
+import { Icon } from "@/components/Icon";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
+import { useTheme } from "@/theme/useTheme";
+import {
+  ColorTokens,
+  FAB_CLEARANCE,
+  radius,
+  spacing,
+  type,
+} from "@/theme/tokens";
 
 export default function SongDetail() {
   const { songId } = useLocalSearchParams<{ songId: string }>();
   const { data: song, isLoading } = useSong(songId);
   const updateSong = useUpdateSong();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   const { data: parts } = useSongParts(songId);
   const createPart = useCreateSongPart();
@@ -201,27 +212,36 @@ export default function SongDetail() {
 
   if (isLoading && !song) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
   if (!song) {
     return (
-      <View style={styles.center}>
-        <Text>Not found.</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={{ color: colors.text }}>Not found.</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+      ]}
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title: title || "Song" }} />
       <Text style={styles.label}>Title</Text>
-      <TextInput value={title} onChangeText={setTitle} style={styles.input} />
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        placeholderTextColor={colors.textMuted}
+        style={styles.input}
+      />
       <View style={styles.row}>
         <Text style={styles.label}>Audition song</Text>
         <Switch value={audition} onValueChange={setAudition} />
@@ -239,6 +259,7 @@ export default function SongDetail() {
         onChangeText={setNotes}
         multiline
         placeholder="Practice notes, tempo, lyrics tips…"
+        placeholderTextColor={colors.textMuted}
         style={[styles.input, styles.notes]}
       />
       <Text style={styles.saved}>
@@ -270,7 +291,7 @@ export default function SongDetail() {
               onPress={() => deletePart.mutate(p)}
               style={styles.deleteBtn}
             >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
+              <Text style={{ color: colors.danger }}>Delete</Text>
             </Pressable>
           </View>
         ))}
@@ -315,15 +336,22 @@ export default function SongDetail() {
             {t.kind === "link" && t.external_url && (
               <Pressable
                 onPress={() => t.external_url && Linking.openURL(t.external_url)}
+                style={styles.urlLine}
               >
-                <Text style={styles.urlText}>↗ {t.title || t.external_url}</Text>
+                <Icon
+                  sf="arrow.up.right.square"
+                  ion="open-outline"
+                  size={18}
+                  color={colors.accent}
+                />
+                <Text style={styles.urlText}>{t.title || t.external_url}</Text>
               </Pressable>
             )}
             <Pressable
               onPress={() => deleteTrack.mutate(t)}
               style={styles.deleteBtn}
             >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
+              <Text style={{ color: colors.danger }}>Delete</Text>
             </Pressable>
           </View>
         ))}
@@ -339,14 +367,23 @@ export default function SongDetail() {
         )}
         {(sheets ?? []).map((s) => (
           <View key={s.id} style={styles.mediaRow}>
-            <Pressable onPress={() => setPdfViewerPath(s.storage_path)}>
-              <Text style={styles.pdfLink}>📄 {s.title || "Sheet music"}</Text>
+            <Pressable
+              onPress={() => setPdfViewerPath(s.storage_path)}
+              style={styles.urlLine}
+            >
+              <Icon
+                sf="doc"
+                ion="document-outline"
+                size={18}
+                color={colors.accent}
+              />
+              <Text style={styles.pdfLink}>{s.title || "Sheet music"}</Text>
             </Pressable>
             <Pressable
               onPress={() => deleteSheet.mutate(s)}
               style={styles.deleteBtn}
             >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
+              <Text style={{ color: colors.danger }}>Delete</Text>
             </Pressable>
           </View>
         ))}
@@ -386,6 +423,7 @@ export default function SongDetail() {
               Alert.alert("Couldn't save", e?.message ?? String(e));
             }
           }}
+          colors={colors}
         />
       </Modal>
 
@@ -395,7 +433,7 @@ export default function SongDetail() {
         presentationStyle="fullScreen"
         onRequestClose={() => setPdfViewerPath(null)}
       >
-        <View style={styles.pdfModal}>
+        <View style={[styles.pdfModal, { backgroundColor: colors.bg }]}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
             style={styles.pdfDoneBar}
@@ -412,28 +450,37 @@ export default function SongDetail() {
 function AddUrlSheet({
   onCancel,
   onSave,
+  colors,
 }: {
   onCancel: () => void;
   onSave: (v: { title: string; url: string }) => void;
+  colors: ColorTokens;
 }) {
+  const styles = makeStyles(colors);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   return (
-    <View style={styles.urlSheet}>
+    <View style={[styles.urlSheet, { backgroundColor: colors.bg }]}>
       <Text style={styles.label}>Title</Text>
-      <TextInput value={title} onChangeText={setTitle} style={styles.input} />
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        placeholderTextColor={colors.textMuted}
+        style={styles.input}
+      />
       <Text style={styles.label}>URL</Text>
       <TextInput
         value={url}
         onChangeText={setUrl}
         placeholder="https://youtu.be/…"
+        placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         keyboardType="url"
         style={styles.input}
       />
       <View style={styles.urlSheetActions}>
-        <Pressable onPress={onCancel} style={{ padding: 12 }}>
-          <Text>Cancel</Text>
+        <Pressable onPress={onCancel} style={{ padding: spacing.md }}>
+          <Text style={{ color: colors.text }}>Cancel</Text>
         </Pressable>
         <Pressable
           onPress={() => {
@@ -448,70 +495,74 @@ function AddUrlSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { padding: 16, gap: 8 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 14, color: "#666" },
-  input: {
-    fontSize: 16,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
-  },
-  notes: { minHeight: 120, textAlignVertical: "top" },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  saved: { fontSize: 12, color: "#999", marginTop: 4 },
-  section: { marginTop: 24, gap: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: "600" },
-  btnRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  addBtn: {
-    padding: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  addBtnText: { color: "#fff", fontWeight: "600" },
-  empty: { color: "#999", padding: 8 },
-  mediaRow: {
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-    gap: 6,
-  },
-  urlText: { color: "#007AFF", fontSize: 16, padding: 8 },
-  pdfLink: { color: "#007AFF", fontSize: 16, padding: 8 },
-  deleteBtn: { alignSelf: "flex-end" },
-  pdfModal: { flex: 1 },
-  pdfDoneBar: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ddd",
-  },
-  pdfDoneText: { color: "#007AFF", fontSize: 16 },
-  urlSheet: { flex: 1, padding: 24, gap: 12 },
-  urlSheetActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 16,
-  },
-  saveBtn: {
-    padding: 12,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    paddingHorizontal: 20,
-  },
-  saveBtnText: { color: "#fff", fontWeight: "600" },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: { padding: spacing.lg, gap: spacing.sm },
+    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    label: { ...type.label, color: c.textMuted },
+    input: {
+      ...type.body,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      backgroundColor: c.card,
+      color: c.text,
+    },
+    notes: { minHeight: 120, textAlignVertical: "top" },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 4,
+    },
+    saved: { ...type.caption, color: c.textMuted, marginTop: 4 },
+    section: { marginTop: spacing.xl, gap: spacing.sm },
+    sectionTitle: { ...type.heading, color: c.text },
+    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
+    addBtn: {
+      padding: spacing.sm + 2,
+      paddingHorizontal: spacing.md + 2,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+      alignSelf: "flex-start",
+    },
+    addBtnText: { color: "#fff", fontWeight: "600" },
+    empty: { color: c.textMuted, padding: spacing.sm },
+    mediaRow: {
+      padding: spacing.md,
+      backgroundColor: c.card,
+      borderRadius: radius.md,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      gap: 6,
+    },
+    urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.sm },
+    urlText: { color: c.accent, ...type.body },
+    pdfLink: { color: c.accent, ...type.body },
+    deleteBtn: { alignSelf: "flex-end" },
+    pdfModal: { flex: 1 },
+    pdfDoneBar: {
+      padding: spacing.lg,
+      backgroundColor: c.bgElevated,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+    },
+    pdfDoneText: { color: c.accent, ...type.body },
+    urlSheet: { flex: 1, padding: spacing.xl, gap: spacing.md },
+    urlSheetActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: spacing.md,
+      marginTop: spacing.lg,
+    },
+    saveBtn: {
+      padding: spacing.md,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.xl,
+    },
+    saveBtnText: { color: "#fff", fontWeight: "600" },
+  });
+}

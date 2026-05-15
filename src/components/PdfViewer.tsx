@@ -1,18 +1,20 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
 import { useMedia } from "@/services/mediaService";
+import { useTheme } from "@/theme/useTheme";
 
 type Props = { storagePath: string };
 
 export function PdfViewer({ storagePath }: Props) {
+  const { colors } = useTheme();
   const { data: uri, isLoading, error } = useMedia(storagePath);
 
-  if (isLoading && !uri) return <ActivityIndicator />;
+  if (isLoading && !uri) return <ActivityIndicator color={colors.text} />;
   if (error || !uri)
-    return <Text style={{ color: "#FF3B30" }}>Couldn't open PDF.</Text>;
+    return <Text style={{ color: colors.danger }}>Couldn't open PDF.</Text>;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bgElevated }]}>
       <WebView
         source={{ uri }}
         style={styles.webview}
@@ -25,6 +27,6 @@ export function PdfViewer({ storagePath }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#eee" },
+  container: { flex: 1 },
   webview: { flex: 1 },
 });
