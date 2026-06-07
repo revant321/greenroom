@@ -19,6 +19,8 @@ import {
   useMusicalNumber,
   useUpdateMusicalNumber,
 } from "@/services/musicalNumberService";
+import { useShow } from "@/services/showService";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   useCreateHarmony,
   useDeleteHarmony,
@@ -40,13 +42,29 @@ import { AudioRecorder } from "@/components/AudioRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { PdfViewer } from "@/components/PdfViewer";
+import { Icon } from "@/components/Icon";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { Harmony } from "@/lib/types";
+import { useTheme } from "@/theme/useTheme";
+import {
+  ColorTokens,
+  FAB_CLEARANCE,
+  radius,
+  spacing,
+  type,
+} from "@/theme/tokens";
 
 export default function MusicalNumberDetail() {
-  const { numberId } = useLocalSearchParams<{ numberId: string }>();
+  const { showId, numberId } = useLocalSearchParams<{
+    showId: string;
+    numberId: string;
+  }>();
   const { data, isLoading } = useMusicalNumber(numberId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const update = useUpdateMusicalNumber();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   const { data: harmonies } = useHarmonies(numberId);
   const createHarmony = useCreateHarmony();
@@ -79,7 +97,7 @@ export default function MusicalNumberDetail() {
     { name, notes },
     800,
     ({ name, notes }) => {
-      if (!data) return;
+      if (!data || readOnly) return;
       if (name === data.name && notes === data.notes) return;
       update.mutate({ id: data.id, patch: { name, notes } });
     },
@@ -163,55 +181,72 @@ export default function MusicalNumberDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={styles.center}>
-        <Text>Not found.</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={{ color: colors.text }}>Not found.</Text>
       </View>
     );
   }
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+      ]}
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title: name || "Musical Number" }} />
+      {readOnly && showId && <ArchivedBanner showId={showId} />}
       <Text style={styles.label}>Name</Text>
-      <TextInput value={name} onChangeText={setName} style={styles.input} />
+      <TextInput
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+        placeholderTextColor={colors.textMuted}
+        editable={!readOnly}
+      />
       <Text style={styles.label}>Notes</Text>
       <TextInput
         value={notes}
         onChangeText={setNotes}
         multiline
         placeholder="Tempo, cues, reminders…"
+        placeholderTextColor={colors.textMuted}
         style={[styles.input, styles.notes]}
+        editable={!readOnly}
       />
-      <Text style={styles.saved}>
-        {update.isPending
-          ? "Saving…"
-          : update.isError
-            ? "Offline — will retry when you edit."
-            : "Saved"}
-      </Text>
+      {!readOnly && (
+        <Text style={styles.saved}>
+          {update.isPending
+            ? "Saving…"
+            : update.isError
+              ? "Offline — will retry when you edit."
+              : "Saved"}
+        </Text>
+      )}
 
       <View style={styles.section}>
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Harmonies</Text>
-          <Pressable
-            onPress={() => setRecorderOpen(true)}
-            style={styles.addBtn}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>
-              {uploading ? "Uploading…" : "+ Record"}
-            </Text>
-          </Pressable>
+          {!readOnly && (
+            <Pressable
+              onPress={() => setRecorderOpen(true)}
+              style={styles.addBtn}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>
+                {uploading ? "Uploading…" : "+ Record"}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <FlatList
@@ -219,37 +254,43 @@ export default function MusicalNumberDetail() {
           keyExtractor={(h) => h.id}
           scrollEnabled={false}
           ListEmptyComponent={
-            <Text style={styles.empty}>No harmonies yet. Tap + Record.</Text>
+            <Text style={styles.empty}>
+              {readOnly ? "No harmonies." : "No harmonies yet. Tap + Record."}
+            </Text>
           }
-          renderItem={({ item }) => <HarmonyRow item={item} />}
+          renderItem={({ item }) => (
+            <HarmonyRow item={item} colors={colors} readOnly={readOnly} />
+          )}
         />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Dance Videos</Text>
-        <View style={styles.btnRow}>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => addVideoFile(false)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Pick video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => addVideoFile(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setUrlModalOpen(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Add URL</Text>
-          </Pressable>
-        </View>
+        {!readOnly && (
+          <View style={styles.btnRow}>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => addVideoFile(false)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Pick video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => addVideoFile(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => setUrlModalOpen(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Add URL</Text>
+            </Pressable>
+          </View>
+        )}
         {(videos ?? []).length === 0 && (
           <Text style={styles.empty}>No dance videos yet.</Text>
         )}
@@ -262,40 +303,63 @@ export default function MusicalNumberDetail() {
                 onPress={() => v.external_url && Linking.openURL(v.external_url)}
                 style={styles.urlCard}
               >
-                <Text style={styles.urlText}>
-                  ↗ {v.title || v.external_url || "Untitled"}
-                </Text>
+                <View style={styles.urlLine}>
+                  <Icon
+                    sf="arrow.up.right.square"
+                    ion="open-outline"
+                    size={18}
+                    color={colors.accent}
+                  />
+                  <Text style={styles.urlText}>
+                    {v.title || v.external_url || "Untitled"}
+                  </Text>
+                </View>
               </Pressable>
             )}
-            <Pressable
-              onPress={() => deleteVideo.mutate(v)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deleteVideo.mutate(v)}
+                style={styles.deleteBtn}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Sheet Music</Text>
-        <Pressable style={styles.addBtn} onPress={addPdf} disabled={uploading}>
-          <Text style={styles.addBtnText}>Add PDF</Text>
-        </Pressable>
+        {!readOnly && (
+          <Pressable style={styles.addBtn} onPress={addPdf} disabled={uploading}>
+            <Text style={styles.addBtnText}>Add PDF</Text>
+          </Pressable>
+        )}
         {(pdfs ?? []).length === 0 && (
           <Text style={styles.empty}>No sheet music yet.</Text>
         )}
         {(pdfs ?? []).map((p) => (
           <View key={p.id} style={styles.mediaRow}>
-            <Pressable onPress={() => setPdfViewerPath(p.storage_path)}>
-              <Text style={styles.pdfLink}>📄 {p.title || "Sheet music"}</Text>
-            </Pressable>
             <Pressable
-              onPress={() => deletePdf.mutate(p)}
-              style={styles.deleteBtn}
+              onPress={() => setPdfViewerPath(p.storage_path)}
+              style={styles.urlLine}
             >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
+              <Icon
+                sf="doc"
+                ion="document-outline"
+                size={18}
+                color={colors.accent}
+              />
+              <Text style={styles.pdfLink}>{p.title || "Sheet music"}</Text>
             </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deletePdf.mutate(p)}
+                style={styles.deleteBtn}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>
@@ -333,6 +397,7 @@ export default function MusicalNumberDetail() {
               Alert.alert("Couldn't save", e?.message ?? String(e));
             }
           }}
+          colors={colors}
         />
       </Modal>
 
@@ -342,7 +407,7 @@ export default function MusicalNumberDetail() {
         presentationStyle="fullScreen"
         onRequestClose={() => setPdfViewerPath(null)}
       >
-        <View style={styles.pdfModal}>
+        <View style={[styles.pdfModal, { backgroundColor: colors.bg }]}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
             style={styles.pdfDoneBar}
@@ -356,15 +421,25 @@ export default function MusicalNumberDetail() {
   );
 }
 
-function HarmonyRow({ item }: { item: Harmony }) {
+function HarmonyRow({
+  item,
+  colors,
+  readOnly,
+}: {
+  item: Harmony;
+  colors: ColorTokens;
+  readOnly: boolean;
+}) {
   const update = useUpdateHarmony();
   const del = useDeleteHarmony();
+  const styles = makeStyles(colors);
   const [measure, setMeasure] = useState<string>(
     item.measure_number?.toString() ?? "",
   );
   const [caption, setCaption] = useState(item.caption);
 
   useDebouncedSave({ measure, caption }, 800, ({ measure, caption }) => {
+    if (readOnly) return;
     const trimmed = measure.trim();
     const mNum = trimmed === "" ? null : Number(trimmed);
     if (mNum !== null && Number.isNaN(mNum)) return;
@@ -380,19 +455,25 @@ function HarmonyRow({ item }: { item: Harmony }) {
           value={measure}
           onChangeText={setMeasure}
           placeholder="Measure #"
+          placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
           style={[styles.smallInput, { width: 100 }]}
+          editable={!readOnly}
         />
         <TextInput
           value={caption}
           onChangeText={setCaption}
           placeholder="Caption"
+          placeholderTextColor={colors.textMuted}
           style={[styles.smallInput, { flex: 1 }]}
+          editable={!readOnly}
         />
       </View>
-      <Pressable onPress={() => del.mutate(item)} style={styles.deleteBtn}>
-        <Text style={{ color: "#FF3B30" }}>Delete</Text>
-      </Pressable>
+      {!readOnly && (
+        <Pressable onPress={() => del.mutate(item)} style={styles.deleteBtn}>
+          <Text style={{ color: colors.danger }}>Delete</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -400,19 +481,23 @@ function HarmonyRow({ item }: { item: Harmony }) {
 function AddUrlSheet({
   onCancel,
   onSave,
+  colors,
 }: {
   onCancel: () => void;
   onSave: (v: { title: string; url: string }) => void;
+  colors: ColorTokens;
 }) {
+  const styles = makeStyles(colors);
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   return (
-    <View style={styles.urlSheet}>
+    <View style={[styles.urlSheet, { backgroundColor: colors.bg }]}>
       <Text style={styles.label}>Title</Text>
       <TextInput
         value={title}
         onChangeText={setTitle}
         placeholder="Choreography reference"
+        placeholderTextColor={colors.textMuted}
         style={styles.input}
       />
       <Text style={styles.label}>URL</Text>
@@ -420,13 +505,14 @@ function AddUrlSheet({
         value={url}
         onChangeText={setUrl}
         placeholder="https://youtu.be/…"
+        placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         keyboardType="url"
         style={styles.input}
       />
       <View style={styles.urlSheetActions}>
-        <Pressable onPress={onCancel} style={{ padding: 12 }}>
-          <Text>Cancel</Text>
+        <Pressable onPress={onCancel} style={{ padding: spacing.md }}>
+          <Text style={{ color: colors.text }}>Cancel</Text>
         </Pressable>
         <Pressable
           onPress={() => {
@@ -441,89 +527,94 @@ function AddUrlSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  container: { padding: 16, gap: 8 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 14, color: "#666" },
-  input: {
-    fontSize: 16,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
-  },
-  notes: { minHeight: 120, textAlignVertical: "top" },
-  saved: { fontSize: 12, color: "#999", marginTop: 4 },
-  section: { marginTop: 24, gap: 8 },
-  sectionHead: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  sectionTitle: { fontSize: 20, fontWeight: "600" },
-  btnRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  addBtn: {
-    padding: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    alignSelf: "flex-start",
-  },
-  addBtnText: { color: "#fff", fontWeight: "600" },
-  empty: { color: "#999", padding: 8 },
-  harmonyRow: {
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-    gap: 6,
-  },
-  harmonyFields: { flexDirection: "row", gap: 8 },
-  smallInput: {
-    padding: 8,
-    fontSize: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    backgroundColor: "#fff",
-  },
-  mediaRow: {
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-    gap: 6,
-  },
-  urlCard: { padding: 12 },
-  urlText: { color: "#007AFF", fontSize: 16 },
-  pdfLink: { color: "#007AFF", fontSize: 16, padding: 8 },
-  deleteBtn: { alignSelf: "flex-end" },
-  pdfModal: { flex: 1 },
-  pdfDoneBar: {
-    padding: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#ddd",
-  },
-  pdfDoneText: { color: "#007AFF", fontSize: 16 },
-  urlSheet: { flex: 1, padding: 24, gap: 12 },
-  urlSheetActions: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 16,
-  },
-  saveBtn: {
-    padding: 12,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-    paddingHorizontal: 20,
-  },
-  saveBtnText: { color: "#fff", fontWeight: "600" },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: { padding: spacing.lg, gap: spacing.sm },
+    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    label: { ...type.label, color: c.textMuted },
+    input: {
+      ...type.body,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      backgroundColor: c.card,
+      color: c.text,
+    },
+    notes: { minHeight: 120, textAlignVertical: "top" },
+    saved: { ...type.caption, color: c.textMuted, marginTop: 4 },
+    section: { marginTop: spacing.xl, gap: spacing.sm },
+    sectionHead: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: spacing.sm,
+    },
+    sectionTitle: { ...type.heading, color: c.text },
+    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
+    addBtn: {
+      padding: spacing.sm + 2,
+      paddingHorizontal: spacing.md + 2,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+      alignSelf: "flex-start",
+    },
+    addBtnText: { color: "#fff", fontWeight: "600" },
+    empty: { color: c.textMuted, padding: spacing.sm },
+    harmonyRow: {
+      padding: spacing.md,
+      backgroundColor: c.card,
+      borderRadius: radius.md,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      gap: 6,
+    },
+    harmonyFields: { flexDirection: "row", gap: spacing.sm },
+    smallInput: {
+      padding: spacing.sm,
+      fontSize: 14,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      borderRadius: radius.sm,
+      backgroundColor: c.card,
+      color: c.text,
+    },
+    mediaRow: {
+      padding: spacing.md,
+      backgroundColor: c.card,
+      borderRadius: radius.md,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      gap: 6,
+    },
+    urlCard: { padding: spacing.md },
+    urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    urlText: { color: c.accent, ...type.body },
+    pdfLink: { color: c.accent, ...type.body },
+    deleteBtn: { alignSelf: "flex-end" },
+    pdfModal: { flex: 1 },
+    pdfDoneBar: {
+      padding: spacing.lg,
+      backgroundColor: c.bgElevated,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+    },
+    pdfDoneText: { color: c.accent, ...type.body },
+    urlSheet: { flex: 1, padding: spacing.xl, gap: spacing.md },
+    urlSheetActions: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: spacing.md,
+      marginTop: spacing.lg,
+    },
+    saveBtn: {
+      padding: spacing.md,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.xl,
+    },
+    saveBtnText: { color: "#fff", fontWeight: "600" },
+  });
+}

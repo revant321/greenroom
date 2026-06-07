@@ -14,6 +14,8 @@ import {
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useScene, useUpdateScene } from "@/services/sceneService";
+import { useShow } from "@/services/showService";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   useCreateSceneRecording,
   useDeleteSceneRecording,
@@ -24,11 +26,26 @@ import { AudioRecorder } from "@/components/AudioRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
+import { useTheme } from "@/theme/useTheme";
+import {
+  ColorTokens,
+  FAB_CLEARANCE,
+  radius,
+  spacing,
+  type,
+} from "@/theme/tokens";
 
 export default function SceneDetail() {
-  const { sceneId } = useLocalSearchParams<{ sceneId: string }>();
+  const { showId, sceneId } = useLocalSearchParams<{
+    showId: string;
+    sceneId: string;
+  }>();
   const { data, isLoading } = useScene(sceneId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const update = useUpdateScene();
+  const { colors } = useTheme();
+  const styles = makeStyles(colors);
 
   const { data: recordings } = useSceneRecordings(sceneId);
   const createRec = useCreateSceneRecording();
@@ -54,7 +71,7 @@ export default function SceneDetail() {
     { name, notes, is_user_in_scene: inScene },
     800,
     (patch) => {
-      if (!data) return;
+      if (!data || readOnly) return;
       if (
         patch.name === data.name &&
         patch.notes === data.notes &&
@@ -114,27 +131,45 @@ export default function SceneDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={styles.center}>
-        <Text>Not found.</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={{ color: colors.text }}>Not found.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={{ backgroundColor: colors.bg }}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+      ]}
+      keyboardShouldPersistTaps="handled"
+    >
       <Stack.Screen options={{ title: name || "Scene" }} />
+      {readOnly && showId && <ArchivedBanner showId={showId} />}
       <Text style={styles.label}>Name</Text>
-      <TextInput value={name} onChangeText={setName} style={styles.input} />
+      <TextInput
+        value={name}
+        onChangeText={setName}
+        style={styles.input}
+        placeholderTextColor={colors.textMuted}
+        editable={!readOnly}
+      />
       <View style={styles.row}>
         <Text style={styles.label}>I'm in this scene</Text>
-        <Switch value={inScene} onValueChange={setInScene} />
+        <Switch
+          value={inScene}
+          onValueChange={setInScene}
+          disabled={readOnly}
+        />
       </View>
       <Text style={styles.label}>Notes</Text>
       <TextInput
@@ -142,41 +177,47 @@ export default function SceneDetail() {
         onChangeText={setNotes}
         multiline
         placeholder="Blocking, cues, costume change…"
+        placeholderTextColor={colors.textMuted}
         style={[styles.input, styles.notes]}
+        editable={!readOnly}
       />
-      <Text style={styles.saved}>
-        {update.isPending
-          ? "Saving…"
-          : update.isError
-            ? "Offline — will retry when you edit."
-            : "Saved"}
-      </Text>
+      {!readOnly && (
+        <Text style={styles.saved}>
+          {update.isPending
+            ? "Saving…"
+            : update.isError
+              ? "Offline — will retry when you edit."
+              : "Saved"}
+        </Text>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recordings</Text>
-        <View style={styles.btnRow}>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setRecOpen(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record audio</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => handlePickVideo(false)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Pick video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => handlePickVideo(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record video</Text>
-          </Pressable>
-        </View>
+        {!readOnly && (
+          <View style={styles.btnRow}>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => setRecOpen(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record audio</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => handlePickVideo(false)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Pick video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => handlePickVideo(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record video</Text>
+            </Pressable>
+          </View>
+        )}
         {uploading && <Text style={styles.status}>Uploading…</Text>}
         {(recordings ?? []).length === 0 && (
           <Text style={styles.empty}>No recordings yet.</Text>
@@ -188,12 +229,14 @@ export default function SceneDetail() {
             ) : (
               <VideoPlayer storagePath={r.storage_path} />
             )}
-            <Pressable
-              onPress={() => deleteRec.mutate(r)}
-              style={{ alignSelf: "flex-end" }}
-            >
-              <Text style={{ color: "#FF3B30" }}>Delete</Text>
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deleteRec.mutate(r)}
+                style={{ alignSelf: "flex-end" }}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>
@@ -213,45 +256,48 @@ export default function SceneDetail() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { padding: 16, gap: 8 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  label: { fontSize: 14, color: "#666" },
-  input: {
-    fontSize: 16,
-    padding: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
-  },
-  notes: { minHeight: 120, textAlignVertical: "top" },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 8,
-  },
-  saved: { fontSize: 12, color: "#999", marginTop: 4 },
-  section: { marginTop: 24, gap: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: "600" },
-  btnRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
-  addBtn: {
-    padding: 10,
-    paddingHorizontal: 14,
-    backgroundColor: "#007AFF",
-    borderRadius: 8,
-  },
-  addBtnText: { color: "#fff", fontWeight: "600" },
-  status: { color: "#666" },
-  empty: { color: "#999", padding: 8 },
-  recRow: {
-    padding: 12,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#ddd",
-    gap: 6,
-  },
-});
+function makeStyles(c: ColorTokens) {
+  return StyleSheet.create({
+    container: { padding: spacing.lg, gap: spacing.sm },
+    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    label: { ...type.label, color: c.textMuted },
+    input: {
+      ...type.body,
+      padding: spacing.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      borderRadius: radius.md,
+      backgroundColor: c.card,
+      color: c.text,
+    },
+    notes: { minHeight: 120, textAlignVertical: "top" },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: spacing.sm,
+    },
+    saved: { ...type.caption, color: c.textMuted, marginTop: 4 },
+    section: { marginTop: spacing.xl, gap: spacing.sm },
+    sectionTitle: { ...type.heading, color: c.text },
+    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
+    addBtn: {
+      padding: spacing.sm + 2,
+      paddingHorizontal: spacing.md + 2,
+      backgroundColor: c.accent,
+      borderRadius: radius.md,
+    },
+    addBtnText: { color: "#fff", fontWeight: "600" },
+    status: { color: c.textMuted },
+    empty: { color: c.textMuted, padding: spacing.sm },
+    recRow: {
+      padding: spacing.md,
+      backgroundColor: c.card,
+      borderRadius: radius.md,
+      marginBottom: spacing.sm,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      gap: 6,
+    },
+  });
+}

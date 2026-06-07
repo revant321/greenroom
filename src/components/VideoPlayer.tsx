@@ -1,18 +1,21 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useMedia } from "@/services/mediaService";
+import { useTheme } from "@/theme/useTheme";
+import { radius } from "@/theme/tokens";
 
 type Props = { storagePath: string };
 
 export function VideoPlayer({ storagePath }: Props) {
+  const { colors } = useTheme();
   const { data: uri, isLoading, error } = useMedia(storagePath);
   const player = useVideoPlayer(uri ?? null, (p) => {
     p.loop = false;
   });
 
-  if (isLoading && !uri) return <ActivityIndicator />;
+  if (isLoading && !uri) return <ActivityIndicator color={colors.text} />;
   if (error)
-    return <Text style={{ color: "#FF3B30" }}>Couldn't load video.</Text>;
+    return <Text style={{ color: colors.danger }}>Couldn't load video.</Text>;
 
   return (
     <View style={styles.container}>
@@ -30,7 +33,7 @@ const styles = StyleSheet.create({
   container: {
     aspectRatio: 16 / 9,
     backgroundColor: "#000",
-    borderRadius: 8,
+    borderRadius: radius.md,
     overflow: "hidden",
   },
   video: { flex: 1 },
