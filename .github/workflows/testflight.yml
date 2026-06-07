@@ -1,0 +1,90 @@
+name: Build and submit to TestFlight
+
+# Triggers in two ways:
+#   1. Pushing a version tag like "v1.0.1" — the normal release path.
+#   2. Manually from the GitHub UI's "Run workflow" button — useful for
+#      re-running a build without cutting a new tag.
+#
+# What it does, end to end:
+#   - Installs the Node.js packages this project depends on (npm ci).
+#   - Runs the TypeScript typechecker as a cheap sanity check before
+#     spending ~20 minutes of EAS build time on a broken commit.
+#   - Asks Expo's cloud build service (EAS) to compile a production iOS
+#     build using the "production" profile from eas.json.
+#   - With --auto-submit, EAS hands the resulting .ipa to Apple's App Store
+#     Connect API, which puts it on TestFlight for internal testers.
+#
+# Secrets configured in GitHub repo Settings → Secrets and variables → Actions:
+#   EXPO_TOKEN  — personal access token from https://expo.dev/accounts/[owner]/settings/access-tokens
+#                 This is how the CI runner authenticates as you with Expo's
+#                 servers. Treat it like a password.
+#
+# One-time local setup before this workflow can run successfully:
+#   Run `eas submit -p ios --profile production --latest` on your laptop
+#   once. EAS will prompt you for your App Store Connect API key (.p8 file,
+#   key ID, issuer ID) and your numeric App Store Connect app ID, then store
+#   the API key encrypted on Expo's servers and write the app ID into
+#   eas.json. After that, --auto-submit from CI "just works" because EAS
+#   already has everything it needs.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+jobs:
+  typecheck:
+    name: Typecheck before building
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies (clean install from package-lock.json)
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+  build-and-submit:
+    name: EAS build + TestFlight submit
+    runs-on: ubuntu-latest
+    needs: typecheck
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Installs the EAS command-line tool and signs into Expo using the
+      # EXPO_TOKEN secret. After this step, `eas` commands in later steps
+      # run as you, without any interactive login prompt.
+      - name: Set up the EAS CLI and sign in to Expo
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies (clean install from package-lock.json)
+        run: npm ci
+
+      # Kicks off the iOS production build on EAS's macOS workers, waits for
+      # it to finish, then submits the resulting .ipa to App Store Connect.
+      #   -p ios           : iOS only (this app is iOS-only)
+      #   --profile production : uses the "production" entry in eas.json,
+      #                          which has autoIncrement: true so the build
+      #                          number bumps automatically.
+      #   --non-interactive : never prompt; fail fast if anything's missing.
+      #   --auto-submit    : after a successful build, submit using the
+      #                      "production" entry under "submit" in eas.json.
+      - name: Build and submit to TestFlight
+        run: eas build -p ios --profile production --non-interactive --auto-submit
