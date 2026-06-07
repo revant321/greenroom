@@ -11,8 +11,10 @@ import {
   useDeleteMusicalNumber,
   useMusicalNumbers,
 } from "@/services/musicalNumberService";
+import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -27,6 +29,8 @@ export default function MusicalNumbers() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data, isLoading, refetch, isRefetching } = useMusicalNumbers(showId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const del = useDeleteMusicalNumber();
 
   if (isLoading && !data) {
@@ -39,6 +43,11 @@ export default function MusicalNumbers() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {readOnly && (
+        <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
+          <ArchivedBanner showId={showId!} />
+        </View>
+      )}
       <FlatList
         data={data ?? []}
         keyExtractor={(m) => m.id}
@@ -62,28 +71,32 @@ export default function MusicalNumbers() {
             >
               <Text style={styles.name}>{item.name}</Text>
             </Link>
-            <Pressable
-              onPress={() => del.mutate(item.id)}
-              accessibilityLabel="Delete"
-              hitSlop={8}
-            >
-              <Icon
-                sf="trash"
-                ion="trash-outline"
-                size={22}
-                color={colors.danger}
-              />
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => del.mutate(item.id)}
+                accessibilityLabel="Delete"
+                hitSlop={8}
+              >
+                <Icon
+                  sf="trash"
+                  ion="trash-outline"
+                  size={22}
+                  color={colors.danger}
+                />
+              </Pressable>
+            )}
           </View>
         )}
       />
-      <Pressable
-        style={styles.fab}
-        onPress={() => router.push(`/shows/${showId}/musical-numbers/new`)}
-        accessibilityLabel="Add musical number"
-      >
-        <Icon sf="plus" ion="add" size={28} color="#fff" />
-      </Pressable>
+      {!readOnly && (
+        <Pressable
+          style={styles.fab}
+          onPress={() => router.push(`/shows/${showId}/musical-numbers/new`)}
+          accessibilityLabel="Add musical number"
+        >
+          <Icon sf="plus" ion="add" size={28} color="#fff" />
+        </Pressable>
+      )}
     </View>
   );
 }

@@ -14,6 +14,8 @@ import {
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useScene, useUpdateScene } from "@/services/sceneService";
+import { useShow } from "@/services/showService";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   useCreateSceneRecording,
   useDeleteSceneRecording,
@@ -34,8 +36,13 @@ import {
 } from "@/theme/tokens";
 
 export default function SceneDetail() {
-  const { sceneId } = useLocalSearchParams<{ sceneId: string }>();
+  const { showId, sceneId } = useLocalSearchParams<{
+    showId: string;
+    sceneId: string;
+  }>();
   const { data, isLoading } = useScene(sceneId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const update = useUpdateScene();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -64,7 +71,7 @@ export default function SceneDetail() {
     { name, notes, is_user_in_scene: inScene },
     800,
     (patch) => {
-      if (!data) return;
+      if (!data || readOnly) return;
       if (
         patch.name === data.name &&
         patch.notes === data.notes &&
@@ -147,16 +154,22 @@ export default function SceneDetail() {
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title: name || "Scene" }} />
+      {readOnly && showId && <ArchivedBanner showId={showId} />}
       <Text style={styles.label}>Name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
         style={styles.input}
         placeholderTextColor={colors.textMuted}
+        editable={!readOnly}
       />
       <View style={styles.row}>
         <Text style={styles.label}>I'm in this scene</Text>
-        <Switch value={inScene} onValueChange={setInScene} />
+        <Switch
+          value={inScene}
+          onValueChange={setInScene}
+          disabled={readOnly}
+        />
       </View>
       <Text style={styles.label}>Notes</Text>
       <TextInput
@@ -166,40 +179,45 @@ export default function SceneDetail() {
         placeholder="Blocking, cues, costume change…"
         placeholderTextColor={colors.textMuted}
         style={[styles.input, styles.notes]}
+        editable={!readOnly}
       />
-      <Text style={styles.saved}>
-        {update.isPending
-          ? "Saving…"
-          : update.isError
-            ? "Offline — will retry when you edit."
-            : "Saved"}
-      </Text>
+      {!readOnly && (
+        <Text style={styles.saved}>
+          {update.isPending
+            ? "Saving…"
+            : update.isError
+              ? "Offline — will retry when you edit."
+              : "Saved"}
+        </Text>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Recordings</Text>
-        <View style={styles.btnRow}>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setRecOpen(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record audio</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => handlePickVideo(false)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Pick video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => handlePickVideo(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record video</Text>
-          </Pressable>
-        </View>
+        {!readOnly && (
+          <View style={styles.btnRow}>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => setRecOpen(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record audio</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => handlePickVideo(false)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Pick video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => handlePickVideo(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record video</Text>
+            </Pressable>
+          </View>
+        )}
         {uploading && <Text style={styles.status}>Uploading…</Text>}
         {(recordings ?? []).length === 0 && (
           <Text style={styles.empty}>No recordings yet.</Text>
@@ -211,12 +229,14 @@ export default function SceneDetail() {
             ) : (
               <VideoPlayer storagePath={r.storage_path} />
             )}
-            <Pressable
-              onPress={() => deleteRec.mutate(r)}
-              style={{ alignSelf: "flex-end" }}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deleteRec.mutate(r)}
+                style={{ alignSelf: "flex-end" }}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>

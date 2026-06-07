@@ -19,6 +19,8 @@ import {
   useMusicalNumber,
   useUpdateMusicalNumber,
 } from "@/services/musicalNumberService";
+import { useShow } from "@/services/showService";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   useCreateHarmony,
   useDeleteHarmony,
@@ -53,8 +55,13 @@ import {
 } from "@/theme/tokens";
 
 export default function MusicalNumberDetail() {
-  const { numberId } = useLocalSearchParams<{ numberId: string }>();
+  const { showId, numberId } = useLocalSearchParams<{
+    showId: string;
+    numberId: string;
+  }>();
   const { data, isLoading } = useMusicalNumber(numberId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const update = useUpdateMusicalNumber();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
@@ -90,7 +97,7 @@ export default function MusicalNumberDetail() {
     { name, notes },
     800,
     ({ name, notes }) => {
-      if (!data) return;
+      if (!data || readOnly) return;
       if (name === data.name && notes === data.notes) return;
       update.mutate({ id: data.id, patch: { name, notes } });
     },
@@ -197,12 +204,14 @@ export default function MusicalNumberDetail() {
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title: name || "Musical Number" }} />
+      {readOnly && showId && <ArchivedBanner showId={showId} />}
       <Text style={styles.label}>Name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
         style={styles.input}
         placeholderTextColor={colors.textMuted}
+        editable={!readOnly}
       />
       <Text style={styles.label}>Notes</Text>
       <TextInput
@@ -212,27 +221,32 @@ export default function MusicalNumberDetail() {
         placeholder="Tempo, cues, reminders…"
         placeholderTextColor={colors.textMuted}
         style={[styles.input, styles.notes]}
+        editable={!readOnly}
       />
-      <Text style={styles.saved}>
-        {update.isPending
-          ? "Saving…"
-          : update.isError
-            ? "Offline — will retry when you edit."
-            : "Saved"}
-      </Text>
+      {!readOnly && (
+        <Text style={styles.saved}>
+          {update.isPending
+            ? "Saving…"
+            : update.isError
+              ? "Offline — will retry when you edit."
+              : "Saved"}
+        </Text>
+      )}
 
       <View style={styles.section}>
         <View style={styles.sectionHead}>
           <Text style={styles.sectionTitle}>Harmonies</Text>
-          <Pressable
-            onPress={() => setRecorderOpen(true)}
-            style={styles.addBtn}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>
-              {uploading ? "Uploading…" : "+ Record"}
-            </Text>
-          </Pressable>
+          {!readOnly && (
+            <Pressable
+              onPress={() => setRecorderOpen(true)}
+              style={styles.addBtn}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>
+                {uploading ? "Uploading…" : "+ Record"}
+              </Text>
+            </Pressable>
+          )}
         </View>
 
         <FlatList
@@ -240,37 +254,43 @@ export default function MusicalNumberDetail() {
           keyExtractor={(h) => h.id}
           scrollEnabled={false}
           ListEmptyComponent={
-            <Text style={styles.empty}>No harmonies yet. Tap + Record.</Text>
+            <Text style={styles.empty}>
+              {readOnly ? "No harmonies." : "No harmonies yet. Tap + Record."}
+            </Text>
           }
-          renderItem={({ item }) => <HarmonyRow item={item} colors={colors} />}
+          renderItem={({ item }) => (
+            <HarmonyRow item={item} colors={colors} readOnly={readOnly} />
+          )}
         />
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Dance Videos</Text>
-        <View style={styles.btnRow}>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => addVideoFile(false)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Pick video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => addVideoFile(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Record video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setUrlModalOpen(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>Add URL</Text>
-          </Pressable>
-        </View>
+        {!readOnly && (
+          <View style={styles.btnRow}>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => addVideoFile(false)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Pick video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => addVideoFile(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Record video</Text>
+            </Pressable>
+            <Pressable
+              style={styles.addBtn}
+              onPress={() => setUrlModalOpen(true)}
+              disabled={uploading}
+            >
+              <Text style={styles.addBtnText}>Add URL</Text>
+            </Pressable>
+          </View>
+        )}
         {(videos ?? []).length === 0 && (
           <Text style={styles.empty}>No dance videos yet.</Text>
         )}
@@ -296,21 +316,25 @@ export default function MusicalNumberDetail() {
                 </View>
               </Pressable>
             )}
-            <Pressable
-              onPress={() => deleteVideo.mutate(v)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deleteVideo.mutate(v)}
+                style={styles.deleteBtn}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Sheet Music</Text>
-        <Pressable style={styles.addBtn} onPress={addPdf} disabled={uploading}>
-          <Text style={styles.addBtnText}>Add PDF</Text>
-        </Pressable>
+        {!readOnly && (
+          <Pressable style={styles.addBtn} onPress={addPdf} disabled={uploading}>
+            <Text style={styles.addBtnText}>Add PDF</Text>
+          </Pressable>
+        )}
         {(pdfs ?? []).length === 0 && (
           <Text style={styles.empty}>No sheet music yet.</Text>
         )}
@@ -328,12 +352,14 @@ export default function MusicalNumberDetail() {
               />
               <Text style={styles.pdfLink}>{p.title || "Sheet music"}</Text>
             </Pressable>
-            <Pressable
-              onPress={() => deletePdf.mutate(p)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
+            {!readOnly && (
+              <Pressable
+                onPress={() => deletePdf.mutate(p)}
+                style={styles.deleteBtn}
+              >
+                <Text style={{ color: colors.danger }}>Delete</Text>
+              </Pressable>
+            )}
           </View>
         ))}
       </View>
@@ -398,9 +424,11 @@ export default function MusicalNumberDetail() {
 function HarmonyRow({
   item,
   colors,
+  readOnly,
 }: {
   item: Harmony;
   colors: ColorTokens;
+  readOnly: boolean;
 }) {
   const update = useUpdateHarmony();
   const del = useDeleteHarmony();
@@ -411,6 +439,7 @@ function HarmonyRow({
   const [caption, setCaption] = useState(item.caption);
 
   useDebouncedSave({ measure, caption }, 800, ({ measure, caption }) => {
+    if (readOnly) return;
     const trimmed = measure.trim();
     const mNum = trimmed === "" ? null : Number(trimmed);
     if (mNum !== null && Number.isNaN(mNum)) return;
@@ -429,6 +458,7 @@ function HarmonyRow({
           placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
           style={[styles.smallInput, { width: 100 }]}
+          editable={!readOnly}
         />
         <TextInput
           value={caption}
@@ -436,11 +466,14 @@ function HarmonyRow({
           placeholder="Caption"
           placeholderTextColor={colors.textMuted}
           style={[styles.smallInput, { flex: 1 }]}
+          editable={!readOnly}
         />
       </View>
-      <Pressable onPress={() => del.mutate(item)} style={styles.deleteBtn}>
-        <Text style={{ color: colors.danger }}>Delete</Text>
-      </Pressable>
+      {!readOnly && (
+        <Pressable onPress={() => del.mutate(item)} style={styles.deleteBtn}>
+          <Text style={{ color: colors.danger }}>Delete</Text>
+        </Pressable>
+      )}
     </View>
   );
 }

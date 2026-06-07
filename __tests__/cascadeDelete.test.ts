@@ -1,4 +1,5 @@
 import {
+  collectShowMediaByKind,
   collectShowStoragePaths,
   collectSongStoragePaths,
 } from "@/services/cascadeDelete";
@@ -56,6 +57,51 @@ describe("collectShowStoragePaths", () => {
     (supabase.from as jest.Mock).mockImplementation(() => mockTable([]));
     const paths = await collectShowStoragePaths("empty-show");
     expect(paths).toEqual([]);
+  });
+});
+
+describe("collectShowMediaByKind", () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  test("groups media into audio/video/pdf/links buckets", async () => {
+    const byTable: Record<string, any[]> = {
+      musical_numbers: [{ id: "m1" }],
+      harmonies: [
+        { id: "h1", storage_path: "u/harmonies/h1.m4a" },
+      ],
+      dance_videos: [
+        { id: "d1", storage_path: "u/dance-videos/d1.mp4", external_url: null },
+        { id: "d2", storage_path: null, external_url: "https://youtu.be/x" },
+      ],
+      sheet_music: [{ id: "p1", storage_path: "u/sheet-music/s1.pdf" }],
+      scenes: [{ id: "sc1" }],
+      scene_recordings: [
+        { id: "r1", kind: "audio", storage_path: "u/scene-recordings/r1.m4a" },
+        { id: "r2", kind: "video", storage_path: "u/scene-recordings/r2.mp4" },
+      ],
+    };
+    (supabase.from as jest.Mock).mockImplementation((t: string) =>
+      mockTable(byTable[t] ?? []),
+    );
+
+    const media = await collectShowMediaByKind("show-1");
+
+    expect(media.audio.rowIds.harmonies).toEqual(["h1"]);
+    expect(media.audio.rowIds.sceneRecordings).toEqual(["r1"]);
+    expect(new Set(media.audio.storagePaths)).toEqual(
+      new Set(["u/harmonies/h1.m4a", "u/scene-recordings/r1.m4a"]),
+    );
+
+    expect(media.video.rowIds.danceVideos).toEqual(["d1"]);
+    expect(media.video.rowIds.sceneRecordings).toEqual(["r2"]);
+    expect(new Set(media.video.storagePaths)).toEqual(
+      new Set(["u/dance-videos/d1.mp4", "u/scene-recordings/r2.mp4"]),
+    );
+
+    expect(media.pdf.rowIds.sheetMusic).toEqual(["p1"]);
+    expect(media.pdf.storagePaths).toEqual(["u/sheet-music/s1.pdf"]);
+
+    expect(media.links.rowIds.danceVideos).toEqual(["d2"]);
   });
 });
 

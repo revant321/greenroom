@@ -1,6 +1,7 @@
 import { Link, Stack, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { useShow } from "@/services/showService";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { useTheme } from "@/theme/useTheme";
 import {
   ColorTokens,
@@ -34,6 +35,7 @@ export default function ShowHub() {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{ title: show.name }} />
+      {show.is_completed && <ArchivedBanner showId={show.id} />}
       <Text style={styles.title}>{show.name}</Text>
 
       <Link href={`/shows/${show.id}/musical-numbers`} style={styles.tile}>

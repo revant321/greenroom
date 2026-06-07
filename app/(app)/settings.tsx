@@ -40,7 +40,7 @@ export default function Settings() {
       </View>
 
       <Link href="/shows/completed" style={styles.link}>
-        Completed shows →
+        Trophy Case →
       </Link>
 
       <Pressable

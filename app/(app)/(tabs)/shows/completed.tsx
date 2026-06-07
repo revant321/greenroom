@@ -6,9 +6,12 @@ import {
   Text,
   View,
 } from "react-native";
+import { Link } from "expo-router";
 import { useDeleteShow, useShows, useUpdateShow } from "@/services/showService";
 import { confirm } from "@/utils/confirm";
 import { useTheme } from "@/theme/useTheme";
+import { Icon } from "@/components/Icon";
+import { EmptyState } from "@/components/EmptyState";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -41,15 +44,20 @@ export default function Completed() {
         padding: spacing.lg,
         gap: spacing.md,
         paddingBottom: FAB_CLEARANCE + spacing.lg,
+        flexGrow: 1,
       }}
       ListEmptyComponent={
-        <View style={styles.empty}>
-          <Text style={{ color: colors.textMuted }}>No completed shows.</Text>
-        </View>
+        <EmptyState
+          icon="🏆"
+          title="No trophies yet"
+          body="Shows you complete will be archived here. Tap the checkmark on an active show to add it."
+        />
       }
       renderItem={({ item }) => (
         <View style={styles.card}>
-          <Text style={styles.name}>{item.name}</Text>
+          <Link href={`/shows/${item.id}`} style={styles.nameLink}>
+            <Text style={styles.name}>{item.name}</Text>
+          </Link>
           <View style={styles.actions}>
             <Pressable
               onPress={() =>
@@ -58,8 +66,15 @@ export default function Completed() {
                   patch: { is_completed: false, completed_at: null },
                 })
               }
+              accessibilityLabel="Restore show"
+              hitSlop={8}
             >
-              <Text style={styles.restore}>Restore</Text>
+              <Icon
+                sf="arrow.uturn.backward.circle"
+                ion="arrow-undo-circle-outline"
+                size={24}
+                color={colors.accent}
+              />
             </Pressable>
             <Pressable
               onPress={() =>
@@ -70,8 +85,15 @@ export default function Completed() {
                   "Delete forever",
                 )
               }
+              accessibilityLabel="Delete forever"
+              hitSlop={8}
             >
-              <Text style={styles.deleteForever}>Delete forever</Text>
+              <Icon
+                sf="trash"
+                ion="trash-outline"
+                size={22}
+                color={colors.danger}
+              />
             </Pressable>
           </View>
         </View>
@@ -83,7 +105,6 @@ export default function Completed() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    empty: { padding: spacing.xxl, alignItems: "center" },
     card: {
       flexDirection: "row",
       alignItems: "center",
@@ -94,9 +115,8 @@ function makeStyles(c: ColorTokens) {
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: c.border,
     },
-    name: { ...type.bodyStrong, color: c.text, flex: 1 },
-    actions: { flexDirection: "row", gap: spacing.lg },
-    restore: { color: c.accent, fontWeight: "500" },
-    deleteForever: { color: c.danger, fontWeight: "500" },
+    nameLink: { flex: 1 },
+    name: { ...type.bodyStrong, color: c.text },
+    actions: { flexDirection: "row", gap: spacing.lg, alignItems: "center" },
   });
 }

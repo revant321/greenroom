@@ -8,8 +8,10 @@ import {
 } from "react-native";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useDeleteScene, useScenes } from "@/services/sceneService";
+import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { ArchivedBanner } from "@/components/ArchivedBanner";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -24,6 +26,8 @@ export default function Scenes() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data, isLoading, refetch, isRefetching } = useScenes(showId);
+  const { data: show } = useShow(showId);
+  const readOnly = show?.is_completed === true;
   const del = useDeleteScene();
 
   if (isLoading && !data) {
@@ -36,6 +40,11 @@ export default function Scenes() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      {readOnly && (
+        <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
+          <ArchivedBanner showId={showId!} />
+        </View>
+      )}
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
@@ -63,29 +72,33 @@ export default function Scenes() {
                   {item.name}
                 </Text>
               </Link>
-              <Pressable
-                onPress={() => del.mutate(item.id)}
-                accessibilityLabel="Delete"
-                hitSlop={8}
-              >
-                <Icon
-                  sf="trash"
-                  ion="trash-outline"
-                  size={22}
-                  color={colors.danger}
-                />
-              </Pressable>
+              {!readOnly && (
+                <Pressable
+                  onPress={() => del.mutate(item.id)}
+                  accessibilityLabel="Delete"
+                  hitSlop={8}
+                >
+                  <Icon
+                    sf="trash"
+                    ion="trash-outline"
+                    size={22}
+                    color={colors.danger}
+                  />
+                </Pressable>
+              )}
             </View>
           );
         }}
       />
-      <Pressable
-        style={styles.fab}
-        onPress={() => router.push(`/shows/${showId}/scenes/new`)}
-        accessibilityLabel="Add scene"
-      >
-        <Icon sf="plus" ion="add" size={28} color="#fff" />
-      </Pressable>
+      {!readOnly && (
+        <Pressable
+          style={styles.fab}
+          onPress={() => router.push(`/shows/${showId}/scenes/new`)}
+          accessibilityLabel="Add scene"
+        >
+          <Icon sf="plus" ion="add" size={28} color="#fff" />
+        </Pressable>
+      )}
     </View>
   );
 }

@@ -7,11 +7,7 @@ import {
   View,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
-import {
-  useCompleteShow,
-  useDeleteShow,
-  useShows,
-} from "@/services/showService";
+import { useDeleteShow, useShows } from "@/services/showService";
 import { Show } from "@/lib/types";
 import { confirm } from "@/utils/confirm";
 import { useTheme } from "@/theme/useTheme";
@@ -26,7 +22,8 @@ export default function ShowsList() {
   const { data, isLoading, error, refetch, isRefetching } = useShows({
     completed: false,
   });
-  const complete = useCompleteShow();
+  const { data: completedShows } = useShows({ completed: true });
+  const trophyCount = completedShows?.length ?? 0;
   const del = useDeleteShow();
 
   if (isLoading && !data) {
@@ -65,6 +62,35 @@ export default function ShowsList() {
             onAction={() => router.push("/shows/new")}
           />
         }
+        ListFooterComponent={
+          trophyCount > 0 ? (
+            <Link href="/shows/completed" asChild>
+              <Pressable
+                style={styles.trophyCard}
+                accessibilityLabel="Open Trophy Case"
+              >
+                <View style={styles.trophyLeft}>
+                  <Icon
+                    sf="trophy.fill"
+                    ion="trophy"
+                    size={22}
+                    color={colors.warn}
+                  />
+                  <Text style={styles.trophyText}>Trophy Case</Text>
+                </View>
+                <View style={styles.trophyRight}>
+                  <Text style={styles.trophyCount}>{trophyCount}</Text>
+                  <Icon
+                    sf="chevron.right"
+                    ion="chevron-forward"
+                    size={16}
+                    color={colors.textMuted}
+                  />
+                </View>
+              </Pressable>
+            </Link>
+          ) : null
+        }
         renderItem={({ item }: { item: Show }) => (
           <View style={styles.card}>
             <Link href={`/shows/${item.id}`} style={styles.nameLink}>
@@ -72,7 +98,12 @@ export default function ShowsList() {
             </Link>
             <View style={styles.actions}>
               <Pressable
-                onPress={() => complete.mutate(item.id)}
+                onPress={() =>
+                  router.push({
+                    pathname: "/shows/complete",
+                    params: { showId: item.id },
+                  })
+                }
                 accessibilityLabel="Mark complete"
                 hitSlop={8}
               >
@@ -135,6 +166,29 @@ function makeStyles(c: ColorTokens) {
     nameLink: { flex: 1 },
     name: { ...type.bodyStrong, color: c.text },
     actions: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
+    trophyCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: spacing.lg,
+      marginTop: spacing.xl,
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+    },
+    trophyLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    trophyText: { ...type.bodyStrong, color: c.text },
+    trophyRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    trophyCount: { ...type.body, color: c.textMuted },
     fab: {
       position: "absolute",
       right: spacing.xl,

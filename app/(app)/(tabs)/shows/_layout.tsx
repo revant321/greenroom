@@ -15,7 +15,11 @@ export default function ShowsStackLayout() {
         name="new"
         options={{ presentation: "modal", title: "New Show" }}
       />
-      <Stack.Screen name="completed" options={{ title: "Completed" }} />
+      <Stack.Screen
+        name="complete"
+        options={{ presentation: "modal", title: "Complete show" }}
+      />
+      <Stack.Screen name="completed" options={{ title: "Trophy Case" }} />
       <Stack.Screen name="[showId]/index" options={{ title: "" }} />
       <Stack.Screen
         name="[showId]/musical-numbers/index"
