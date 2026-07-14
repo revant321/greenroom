@@ -4,9 +4,10 @@ import { BlurView } from "expo-blur";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import {
@@ -35,9 +36,9 @@ export function FloatingGlassTabBar({
   const activeX = useSharedValue(state.index * tabWidth);
 
   useEffect(() => {
-    activeX.value = withSpring(state.index * tabWidth, {
-      stiffness: 380,
-      damping: 30,
+    activeX.value = withTiming(state.index * tabWidth, {
+      duration: 280,
+      easing: Easing.out(Easing.cubic),
     });
   }, [state.index, tabWidth, activeX]);
 
