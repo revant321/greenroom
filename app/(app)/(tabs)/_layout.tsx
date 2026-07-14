@@ -1,8 +1,9 @@
 import { Tabs } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { Ionicons } from "@expo/vector-icons";
-import { Platform } from "react-native";
+import { Easing, Platform } from "react-native";
 import { FloatingGlassTabBar } from "@/components/FloatingGlassTabBar";
+import { useTheme } from "@/theme/useTheme";
 
 function ShowsIcon({ color }: { color: string }) {
   if (Platform.OS === "ios") {
@@ -19,11 +20,21 @@ function SongsIcon({ color }: { color: string }) {
 }
 
 export default function TabsLayout() {
+  const { speed } = useTheme();
+
   return (
     <Tabs
       tabBar={(props) => <FloatingGlassTabBar {...props} />}
       screenOptions={{
         headerShown: false,
+        animation: "shift",
+        transitionSpec: {
+          animation: "timing",
+          config: {
+            duration: 280 * speed,
+            easing: Easing.out(Easing.cubic),
+          },
+        },
         tabBarStyle: {
           position: "absolute",
           backgroundColor: "transparent",
