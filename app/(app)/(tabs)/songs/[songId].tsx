@@ -282,7 +282,7 @@ export default function SongDetail() {
           </Text>
         </Pressable>
         {(parts ?? []).length === 0 && (
-          <Text style={styles.empty}>No parts yet.</Text>
+          <Text style={styles.empty}>Record a part to practice it later.</Text>
         )}
         {(parts ?? []).map((p) => (
           <View key={p.id} style={styles.mediaRow}>
@@ -323,7 +323,9 @@ export default function SongDetail() {
           </Pressable>
         </View>
         {(tracks ?? []).length === 0 && (
-          <Text style={styles.empty}>No tracks yet.</Text>
+          <Text style={styles.empty}>
+            Add audio, video, or a rehearsal link.
+          </Text>
         )}
         {(tracks ?? []).map((t) => (
           <View key={t.id} style={styles.mediaRow}>
@@ -363,7 +365,9 @@ export default function SongDetail() {
           <Text style={styles.addBtnText}>+ PDF</Text>
         </Pressable>
         {(sheets ?? []).length === 0 && (
-          <Text style={styles.empty}>No sheet music yet.</Text>
+          <Text style={styles.empty}>
+            Add a PDF to keep your sheet music here.
+          </Text>
         )}
         {(sheets ?? []).map((s) => (
           <View key={s.id} style={styles.mediaRow}>

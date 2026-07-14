@@ -15,6 +15,7 @@ import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { ArchivedBanner } from "@/components/ArchivedBanner";
+import { EmptyState } from "@/components/EmptyState";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -59,9 +60,11 @@ export default function MusicalNumbers() {
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={{ color: colors.textMuted }}>No musical numbers yet.</Text>
-          </View>
+          <EmptyState
+            icon="🎵"
+            title="No musical numbers yet"
+            body="Tap + to add a song in this show."
+          />
         }
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -104,7 +107,6 @@ export default function MusicalNumbers() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    empty: { padding: spacing.xxl, alignItems: "center" },
     card: {
       flexDirection: "row",
       alignItems: "center",

@@ -12,6 +12,7 @@ import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { ArchivedBanner } from "@/components/ArchivedBanner";
+import { EmptyState } from "@/components/EmptyState";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -56,9 +57,11 @@ export default function Scenes() {
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={{ color: colors.textMuted }}>No scenes yet.</Text>
-          </View>
+          <EmptyState
+            icon="🎬"
+            title="No scenes yet"
+            body="Tap + to add a scene to this show."
+          />
         }
         renderItem={({ item }) => {
           const grayed = !item.is_user_in_scene;
@@ -106,7 +109,6 @@ export default function Scenes() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    empty: { padding: spacing.xxl, alignItems: "center" },
     card: {
       flexDirection: "row",
       alignItems: "center",
