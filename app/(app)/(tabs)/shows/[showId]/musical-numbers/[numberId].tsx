@@ -255,7 +255,9 @@ export default function MusicalNumberDetail() {
           scrollEnabled={false}
           ListEmptyComponent={
             <Text style={styles.empty}>
-              {readOnly ? "No harmonies." : "No harmonies yet. Tap + Record."}
+              {readOnly
+                ? "No harmonies were saved."
+                : "Tap + Record to save your first harmony."}
             </Text>
           }
           renderItem={({ item }) => (
@@ -292,7 +294,11 @@ export default function MusicalNumberDetail() {
           </View>
         )}
         {(videos ?? []).length === 0 && (
-          <Text style={styles.empty}>No dance videos yet.</Text>
+          <Text style={styles.empty}>
+            {readOnly
+              ? "No dance videos were saved."
+              : "Add a video or link to remember choreography."}
+          </Text>
         )}
         {(videos ?? []).map((v) => (
           <View key={v.id} style={styles.mediaRow}>
@@ -336,7 +342,11 @@ export default function MusicalNumberDetail() {
           </Pressable>
         )}
         {(pdfs ?? []).length === 0 && (
-          <Text style={styles.empty}>No sheet music yet.</Text>
+          <Text style={styles.empty}>
+            {readOnly
+              ? "No sheet music was saved."
+              : "Add a PDF to keep your sheet music here."}
+          </Text>
         )}
         {(pdfs ?? []).map((p) => (
           <View key={p.id} style={styles.mediaRow}>

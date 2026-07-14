@@ -72,8 +72,6 @@ export default function Songs() {
                 icon="🎵"
                 title="No songs yet"
                 body="Tap + to add your first song."
-                actionLabel="Add song"
-                onAction={() => router.push("/songs/new")}
               />
             ) : (
               <EmptyState

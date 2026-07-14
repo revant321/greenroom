@@ -220,7 +220,11 @@ export default function SceneDetail() {
         )}
         {uploading && <Text style={styles.status}>Uploading…</Text>}
         {(recordings ?? []).length === 0 && (
-          <Text style={styles.empty}>No recordings yet.</Text>
+          <Text style={styles.empty}>
+            {readOnly
+              ? "No recordings were saved."
+              : "Record audio or add a video for this scene."}
+          </Text>
         )}
         {(recordings ?? []).map((r) => (
           <View key={r.id} style={styles.recRow}>

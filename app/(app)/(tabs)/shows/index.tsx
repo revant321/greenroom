@@ -57,9 +57,7 @@ export default function ShowsList() {
           <EmptyState
             icon="🎭"
             title="No shows yet"
-            body="Tap + to add your first show."
-            actionLabel="Add show"
-            onAction={() => router.push("/shows/new")}
+            body="Shows hold your songs and scenes. Tap + to add one."
           />
         }
         ListFooterComponent={
