@@ -1,14 +1,23 @@
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { signOut } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/theme/useTheme";
-import { ThemeMode } from "@/theme/ThemeProvider";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
+import { SegmentedControl } from "@/components/SegmentedControl";
+import { SectionLabel } from "@/components/ScreenTitle";
+import { Icon } from "@/components/Icon";
+import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+
+const SPEED_HINTS: Record<AnimSpeed, string> = {
+  slower: "A more relaxed, unhurried pace.",
+  normal: "The standard Greenroom pace.",
+  faster: "Snappier transitions throughout.",
+};
 
 export default function Settings() {
   const { session } = useAuth();
-  const { colors, mode, setMode } = useTheme();
+  const { colors, mode, setMode, animSpeed, setAnimSpeed } = useTheme();
   const router = useRouter();
   const styles = makeStyles(colors);
 
@@ -22,101 +31,122 @@ export default function Settings() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Signed in as</Text>
-      <Text style={styles.email}>{session?.user.email ?? "(unknown)"}</Text>
-
-      <Text style={[styles.label, { marginTop: spacing.lg }]}>Theme</Text>
-      <View style={styles.chipRow}>
-        {(["auto", "light", "dark"] as const).map((m) => (
-          <ThemeChip
-            key={m}
-            label={m}
-            active={mode === m}
-            onPress={() => setMode(m as ThemeMode)}
-            colors={colors}
-          />
-        ))}
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.bg }}
+      contentContainerStyle={styles.container}
+    >
+      <SectionLabel>Account</SectionLabel>
+      <View style={styles.card}>
+        <View style={styles.rowBetween}>
+          <View>
+            <Text style={styles.rowLabel}>Signed in as</Text>
+            <Text style={styles.email}>{session?.user.email ?? "(unknown)"}</Text>
+          </View>
+        </View>
       </View>
 
-      <Link href="/shows/completed" style={styles.link}>
-        Trophy Case →
-      </Link>
+      <SectionLabel>Appearance</SectionLabel>
+      <View style={styles.card}>
+        <SegmentedControl<ThemeMode>
+          options={["auto", "light", "dark"] as const}
+          value={mode}
+          onChange={setMode}
+          labels={{ auto: "System" }}
+        />
+        <Text style={styles.hint}>
+          Greenroom follows your system appearance by default.
+        </Text>
+      </View>
+
+      <SectionLabel>Animation speed</SectionLabel>
+      <View style={styles.card}>
+        <SegmentedControl<AnimSpeed>
+          options={["slower", "normal", "faster"] as const}
+          value={animSpeed}
+          onChange={setAnimSpeed}
+        />
+        <Text style={styles.hint}>{SPEED_HINTS[animSpeed]}</Text>
+      </View>
+
+      <SectionLabel>Library</SectionLabel>
+      <View style={[styles.card, { padding: 0 }]}>
+        <Pressable
+          style={styles.linkRow}
+          onPress={() => router.push("/shows/completed")}
+        >
+          <Text style={styles.linkText}>Trophy Case</Text>
+          <Icon
+            sf="chevron.right"
+            ion="chevron-forward"
+            size={14}
+            color={colors.textMuted}
+          />
+        </Pressable>
+      </View>
 
       <Pressable
-        style={styles.signOut}
+        style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.85 }]}
         onPress={onSignOut}
         accessibilityRole="button"
       >
         <Text style={styles.signOutText}>Sign out</Text>
       </Pressable>
-    </View>
-  );
-}
-
-function ThemeChip({
-  label,
-  active,
-  onPress,
-  colors,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-  colors: ColorTokens;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.sm,
-        borderRadius: radius.pill,
-        backgroundColor: active ? colors.accent : colors.card,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.border,
-      }}
-    >
-      <Text
-        style={{
-          color: active ? "#fff" : colors.text,
-          fontWeight: active ? "600" : "400",
-          textTransform: "capitalize",
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
+    </ScrollView>
   );
 }
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
-      flex: 1,
-      padding: spacing.xl,
-      gap: spacing.md,
-      backgroundColor: c.bg,
+      padding: spacing.lg,
+      paddingBottom: spacing.xxl * 2,
     },
-    label: { ...type.label, color: c.textMuted },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+    },
+    rowBetween: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: spacing.xs,
+    },
+    rowLabel: { fontSize: 13, fontFamily: fonts.regular, color: c.textMuted },
     email: {
-      ...type.heading,
+      fontSize: 17,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
       color: c.text,
-      marginBottom: spacing.lg,
+      marginTop: 2,
     },
-    chipRow: { flexDirection: "row", gap: spacing.sm },
-    link: {
-      padding: spacing.md + 2,
-      fontSize: 16,
-      color: c.accent,
+    hint: {
+      fontSize: 13,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      paddingTop: 10,
+      paddingHorizontal: 6,
+      paddingBottom: 2,
     },
+    linkRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: spacing.lg - 1,
+    },
+    linkText: { fontSize: 17, fontFamily: fonts.regular, color: c.text },
     signOut: {
+      marginTop: spacing.xl,
       padding: spacing.md + 2,
       borderRadius: radius.lg,
       backgroundColor: c.danger,
       alignItems: "center",
-      marginTop: "auto",
     },
-    signOutText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+    signOutText: {
+      color: "#fff",
+      fontSize: 16,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
+    },
   });
 }

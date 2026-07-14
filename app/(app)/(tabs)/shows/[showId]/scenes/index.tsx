@@ -6,20 +6,16 @@ import {
   Text,
   View,
 } from "react-native";
-import { Link, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useDeleteScene, useScenes } from "@/services/sceneService";
 import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { EmptyState } from "@/components/EmptyState";
-import {
-  ColorTokens,
-  FAB_CLEARANCE,
-  radius,
-  spacing,
-  type,
-} from "@/theme/tokens";
+import { RiseIn } from "@/components/RiseIn";
+import { GradientFab } from "@/components/GradientFab";
+import { ColorTokens, FAB_CLEARANCE, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function Scenes() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -39,8 +35,18 @@ export default function Scenes() {
     );
   }
 
+  const inCount = (data ?? []).filter((s) => s.is_user_in_scene).length;
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
+      <Stack.Screen options={{ title: "" }} />
+      <RiseIn index={0}>
+        <Text style={styles.heading}>Scenes</Text>
+        <Text style={styles.sub}>
+          {show?.name ? `${show.name} · ` : ""}
+          You're in {inCount} of {(data ?? []).length} scenes
+        </Text>
+      </RiseIn>
       {readOnly && (
         <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
           <ArchivedBanner showId={showId!} />
@@ -53,54 +59,54 @@ export default function Scenes() {
         onRefresh={refetch}
         contentContainerStyle={{
           padding: spacing.lg,
-          gap: spacing.md,
+          gap: spacing.sm + 2,
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <EmptyState
-            icon="🎬"
-            title="No scenes yet"
-            body="Tap + to add a scene to this show."
-          />
+          <RiseIn index={1}>
+            <EmptyState
+              icon="🎬"
+              title="No scenes yet"
+              body="Tap + to add a scene to this show."
+            />
+          </RiseIn>
         }
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const grayed = !item.is_user_in_scene;
           return (
-            <View style={[styles.card, grayed && styles.grayed]}>
-              <Link
-                href={`/shows/${showId}/scenes/${item.id}`}
-                style={styles.nameLink}
+            <RiseIn index={index + 1}>
+              <Pressable
+                style={[styles.card, grayed && { opacity: 0.45 }]}
+                onPress={() => router.push(`/shows/${showId}/scenes/${item.id}`)}
               >
-                <Text style={[styles.name, grayed && styles.nameGrayed]}>
-                  {item.name}
-                </Text>
-              </Link>
-              {!readOnly && (
-                <Pressable
-                  onPress={() => del.mutate(item.id)}
-                  accessibilityLabel="Delete"
-                  hitSlop={8}
-                >
-                  <Icon
-                    sf="trash"
-                    ion="trash-outline"
-                    size={22}
-                    color={colors.danger}
-                  />
-                </Pressable>
-              )}
-            </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.caption}>
+                    {grayed ? "Not in this scene" : "You're in this scene"}
+                  </Text>
+                </View>
+                {!readOnly && (
+                  <Pressable
+                    onPress={() => del.mutate(item.id)}
+                    accessibilityLabel="Delete"
+                    hitSlop={8}
+                  >
+                    <Icon sf="trash" ion="trash-outline" size={20} color={colors.danger} />
+                  </Pressable>
+                )}
+                <Icon sf="chevron.right" ion="chevron-forward" size={14} color={colors.textMuted} />
+              </Pressable>
+            </RiseIn>
           );
         }}
       />
       {!readOnly && (
-        <Pressable
-          style={styles.fab}
+        <GradientFab
           onPress={() => router.push(`/shows/${showId}/scenes/new`)}
           accessibilityLabel="Add scene"
-        >
-          <Icon sf="plus" ion="add" size={28} color="#fff" />
-        </Pressable>
+        />
       )}
     </View>
   );
@@ -109,34 +115,41 @@ export default function Scenes() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    heading: {
+      fontSize: 28,
+      fontFamily: fonts.extrabold,
+      fontWeight: "800",
+      letterSpacing: -0.4,
+      color: c.text,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+    },
+    sub: {
+      fontSize: 14,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      paddingHorizontal: spacing.lg,
+      marginTop: 3,
+    },
     card: {
       flexDirection: "row",
       alignItems: "center",
-      padding: spacing.lg,
+      gap: spacing.md,
+      padding: spacing.lg - 2,
       backgroundColor: c.card,
       borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
     },
-    grayed: { backgroundColor: c.bgElevated, opacity: 0.6 },
-    nameLink: { flex: 1 },
-    name: { ...type.bodyStrong, color: c.text },
-    nameGrayed: { color: c.textMuted },
-    fab: {
-      position: "absolute",
-      right: spacing.xl,
-      bottom: FAB_CLEARANCE,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.accent,
-      alignItems: "center",
-      justifyContent: "center",
-      shadowColor: "#000",
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 6,
+    name: {
+      fontSize: 17,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
+      color: c.text,
+    },
+    caption: {
+      fontSize: 13,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      marginTop: 2,
     },
   });
 }

@@ -1,18 +1,12 @@
 import { useState } from "react";
-import {
-  Alert,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useCreateSong } from "@/services/songService";
 import { SongCategory } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { GradientButton } from "@/components/GradientButton";
+import { Chip } from "@/components/Chip";
+import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewSong() {
   const router = useRouter();
@@ -42,52 +36,46 @@ export default function NewSong() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Title</Text>
       <TextInput
         value={title}
         onChangeText={setTitle}
+        placeholder="Song title"
         placeholderTextColor={colors.textMuted}
         autoFocus
         style={styles.input}
         returnKeyType="done"
         onSubmitEditing={onSave}
       />
-      <View style={styles.row}>
-        <Text style={styles.label}>Audition song</Text>
-        <Switch value={isAudition} onValueChange={setIsAudition} />
-      </View>
-      <Text style={styles.label}>Category</Text>
+      <Text style={styles.sectionLabel}>CATEGORIES</Text>
       <View style={styles.chipRow}>
+        <Chip
+          label="Audition"
+          active={isAudition}
+          onPress={() => setIsAudition((v) => !v)}
+        />
         {(["vocal", "guitar"] as const).map((c) => (
-          <Pressable
+          <Chip
             key={c}
+            label={c[0].toUpperCase() + c.slice(1)}
+            active={category === c}
             onPress={() => setCategory(category === c ? null : c)}
-            style={[styles.chip, category === c && styles.chipActive]}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                category === c && styles.chipTextActive,
-              ]}
-            >
-              {c}
-            </Text>
-          </Pressable>
+          />
         ))}
       </View>
       <View style={styles.footer}>
-        <Pressable style={styles.cancel} onPress={() => router.back()}>
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
-          style={styles.save}
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
+          onPress={() => router.back()}
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Add Song"
           onPress={onSave}
-          disabled={create.isPending}
-        >
-          <Text style={styles.saveText}>
-            {create.isPending ? "Saving…" : "Save"}
-          </Text>
-        </Pressable>
+          loading={create.isPending}
+          disabled={!title.trim()}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -97,51 +85,31 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.xl,
+      padding: spacing.lg + 4,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
-    label: { ...type.label, color: c.textMuted },
     input: {
-      fontSize: 18,
-      padding: spacing.md,
-      borderRadius: radius.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 4,
+    sectionLabel: {
+      fontSize: 12,
+      fontFamily: fonts.bold,
+      fontWeight: "700",
+      letterSpacing: 0.9,
+      color: c.textMuted,
+      marginTop: spacing.xs,
     },
-    chipRow: { flexDirection: "row", gap: spacing.sm },
-    chip: {
-      paddingHorizontal: spacing.md + 2,
-      paddingVertical: spacing.sm,
-      borderRadius: radius.pill,
-      backgroundColor: c.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-    },
-    chipActive: { backgroundColor: c.accent, borderColor: c.accent },
-    chipText: { color: c.text, textTransform: "capitalize" },
-    chipTextActive: { color: "#fff", fontWeight: "600" },
+    chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
     footer: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: spacing.md,
-      marginTop: spacing.xl,
+      gap: spacing.sm + 2,
+      marginTop: spacing.lg,
     },
-    cancel: { padding: spacing.md },
-    save: {
-      padding: spacing.md,
-      paddingHorizontal: spacing.xl,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-    },
-    saveText: { color: "#fff", fontWeight: "600" },
   });
 }
