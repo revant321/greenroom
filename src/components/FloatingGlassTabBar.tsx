@@ -1,14 +1,14 @@
-import { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { BlurView } from "expo-blur";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import {
   TAB_BAR_BOTTOM_INSET,
@@ -23,8 +23,9 @@ export function FloatingGlassTabBar({
   state,
   descriptors,
   navigation,
-}: BottomTabBarProps) {
-  const { colors, scheme } = useTheme();
+  position,
+}: MaterialTopTabBarProps) {
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -35,18 +36,12 @@ export function FloatingGlassTabBar({
   const tabCount = state.routes.length;
   const tabWidth = innerWidth / tabCount;
 
-  const activeX = useSharedValue(state.index * tabWidth);
-
-  useEffect(() => {
-    activeX.value = withTiming(state.index * tabWidth, {
-      duration: 280,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [state.index, tabWidth, activeX]);
-
-  const pillStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: activeX.value }],
-  }));
+  // `position` is the pager's live page index (0..tabCount-1), including
+  // mid-swipe fractions — so the lozenge tracks the finger during a swipe.
+  const translateX = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, tabWidth],
+  });
 
   return (
     <View
@@ -75,8 +70,8 @@ export function FloatingGlassTabBar({
               width: tabWidth,
               backgroundColor: colors.navActivePill,
               borderColor: colors.navActivePillBorder,
+              transform: [{ translateX }],
             },
-            pillStyle,
           ]}
           pointerEvents="none"
         />
@@ -118,11 +113,7 @@ export function FloatingGlassTabBar({
                 pressed && { opacity: 0.85 },
               ]}
             >
-              {options.tabBarIcon?.({
-                focused,
-                color: tintColor,
-                size: 30,
-              })}
+              {options.tabBarIcon?.({ focused, color: tintColor })}
               <Text
                 style={[
                   styles.label,
