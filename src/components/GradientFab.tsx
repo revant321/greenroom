@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet } from "react-native";
-import { Gradient, gradientShadow } from "./Gradient";
+import { Pressable, StyleSheet, View } from "react-native";
+import { gradientShadow } from "./Gradient";
+import { LiquidGradient } from "./LiquidGradient";
 import { Icon } from "./Icon";
 import { FAB_CLEARANCE, spacing } from "@/theme/tokens";
 
@@ -24,9 +25,10 @@ export function GradientFab({
         pressed && { transform: [{ scale: 0.9 }] },
       ]}
     >
-      <Gradient style={styles.circle}>
+      <View style={styles.circle}>
+        <LiquidGradient variant="fab" borderRadius={27} />
         <Icon sf="plus" ion="add" size={26} color="#fff" />
-      </Gradient>
+      </View>
     </Pressable>
   );
 }

@@ -4,10 +4,12 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  View,
   ViewStyle,
   StyleProp,
 } from "react-native";
-import { Gradient, gradientShadow } from "./Gradient";
+import { gradientShadow } from "./Gradient";
+import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
 import { fonts, radius } from "@/theme/tokens";
 
@@ -61,13 +63,14 @@ export function GradientButton({
         style,
       ]}
     >
-      <Gradient style={styles.base}>
+      <View style={styles.base}>
+        <LiquidGradient variant="button" borderRadius={radius.lg} />
         {loading ? (
           <ActivityIndicator color="#fff" size="small" />
         ) : (
           <Text style={[styles.label, { color: "#fff" }]}>{label}</Text>
         )}
-      </Gradient>
+      </View>
     </Pressable>
   );
 }
