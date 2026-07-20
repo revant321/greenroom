@@ -53,6 +53,9 @@ export default function TabsLayout() {
       tabBar={(props) => <FloatingGlassTabBar {...props} />}
       screenOptions={{
         swipeEnabled: true,
+        // Pill taps jump straight to the page (no slide); finger swipes are
+        // native pager gestures and stay animated.
+        animationEnabled: false,
         sceneStyle: { backgroundColor: colors.bg },
       }}
     >
