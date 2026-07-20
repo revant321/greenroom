@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
 import { confirm } from "@/utils/confirm";
+import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { EmptyState } from "@/components/EmptyState";
@@ -55,6 +56,7 @@ export default function Songs() {
   const { data, isLoading } = useSongs(PRESETS[preset].filter);
   const { data: allSongs } = useSongs({});
   const del = useDeleteSong();
+  const focusTick = useFocusRefresh();
 
   const q = search.trim().toLowerCase();
   const searching = q.length > 0;
@@ -87,7 +89,10 @@ export default function Songs() {
   }
 
   const songCard = (item: NonNullable<typeof data>[number], index: number) => (
-    <RiseIn index={index} refreshKey={searching ? "search" : preset}>
+    <RiseIn
+      index={index}
+      refreshKey={`${focusTick}-${searching ? "search" : preset}`}
+    >
       <Pressable
         style={styles.card}
         onPress={() => router.push(`/songs/${item.id}`)}
@@ -128,7 +133,7 @@ export default function Songs() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      <RiseIn index={0}>
+      <RiseIn index={0} refreshKey={focusTick}>
         <ScreenTitle
           title="Songs"
           subtitle={`${totalCount} song${totalCount === 1 ? "" : "s"} in your library`}

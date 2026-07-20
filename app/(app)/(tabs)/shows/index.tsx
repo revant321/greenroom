@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeleteShow, useShows } from "@/services/showService";
 import { Show } from "@/lib/types";
 import { confirm } from "@/utils/confirm";
+import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { EmptyState } from "@/components/EmptyState";
@@ -37,6 +38,7 @@ export default function ShowsList() {
   const { data: completedShows } = useShows({ completed: true });
   const trophyCount = completedShows?.length ?? 0;
   const del = useDeleteShow();
+  const focusTick = useFocusRefresh();
 
   if (isLoading && !data) {
     return (
@@ -57,7 +59,7 @@ export default function ShowsList() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
-      <RiseIn index={0}>
+      <RiseIn index={0} refreshKey={focusTick}>
         <ScreenTitle
           title="Shows"
           subtitle={`${count} production${count === 1 ? "" : "s"} in progress`}
@@ -75,7 +77,7 @@ export default function ShowsList() {
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <RiseIn index={1}>
+          <RiseIn index={1} refreshKey={focusTick}>
             <EmptyState
               icon="🎭"
               title="No shows yet"
@@ -85,7 +87,7 @@ export default function ShowsList() {
         }
         ListFooterComponent={
           trophyCount > 0 ? (
-            <RiseIn index={Math.min(count, 8) + 1}>
+            <RiseIn index={Math.min(count, 8) + 1} refreshKey={focusTick}>
               <Link href="/shows/completed" asChild>
                 <Pressable
                   style={styles.trophyCard}
@@ -114,7 +116,7 @@ export default function ShowsList() {
           ) : null
         }
         renderItem={({ item, index }: { item: Show; index: number }) => (
-          <RiseIn index={index + 1}>
+          <RiseIn index={index + 1} refreshKey={focusTick}>
             <Pressable
               style={styles.card}
               onPress={() => router.push(`/shows/${item.id}`)}
