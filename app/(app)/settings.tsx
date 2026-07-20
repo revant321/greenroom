@@ -6,7 +6,6 @@ import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { SectionLabel } from "@/components/ScreenTitle";
-import { Icon } from "@/components/Icon";
 import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 const SPEED_HINTS: Record<AnimSpeed, string> = {
@@ -68,22 +67,6 @@ export default function Settings() {
         <Text style={styles.hint}>{SPEED_HINTS[animSpeed]}</Text>
       </View>
 
-      <SectionLabel>Library</SectionLabel>
-      <View style={[styles.card, { padding: 0 }]}>
-        <Pressable
-          style={styles.linkRow}
-          onPress={() => router.push("/shows/completed")}
-        >
-          <Text style={styles.linkText}>Trophy Case</Text>
-          <Icon
-            sf="chevron.right"
-            ion="chevron-forward"
-            size={14}
-            color={colors.textMuted}
-          />
-        </Pressable>
-      </View>
-
       <Pressable
         style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.85 }]}
         onPress={onSignOut}
@@ -128,13 +111,6 @@ function makeStyles(c: ColorTokens) {
       paddingHorizontal: 6,
       paddingBottom: 2,
     },
-    linkRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: spacing.lg - 1,
-    },
-    linkText: { fontSize: 17, fontFamily: fonts.regular, color: c.text },
     signOut: {
       marginTop: spacing.xl,
       padding: spacing.md + 2,
