@@ -6,10 +6,12 @@ import { FloatingGlassTabBar } from "@/components/FloatingGlassTabBar";
 import { useTheme } from "@/theme/useTheme";
 
 function ShowsIcon({ color, size }: { color: string; size: number }) {
+  // theatermasks has more built-in padding than music.note, so it needs a
+  // few extra points to look the same size on screen.
   if (Platform.OS === "ios") {
-    return <SymbolView name="theatermasks" size={size} tintColor={color} />;
+    return <SymbolView name="theatermasks" size={size + 4} tintColor={color} />;
   }
-  return <Ionicons name="film-outline" size={size} color={color} />;
+  return <Ionicons name="film-outline" size={size + 4} color={color} />;
 }
 
 function SongsIcon({ color, size }: { color: string; size: number }) {

@@ -121,7 +121,7 @@ export function FloatingGlassTabBar({
               {options.tabBarIcon?.({
                 focused,
                 color: tintColor,
-                size: 27,
+                size: 30,
               })}
               <Text
                 style={[
