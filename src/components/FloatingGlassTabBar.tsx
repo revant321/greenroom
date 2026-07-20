@@ -72,7 +72,7 @@ export function FloatingGlassTabBar({
           style={[
             styles.activePill,
             {
-              width: tabWidth + 2,
+              width: tabWidth,
               backgroundColor: colors.navActivePill,
               borderColor: colors.navActivePillBorder,
             },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 4,
     bottom: 4,
-    left: 4,
+    left: 5,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },

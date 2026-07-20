@@ -127,5 +127,5 @@ export const TAB_BAR_HEIGHT = 54;
 export const TAB_BAR_BOTTOM_INSET = 14;
 export const TAB_BAR_HORIZONTAL_MARGIN = 22;
 /** Pill width as a fraction of the usable screen width (it's centered). */
-export const TAB_BAR_WIDTH_FRACTION = 0.8;
+export const TAB_BAR_WIDTH_FRACTION = 0.6;
 export const FAB_CLEARANCE = TAB_BAR_HEIGHT + TAB_BAR_BOTTOM_INSET + 24;
