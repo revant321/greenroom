@@ -28,7 +28,7 @@ export function FloatingGlassTabBar({
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
-  const sidePadding = 4;
+  const sidePadding = 5;
   const pillWidth =
     (screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2) * TAB_BAR_WIDTH_FRACTION;
   const innerWidth = pillWidth - sidePadding * 2;
@@ -72,7 +72,7 @@ export function FloatingGlassTabBar({
           style={[
             styles.activePill,
             {
-              width: tabWidth + 5,
+              width: tabWidth + 2,
               backgroundColor: colors.navActivePill,
               borderColor: colors.navActivePillBorder,
             },
@@ -121,7 +121,7 @@ export function FloatingGlassTabBar({
               {options.tabBarIcon?.({
                 focused,
                 color: tintColor,
-                size: 18,
+                size: 23,
               })}
               <Text
                 style={[
@@ -153,16 +153,16 @@ const styles = StyleSheet.create({
     height: TAB_BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 5,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
   },
   activePill: {
     position: "absolute",
-    top: 3,
-    bottom: 3,
-    left: 1.5,
+    top: 4,
+    bottom: 4,
+    left: 4,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },

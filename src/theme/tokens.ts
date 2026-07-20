@@ -120,12 +120,12 @@ export const type = {
   bodyStrong: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600" as const },
   caption: { fontSize: 13, fontFamily: fonts.regular, fontWeight: "400" as const },
   label: { fontSize: 14, fontFamily: fonts.medium, fontWeight: "500" as const },
-  tabLabel: { fontSize: 9, fontFamily: fonts.medium, fontWeight: "500" as const },
+  tabLabel: { fontSize: 10, fontFamily: fonts.medium, fontWeight: "500" as const },
 };
 
-export const TAB_BAR_HEIGHT = 41;
+export const TAB_BAR_HEIGHT = 54;
 export const TAB_BAR_BOTTOM_INSET = 14;
 export const TAB_BAR_HORIZONTAL_MARGIN = 22;
 /** Pill width as a fraction of the usable screen width (it's centered). */
-export const TAB_BAR_WIDTH_FRACTION = 0.6;
+export const TAB_BAR_WIDTH_FRACTION = 0.8;
 export const FAB_CLEARANCE = TAB_BAR_HEIGHT + TAB_BAR_BOTTOM_INSET + 24;
