@@ -34,10 +34,10 @@ export const palette = {
     // Signature gradient (warm → pink → violet)
     gradientColors: ["#FFB03A", "#F0447D", "#8C5CFF"] as const,
 
-    navGlassTint: "rgba(255, 255, 255, 0.55)",
-    navGlassBorder: "rgba(0, 0, 0, 0.08)",
+    navGlassTint: "rgba(196, 175, 255, 0.45)",
+    navGlassBorder: "rgba(124, 77, 235, 0.22)",
     navActivePill: "#FFFFFF",
-    navActivePillBorder: "rgba(0, 0, 0, 0.06)",
+    navActivePillBorder: "rgba(124, 77, 235, 0.16)",
     navIconActive: "#1D1B2E",
     navIconInactive: "rgba(70, 62, 110, 0.55)",
     navBlurTint: "light" as "light" | "dark",
@@ -61,10 +61,10 @@ export const palette = {
 
     gradientColors: ["#FFB03A", "#F0447D", "#8C5CFF"] as const,
 
-    navGlassTint: "rgba(32, 31, 50, 0.6)",
-    navGlassBorder: "rgba(255, 255, 255, 0.09)",
-    navActivePill: "rgba(160, 150, 220, 0.22)",
-    navActivePillBorder: "rgba(255, 255, 255, 0.12)",
+    navGlassTint: "rgba(74, 58, 128, 0.55)",
+    navGlassBorder: "rgba(160, 107, 255, 0.28)",
+    navActivePill: "rgba(160, 107, 255, 0.30)",
+    navActivePillBorder: "rgba(200, 170, 255, 0.35)",
     navIconActive: "#FFFFFF",
     navIconInactive: "rgba(190, 183, 228, 0.6)",
     navBlurTint: "dark" as "light" | "dark",
@@ -120,10 +120,12 @@ export const type = {
   bodyStrong: { fontSize: 16, fontFamily: fonts.semibold, fontWeight: "600" as const },
   caption: { fontSize: 13, fontFamily: fonts.regular, fontWeight: "400" as const },
   label: { fontSize: 14, fontFamily: fonts.medium, fontWeight: "500" as const },
-  tabLabel: { fontSize: 10, fontFamily: fonts.medium, fontWeight: "500" as const },
+  tabLabel: { fontSize: 9, fontFamily: fonts.medium, fontWeight: "500" as const },
 };
 
-export const TAB_BAR_HEIGHT = 68;
+export const TAB_BAR_HEIGHT = 41;
 export const TAB_BAR_BOTTOM_INSET = 14;
 export const TAB_BAR_HORIZONTAL_MARGIN = 22;
+/** Pill width as a fraction of the usable screen width (it's centered). */
+export const TAB_BAR_WIDTH_FRACTION = 0.6;
 export const FAB_CLEARANCE = TAB_BAR_HEIGHT + TAB_BAR_BOTTOM_INSET + 24;

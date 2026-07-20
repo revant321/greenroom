@@ -5,18 +5,18 @@ import { Platform } from "react-native";
 import { FloatingGlassTabBar } from "@/components/FloatingGlassTabBar";
 import { useTheme } from "@/theme/useTheme";
 
-function ShowsIcon({ color }: { color: string }) {
+function ShowsIcon({ color, size }: { color: string; size: number }) {
   if (Platform.OS === "ios") {
-    return <SymbolView name="theatermasks" size={28} tintColor={color} />;
+    return <SymbolView name="theatermasks" size={size} tintColor={color} />;
   }
-  return <Ionicons name="film-outline" size={28} color={color} />;
+  return <Ionicons name="film-outline" size={size} color={color} />;
 }
 
-function SongsIcon({ color }: { color: string }) {
+function SongsIcon({ color, size }: { color: string; size: number }) {
   if (Platform.OS === "ios") {
-    return <SymbolView name="music.note" size={28} tintColor={color} />;
+    return <SymbolView name="music.note" size={size} tintColor={color} />;
   }
-  return <Ionicons name="musical-notes-outline" size={28} color={color} />;
+  return <Ionicons name="musical-notes-outline" size={size} color={color} />;
 }
 
 export default function TabsLayout() {
@@ -40,14 +40,14 @@ export default function TabsLayout() {
         name="shows"
         options={{
           title: "Shows",
-          tabBarIcon: ({ color }) => <ShowsIcon color={color} />,
+          tabBarIcon: ({ color, size }) => <ShowsIcon color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="songs"
         options={{
           title: "Songs",
-          tabBarIcon: ({ color }) => <SongsIcon color={color} />,
+          tabBarIcon: ({ color, size }) => <SongsIcon color={color} size={size} />,
         }}
       />
     </Tabs>

@@ -14,6 +14,7 @@ import {
   TAB_BAR_BOTTOM_INSET,
   TAB_BAR_HEIGHT,
   TAB_BAR_HORIZONTAL_MARGIN,
+  TAB_BAR_WIDTH_FRACTION,
   radius,
   type,
 } from "@/theme/tokens";
@@ -27,9 +28,10 @@ export function FloatingGlassTabBar({
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
-  const sidePadding = 6;
-  const innerWidth =
-    screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2 - sidePadding * 2;
+  const sidePadding = 4;
+  const pillWidth =
+    (screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2) * TAB_BAR_WIDTH_FRACTION;
+  const innerWidth = pillWidth - sidePadding * 2;
   const tabCount = state.routes.length;
   const tabWidth = innerWidth / tabCount;
 
@@ -51,11 +53,7 @@ export function FloatingGlassTabBar({
       pointerEvents="box-none"
       style={[
         styles.wrap,
-        {
-          bottom: TAB_BAR_BOTTOM_INSET + insets.bottom * 0.4,
-          left: TAB_BAR_HORIZONTAL_MARGIN,
-          right: TAB_BAR_HORIZONTAL_MARGIN,
-        },
+        { bottom: TAB_BAR_BOTTOM_INSET + insets.bottom * 0.4 },
       ]}
     >
       <BlurView
@@ -64,6 +62,7 @@ export function FloatingGlassTabBar({
         style={[
           styles.pill,
           {
+            width: pillWidth,
             backgroundColor: colors.navGlassTint,
             borderColor: colors.navGlassBorder,
           },
@@ -73,7 +72,7 @@ export function FloatingGlassTabBar({
           style={[
             styles.activePill,
             {
-              width: tabWidth + 8,
+              width: tabWidth + 5,
               backgroundColor: colors.navActivePill,
               borderColor: colors.navActivePillBorder,
             },
@@ -122,7 +121,7 @@ export function FloatingGlassTabBar({
               {options.tabBarIcon?.({
                 focused,
                 color: tintColor,
-                size: 28,
+                size: 18,
               })}
               <Text
                 style={[
@@ -145,22 +144,25 @@ export function FloatingGlassTabBar({
 const styles = StyleSheet.create({
   wrap: {
     position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
     zIndex: 50,
   },
   pill: {
     height: TAB_BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
   },
   activePill: {
     position: "absolute",
-    top: 4,
-    bottom: 4,
-    left: 2,
+    top: 3,
+    bottom: 3,
+    left: 1.5,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },
