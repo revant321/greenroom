@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -31,12 +31,44 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const passwordInput = useRef<TextInput>(null);
-  const canSubmitEmail = busy === null && email.trim().length > 0 && password.length > 0;
+  const handledGoogleToken = useRef<string | null>(null);
+  const canSubmitEmail =
+    busy === null && email.trim().length > 0 && password.length > 0;
+  const appleSignInEnabled =
+    process.env.EXPO_PUBLIC_APPLE_AUTH_ENABLED !== "false";
 
-  const [, , promptGoogle] = Google.useIdTokenAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  });
+  const [googleRequest, googleResponse, promptGoogle] =
+    Google.useIdTokenAuthRequest({
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    });
+
+  // On native platforms the prompt first returns an authorization code. Expo
+  // exchanges it for an ID token asynchronously and publishes the completed
+  // response through this hook value.
+  useEffect(() => {
+    if (googleResponse?.type !== "success") return;
+
+    const idToken =
+      googleResponse.authentication?.idToken ?? googleResponse.params.id_token;
+    if (!idToken) {
+      Alert.alert(
+        "Sign in failed",
+        "Google completed sign-in but did not return an ID token.",
+      );
+      setBusy(null);
+      return;
+    }
+    if (handledGoogleToken.current === idToken) return;
+    handledGoogleToken.current = idToken;
+
+    void signInWithGoogle(idToken)
+      .catch((e: any) => {
+        handledGoogleToken.current = null;
+        Alert.alert("Sign in failed", e?.message ?? String(e));
+      })
+      .finally(() => setBusy(null));
+  }, [googleResponse]);
 
   async function onApple() {
     if (busy !== null) return;
@@ -67,18 +99,14 @@ export default function Login() {
   }
 
   async function onGoogle() {
-    if (busy !== null) return;
+    if (busy !== null || !googleRequest) return;
 
     try {
       setBusy("google");
       const result = await promptGoogle();
-      if (result?.type !== "success") return;
-      const idToken = (result.params as any).id_token;
-      if (!idToken) throw new Error("Google did not return an ID token.");
-      await signInWithGoogle(idToken);
+      if (result?.type !== "success") setBusy(null);
     } catch (e: any) {
       Alert.alert("Sign in failed", e?.message ?? String(e));
-    } finally {
       setBusy(null);
     }
   }
@@ -97,7 +125,7 @@ export default function Login() {
           <Text style={styles.subtitle}>Sign in to sync your shows.</Text>
 
           <View style={styles.socialButtons}>
-            {Platform.OS === "ios" && (
+            {Platform.OS === "ios" && appleSignInEnabled && (
               <View
                 pointerEvents={busy === null ? "auto" : "none"}
                 style={busy !== null && styles.disabled}
@@ -118,12 +146,15 @@ export default function Login() {
 
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: busy !== null, busy: busy === "google" }}
-              disabled={busy !== null}
+              accessibilityState={{
+                disabled: busy !== null || !googleRequest,
+                busy: busy === "google",
+              }}
+              disabled={busy !== null || !googleRequest}
               onPress={onGoogle}
               style={({ pressed }) => [
                 styles.googleButton,
-                busy !== null && styles.disabled,
+                (busy !== null || !googleRequest) && styles.disabled,
                 pressed && styles.pressed,
               ]}
             >
@@ -177,7 +208,10 @@ export default function Login() {
 
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: !canSubmitEmail, busy: busy === "email" }}
+              accessibilityState={{
+                disabled: !canSubmitEmail,
+                busy: busy === "email",
+              }}
               disabled={!canSubmitEmail}
               onPress={onEmail}
               style={({ pressed }) => [
