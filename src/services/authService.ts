@@ -23,7 +23,15 @@ export async function signInWithGoogle(idToken: string): Promise<void> {
     provider: "google",
     token: idToken,
   });
-  if (error) throw error;
+  if (!error) return;
+
+  if (/audience/i.test(error.message)) {
+    throw new Error(
+      "Supabase rejected the Google token audience. In the Google provider settings, list the Web client ID first and the iOS client ID second, separated by a comma.",
+    );
+  }
+
+  throw error;
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<void> {
