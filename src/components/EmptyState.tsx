@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { radius, spacing, type } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
+import { GradientButton } from "./GradientButton";
 
 type Props = {
   icon?: string;
@@ -10,36 +11,47 @@ type Props = {
   onAction?: () => void;
 };
 
+/** Prototype empty state: dashed rounded frame, quiet voice. */
 export function EmptyState({ icon, title, body, actionLabel, onAction }: Props) {
   const { colors } = useTheme();
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { borderColor: colors.border }]}>
       {icon && <Text style={styles.icon}>{icon}</Text>}
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {body && (
         <Text style={[styles.body, { color: colors.textMuted }]}>{body}</Text>
       )}
       {actionLabel && onAction && (
-        <Pressable
+        <GradientButton
+          label={actionLabel}
           onPress={onAction}
-          style={[styles.action, { backgroundColor: colors.accent }]}
-        >
-          <Text style={{ color: "#fff", fontWeight: "600" }}>{actionLabel}</Text>
-        </Pressable>
+          style={{ marginTop: spacing.md, alignSelf: "center", minWidth: 160 }}
+        />
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { alignItems: "center", padding: spacing.xxl, gap: spacing.sm },
-  icon: { fontSize: 40 },
-  title: { ...type.heading },
-  body: { ...type.body, textAlign: "center" },
-  action: {
-    marginTop: spacing.md,
-    padding: spacing.md,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.md,
+  wrap: {
+    alignItems: "center",
+    padding: spacing.xl + 6,
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderRadius: radius.lg,
+  },
+  icon: { fontSize: 36 },
+  title: {
+    fontSize: 17,
+    fontFamily: fonts.bold,
+    fontWeight: "700",
+    letterSpacing: -0.2,
+  },
+  body: {
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

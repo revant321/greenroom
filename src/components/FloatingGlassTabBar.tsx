@@ -1,18 +1,20 @@
-import { useEffect } from "react";
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { BlurView } from "expo-blur";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import {
   TAB_BAR_BOTTOM_INSET,
   TAB_BAR_HEIGHT,
   TAB_BAR_HORIZONTAL_MARGIN,
+  TAB_BAR_WIDTH_FRACTION,
   radius,
   type,
 } from "@/theme/tokens";
@@ -21,40 +23,32 @@ export function FloatingGlassTabBar({
   state,
   descriptors,
   navigation,
-}: BottomTabBarProps) {
-  const { colors, scheme } = useTheme();
+  position,
+}: MaterialTopTabBarProps) {
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
-  const sidePadding = 6;
-  const innerWidth =
-    screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2 - sidePadding * 2;
+  const sidePadding = 5;
+  const pillWidth =
+    (screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2) * TAB_BAR_WIDTH_FRACTION;
+  const innerWidth = pillWidth - sidePadding * 2;
   const tabCount = state.routes.length;
   const tabWidth = innerWidth / tabCount;
 
-  const activeX = useSharedValue(state.index * tabWidth);
-
-  useEffect(() => {
-    activeX.value = withSpring(state.index * tabWidth, {
-      stiffness: 380,
-      damping: 30,
-    });
-  }, [state.index, tabWidth, activeX]);
-
-  const pillStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: activeX.value }],
-  }));
+  // `position` is the pager's live page index (0..tabCount-1), including
+  // mid-swipe fractions — so the lozenge tracks the finger during a swipe.
+  const translateX = position.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, tabWidth],
+  });
 
   return (
     <View
       pointerEvents="box-none"
       style={[
         styles.wrap,
-        {
-          bottom: TAB_BAR_BOTTOM_INSET + insets.bottom * 0.4,
-          left: TAB_BAR_HORIZONTAL_MARGIN,
-          right: TAB_BAR_HORIZONTAL_MARGIN,
-        },
+        { bottom: TAB_BAR_BOTTOM_INSET + insets.bottom * 0.4 },
       ]}
     >
       <BlurView
@@ -63,6 +57,7 @@ export function FloatingGlassTabBar({
         style={[
           styles.pill,
           {
+            width: pillWidth,
             backgroundColor: colors.navGlassTint,
             borderColor: colors.navGlassBorder,
           },
@@ -72,11 +67,11 @@ export function FloatingGlassTabBar({
           style={[
             styles.activePill,
             {
-              width: tabWidth + 8,
+              width: tabWidth,
               backgroundColor: colors.navActivePill,
               borderColor: colors.navActivePillBorder,
+              transform: [{ translateX }],
             },
-            pillStyle,
           ]}
           pointerEvents="none"
         />
@@ -118,11 +113,7 @@ export function FloatingGlassTabBar({
                 pressed && { opacity: 0.85 },
               ]}
             >
-              {options.tabBarIcon?.({
-                focused,
-                color: tintColor,
-                size: 28,
-              })}
+              {options.tabBarIcon?.({ focused, color: tintColor })}
               <Text
                 style={[
                   styles.label,
@@ -144,13 +135,16 @@ export function FloatingGlassTabBar({
 const styles = StyleSheet.create({
   wrap: {
     position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
     zIndex: 50,
   },
   pill: {
     height: TAB_BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
@@ -159,7 +153,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 4,
     bottom: 4,
-    left: 2,
+    left: 5,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },

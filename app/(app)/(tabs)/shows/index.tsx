@@ -7,17 +7,30 @@ import {
   View,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeleteShow, useShows } from "@/services/showService";
 import { Show } from "@/lib/types";
 import { confirm } from "@/utils/confirm";
+import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { EmptyState } from "@/components/EmptyState";
-import { ColorTokens, FAB_CLEARANCE, radius, spacing, type } from "@/theme/tokens";
+import { RiseIn } from "@/components/RiseIn";
+import { GradientFab } from "@/components/GradientFab";
+import { ScreenTitle } from "@/components/ScreenTitle";
+import { SettingsButton } from "@/components/SettingsButton";
+import {
+  ColorTokens,
+  FAB_CLEARANCE,
+  fonts,
+  radius,
+  spacing,
+} from "@/theme/tokens";
 
 export default function ShowsList() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = makeStyles(colors);
   const { data, isLoading, error, refetch, isRefetching } = useShows({
     completed: false,
@@ -25,6 +38,7 @@ export default function ShowsList() {
   const { data: completedShows } = useShows({ completed: true });
   const trophyCount = completedShows?.length ?? 0;
   const del = useDeleteShow();
+  const focusTick = useFocusRefresh();
 
   if (isLoading && !data) {
     return (
@@ -41,8 +55,17 @@ export default function ShowsList() {
     );
   }
 
+  const count = data?.length ?? 0;
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
+      <RiseIn index={0} refreshKey={focusTick}>
+        <ScreenTitle
+          title="Shows"
+          subtitle={`${count} production${count === 1 ? "" : "s"} in progress`}
+          right={<SettingsButton />}
+        />
+      </RiseIn>
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
@@ -54,93 +77,105 @@ export default function ShowsList() {
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
-          <EmptyState
-            icon="🎭"
-            title="No shows yet"
-            body="Shows hold your songs and scenes. Tap + to add one."
-          />
+          <RiseIn index={1} refreshKey={focusTick}>
+            <EmptyState
+              icon="🎭"
+              title="No shows yet"
+              body="Shows hold your songs and scenes. Tap + to add one."
+            />
+          </RiseIn>
         }
         ListFooterComponent={
           trophyCount > 0 ? (
-            <Link href="/shows/completed" asChild>
-              <Pressable
-                style={styles.trophyCard}
-                accessibilityLabel="Open Trophy Case"
-              >
-                <View style={styles.trophyLeft}>
-                  <Icon
-                    sf="trophy.fill"
-                    ion="trophy"
-                    size={22}
-                    color={colors.warn}
-                  />
-                  <Text style={styles.trophyText}>Trophy Case</Text>
-                </View>
-                <View style={styles.trophyRight}>
-                  <Text style={styles.trophyCount}>{trophyCount}</Text>
+            <RiseIn index={Math.min(count, 8) + 1} refreshKey={focusTick}>
+              <Link href="/shows/completed" asChild>
+                <Pressable
+                  style={styles.trophyCard}
+                  accessibilityLabel="Open Trophy Case"
+                >
+                  <View style={styles.trophyLeft}>
+                    <View style={styles.trophyBadge}>
+                      <Icon sf="trophy.fill" ion="trophy" size={20} color={colors.warn} />
+                    </View>
+                    <View>
+                      <Text style={styles.trophyText}>Trophy Case</Text>
+                      <Text style={styles.trophySub}>
+                        {trophyCount} completed show{trophyCount === 1 ? "" : "s"}
+                      </Text>
+                    </View>
+                  </View>
                   <Icon
                     sf="chevron.right"
                     ion="chevron-forward"
                     size={16}
                     color={colors.textMuted}
                   />
-                </View>
-              </Pressable>
-            </Link>
+                </Pressable>
+              </Link>
+            </RiseIn>
           ) : null
         }
-        renderItem={({ item }: { item: Show }) => (
-          <View style={styles.card}>
-            <Link href={`/shows/${item.id}`} style={styles.nameLink}>
-              <Text style={styles.name}>{item.name}</Text>
-            </Link>
-            <View style={styles.actions}>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/shows/complete",
-                    params: { showId: item.id },
-                  })
-                }
-                accessibilityLabel="Mark complete"
-                hitSlop={8}
-              >
-                <Icon
-                  sf="checkmark.circle"
-                  ion="checkmark-circle-outline"
-                  size={24}
-                  color={colors.success}
-                />
-              </Pressable>
-              <Pressable
-                onPress={() =>
-                  confirm(
-                    "Delete forever?",
-                    `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`,
-                    () => del.mutate(item.id),
-                  )
-                }
-                accessibilityLabel="Delete show"
-                hitSlop={8}
-              >
-                <Icon
-                  sf="trash"
-                  ion="trash-outline"
-                  size={22}
-                  color={colors.danger}
-                />
-              </Pressable>
-            </View>
-          </View>
+        renderItem={({ item, index }: { item: Show; index: number }) => (
+          <RiseIn index={index + 1} refreshKey={focusTick}>
+            <Pressable
+              style={styles.card}
+              onPress={() => router.push(`/shows/${item.id}`)}
+            >
+              <View style={styles.initials}>
+                <Text style={styles.initialsText}>
+                  {item.name
+                    .split(/\s+/)
+                    .map((w) => w[0] ?? "")
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.nameWrap}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {item.name}
+                </Text>
+              </View>
+              <View style={styles.actions}>
+                <Pressable
+                  onPress={() =>
+                    router.push({
+                      pathname: "/shows/complete",
+                      params: { showId: item.id },
+                    })
+                  }
+                  accessibilityLabel="Mark complete"
+                  hitSlop={8}
+                >
+                  <Icon
+                    sf="checkmark.circle"
+                    ion="checkmark-circle-outline"
+                    size={24}
+                    color={colors.success}
+                  />
+                </Pressable>
+                <Pressable
+                  onPress={() =>
+                    confirm(
+                      "Delete forever?",
+                      `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`,
+                      () => del.mutate(item.id),
+                    )
+                  }
+                  accessibilityLabel="Delete show"
+                  hitSlop={8}
+                >
+                  <Icon sf="trash" ion="trash-outline" size={22} color={colors.danger} />
+                </Pressable>
+              </View>
+            </Pressable>
+          </RiseIn>
         )}
       />
-      <Pressable
-        style={styles.fab}
+      <GradientFab
         onPress={() => router.push("/shows/new")}
         accessibilityLabel="Add show"
-      >
-        <Icon sf="plus" ion="add" size={28} color="#fff" />
-      </Pressable>
+      />
     </View>
   );
 }
@@ -148,60 +183,72 @@ export default function ShowsList() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    empty: { padding: spacing.xxl, alignItems: "center" },
-    emptyTitle: { ...type.bodyStrong, color: c.text, marginBottom: spacing.xs },
-    emptyBody: { color: c.textMuted },
     card: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      padding: spacing.lg,
+      gap: spacing.md,
+      padding: spacing.lg - 2,
       backgroundColor: c.card,
       borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+      shadowColor: "#000",
+      shadowOpacity: 0.04,
+      shadowRadius: 2,
+      shadowOffset: { width: 0, height: 1 },
     },
-    nameLink: { flex: 1 },
-    name: { ...type.bodyStrong, color: c.text },
+    initials: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: c.accentSoft,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    initialsText: {
+      fontSize: 16,
+      fontFamily: fonts.bold,
+      fontWeight: "700",
+      color: c.accent,
+    },
+    nameWrap: { flex: 1 },
+    name: {
+      fontSize: 17,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
+      letterSpacing: -0.2,
+      color: c.text,
+    },
     actions: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
     trophyCard: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: spacing.lg,
+      padding: spacing.lg - 2,
       marginTop: spacing.xl,
       backgroundColor: c.card,
       borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+      borderWidth: 1,
+      borderColor: "rgba(255,176,58,0.28)",
     },
-    trophyLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md,
-    },
-    trophyText: { ...type.bodyStrong, color: c.text },
-    trophyRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-    },
-    trophyCount: { ...type.body, color: c.textMuted },
-    fab: {
-      position: "absolute",
-      right: spacing.xl,
-      bottom: FAB_CLEARANCE,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: c.accent,
+    trophyLeft: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+    trophyBadge: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: "rgba(255,176,58,0.10)",
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
-      shadowOpacity: 0.25,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: 6,
+    },
+    trophyText: {
+      fontSize: 16,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
+      color: c.warn,
+    },
+    trophySub: {
+      fontSize: 13,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      marginTop: 1,
     },
   });
 }

@@ -6,7 +6,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -32,19 +31,25 @@ import {
   useSongSheetMusic,
 } from "@/services/songSheetMusicService";
 import { uploadMedia } from "@/services/mediaService";
-import { AudioRecorder } from "@/components/AudioRecorder";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { PdfViewer } from "@/components/PdfViewer";
 import { Icon } from "@/components/Icon";
+import { Sheet } from "@/components/Sheet";
+import { AddUrlForm } from "@/components/AddUrlForm";
+import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { GradientButton, InlineAction } from "@/components/GradientButton";
+import { SectionLabel } from "@/components/ScreenTitle";
+import { RiseIn } from "@/components/RiseIn";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
   ColorTokens,
   FAB_CLEARANCE,
+  fonts,
   radius,
   spacing,
-  type,
 } from "@/theme/tokens";
 
 export default function SongDetail() {
@@ -234,184 +239,169 @@ export default function SongDetail() {
       ]}
       keyboardShouldPersistTaps="handled"
     >
-      <Stack.Screen options={{ title: title || "Song" }} />
-      <Text style={styles.label}>Title</Text>
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        placeholderTextColor={colors.textMuted}
-        style={styles.input}
-      />
-      <View style={styles.row}>
-        <Text style={styles.label}>Audition song</Text>
-        <Switch value={audition} onValueChange={setAudition} />
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.label}>Completed</Text>
-        <Switch
-          value={status === "completed"}
-          onValueChange={(v) => setStatus(v ? "completed" : "in-progress")}
+      <Stack.Screen options={{ title: "" }} />
+      <RiseIn index={0}>
+        <TextInput
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Song title"
+          placeholderTextColor={colors.textMuted}
+          style={styles.titleInput}
         />
-      </View>
-      <Text style={styles.label}>Notes</Text>
-      <TextInput
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        placeholder="Practice notes, tempo, lyrics tips…"
-        placeholderTextColor={colors.textMuted}
-        style={[styles.input, styles.notes]}
-      />
-      <Text style={styles.saved}>
-        {updateSong.isPending
-          ? "Saving…"
-          : updateSong.isError
-            ? "Offline — will retry when you edit."
-            : "Saved"}
-      </Text>
+        <Text style={styles.saved}>
+          {updateSong.isPending
+            ? "Saving…"
+            : updateSong.isError
+              ? "Offline — will retry when you edit."
+              : "Saved"}
+        </Text>
+      </RiseIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Parts</Text>
-        <Pressable
-          style={styles.addBtn}
-          onPress={() => setRecOpen(true)}
-          disabled={uploading}
+      <RiseIn index={1}>
+        <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Audition song</Text>
+            <AnimatedToggle value={audition} onValueChange={setAudition} />
+          </View>
+          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Completed</Text>
+            <AnimatedToggle
+              value={status === "completed"}
+              onValueChange={(v) => setStatus(v ? "completed" : "in-progress")}
+            />
+          </View>
+        </View>
+      </RiseIn>
+
+      <RiseIn index={2}>
+        <SectionLabel>Notes</SectionLabel>
+        <TextInput
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          placeholder="Practice notes, tempo, lyrics tips…"
+          placeholderTextColor={colors.textMuted}
+          style={[styles.input, styles.notes]}
+        />
+      </RiseIn>
+
+      <RiseIn index={3}>
+        <SectionLabel
+          action={
+            <InlineAction
+              label={uploading ? "Uploading…" : "Record"}
+              onPress={() => setRecOpen(true)}
+              disabled={uploading}
+            >
+              <Icon sf="mic.fill" ion="mic" size={12} color={colors.accent} />
+            </InlineAction>
+          }
         >
-          <Text style={styles.addBtnText}>
-            {uploading ? "Uploading…" : "+ Record"}
-          </Text>
-        </Pressable>
+          Parts
+        </SectionLabel>
         {(parts ?? []).length === 0 && (
           <Text style={styles.empty}>Record a part to practice it later.</Text>
         )}
-        {(parts ?? []).map((p) => (
-          <View key={p.id} style={styles.mediaRow}>
-            <AudioPlayer storagePath={p.storage_path} />
-            <Pressable
-              onPress={() => deletePart.mutate(p)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
+        <View style={{ gap: spacing.sm }}>
+          {(parts ?? []).map((p) => (
+            <View key={p.id} style={styles.mediaCard}>
+              <AudioPlayer storagePath={p.storage_path} />
+              <Pressable onPress={() => deletePart.mutate(p)} style={styles.deleteBtn}>
+                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </RiseIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Tracks</Text>
+      <RiseIn index={4}>
+        <SectionLabel>Tracks</SectionLabel>
         <View style={styles.btnRow}>
-          <Pressable
-            style={styles.addBtn}
-            onPress={pickAudioTrack}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>+ Audio</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => pickVideoTrack(false)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>+ Video</Text>
-          </Pressable>
-          <Pressable
-            style={styles.addBtn}
-            onPress={() => setUrlOpen(true)}
-            disabled={uploading}
-          >
-            <Text style={styles.addBtnText}>+ Link</Text>
-          </Pressable>
+          <InlineAction label="Audio" onPress={pickAudioTrack} disabled={uploading}>
+            <Icon sf="plus" ion="add" size={12} color={colors.accent} />
+          </InlineAction>
+          <InlineAction label="Video" onPress={() => pickVideoTrack(false)} disabled={uploading}>
+            <Icon sf="plus" ion="add" size={12} color={colors.accent} />
+          </InlineAction>
+          <InlineAction label="Link" onPress={() => setUrlOpen(true)} disabled={uploading}>
+            <Icon sf="plus" ion="add" size={12} color={colors.accent} />
+          </InlineAction>
         </View>
         {(tracks ?? []).length === 0 && (
-          <Text style={styles.empty}>
-            Add audio, video, or a rehearsal link.
-          </Text>
+          <Text style={styles.empty}>Add audio, video, or a rehearsal link.</Text>
         )}
-        {(tracks ?? []).map((t) => (
-          <View key={t.id} style={styles.mediaRow}>
-            {t.kind === "audio" && t.storage_path && (
-              <AudioPlayer storagePath={t.storage_path} />
-            )}
-            {t.kind === "video" && t.storage_path && (
-              <VideoPlayer storagePath={t.storage_path} />
-            )}
-            {t.kind === "link" && t.external_url && (
+        <View style={{ gap: spacing.sm }}>
+          {(tracks ?? []).map((t) => (
+            <View key={t.id} style={styles.mediaCard}>
+              {t.kind === "audio" && t.storage_path && (
+                <AudioPlayer storagePath={t.storage_path} label={t.title || undefined} />
+              )}
+              {t.kind === "video" && t.storage_path && (
+                <VideoPlayer storagePath={t.storage_path} />
+              )}
+              {t.kind === "link" && t.external_url && (
+                <Pressable
+                  onPress={() => t.external_url && Linking.openURL(t.external_url)}
+                  style={styles.urlLine}
+                >
+                  <Icon sf="arrow.up.right.square" ion="open-outline" size={18} color={colors.accent} />
+                  <Text style={styles.urlText} numberOfLines={1}>
+                    {t.title || t.external_url}
+                  </Text>
+                </Pressable>
+              )}
+              <Pressable onPress={() => deleteTrack.mutate(t)} style={styles.deleteBtn}>
+                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </RiseIn>
+
+      <RiseIn index={5}>
+        <SectionLabel
+          action={
+            <InlineAction label="PDF" onPress={addSheet} disabled={uploading}>
+              <Icon sf="plus" ion="add" size={12} color={colors.accent} />
+            </InlineAction>
+          }
+        >
+          Sheet music
+        </SectionLabel>
+        {(sheets ?? []).length === 0 && (
+          <Text style={styles.empty}>Add a PDF to keep your sheet music here.</Text>
+        )}
+        <View style={{ gap: spacing.sm }}>
+          {(sheets ?? []).map((s) => (
+            <View key={s.id} style={styles.mediaCard}>
               <Pressable
-                onPress={() => t.external_url && Linking.openURL(t.external_url)}
+                onPress={() => setPdfViewerPath(s.storage_path)}
                 style={styles.urlLine}
               >
-                <Icon
-                  sf="arrow.up.right.square"
-                  ion="open-outline"
-                  size={18}
-                  color={colors.accent}
-                />
-                <Text style={styles.urlText}>{t.title || t.external_url}</Text>
+                <View style={[styles.pdfBadge, { backgroundColor: "rgba(255,92,122,0.12)" }]}>
+                  <Icon sf="doc.fill" ion="document" size={16} color="#FF5C7A" />
+                </View>
+                <Text style={styles.pdfLink} numberOfLines={1}>
+                  {s.title || "Sheet music"}
+                </Text>
               </Pressable>
-            )}
-            <Pressable
-              onPress={() => deleteTrack.mutate(t)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
+              <Pressable onPress={() => deleteSheet.mutate(s)} style={styles.deleteBtn}>
+                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </RiseIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Sheet Music</Text>
-        <Pressable style={styles.addBtn} onPress={addSheet} disabled={uploading}>
-          <Text style={styles.addBtnText}>+ PDF</Text>
-        </Pressable>
-        {(sheets ?? []).length === 0 && (
-          <Text style={styles.empty}>
-            Add a PDF to keep your sheet music here.
-          </Text>
+      <Sheet open={recOpen} onClose={() => setRecOpen(false)}>
+        {recOpen && (
+          <VoiceRecorder onFinish={recordPart} onCancel={() => setRecOpen(false)} />
         )}
-        {(sheets ?? []).map((s) => (
-          <View key={s.id} style={styles.mediaRow}>
-            <Pressable
-              onPress={() => setPdfViewerPath(s.storage_path)}
-              style={styles.urlLine}
-            >
-              <Icon
-                sf="doc"
-                ion="document-outline"
-                size={18}
-                color={colors.accent}
-              />
-              <Text style={styles.pdfLink}>{s.title || "Sheet music"}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => deleteSheet.mutate(s)}
-              style={styles.deleteBtn}
-            >
-              <Text style={{ color: colors.danger }}>Delete</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
+      </Sheet>
 
-      <Modal
-        visible={recOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setRecOpen(false)}
-      >
-        <AudioRecorder
-          onFinish={recordPart}
-          onCancel={() => setRecOpen(false)}
-        />
-      </Modal>
-
-      <Modal
-        visible={urlOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setUrlOpen(false)}
-      >
-        <AddUrlSheet
+      <Sheet open={urlOpen} onClose={() => setUrlOpen(false)} title="Add Link">
+        <AddUrlForm
           onCancel={() => setUrlOpen(false)}
           onSave={async ({ title: t, url }) => {
             setUrlOpen(false);
@@ -427,9 +417,8 @@ export default function SongDetail() {
               Alert.alert("Couldn't save", e?.message ?? String(e));
             }
           }}
-          colors={colors}
         />
-      </Modal>
+      </Sheet>
 
       <Modal
         visible={!!pdfViewerPath}
@@ -437,12 +426,14 @@ export default function SongDetail() {
         presentationStyle="fullScreen"
         onRequestClose={() => setPdfViewerPath(null)}
       >
-        <View style={[styles.pdfModal, { backgroundColor: colors.bg }]}>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
-            style={styles.pdfDoneBar}
+            style={[styles.pdfDoneBar, { backgroundColor: colors.bgElevated }]}
           >
-            <Text style={styles.pdfDoneText}>Done</Text>
+            <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.semibold }}>
+              Done
+            </Text>
           </Pressable>
           {pdfViewerPath && <PdfViewer storagePath={pdfViewerPath} />}
         </View>
@@ -451,122 +442,79 @@ export default function SongDetail() {
   );
 }
 
-function AddUrlSheet({
-  onCancel,
-  onSave,
-  colors,
-}: {
-  onCancel: () => void;
-  onSave: (v: { title: string; url: string }) => void;
-  colors: ColorTokens;
-}) {
-  const styles = makeStyles(colors);
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  return (
-    <View style={[styles.urlSheet, { backgroundColor: colors.bg }]}>
-      <Text style={styles.label}>Title</Text>
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        placeholderTextColor={colors.textMuted}
-        style={styles.input}
-      />
-      <Text style={styles.label}>URL</Text>
-      <TextInput
-        value={url}
-        onChangeText={setUrl}
-        placeholder="https://youtu.be/…"
-        placeholderTextColor={colors.textMuted}
-        autoCapitalize="none"
-        keyboardType="url"
-        style={styles.input}
-      />
-      <View style={styles.urlSheetActions}>
-        <Pressable onPress={onCancel} style={{ padding: spacing.md }}>
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            if (url.trim()) onSave({ title: title.trim(), url: url.trim() });
-          }}
-          style={styles.saveBtn}
-        >
-          <Text style={styles.saveBtnText}>Save</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    container: { padding: spacing.lg, gap: spacing.sm },
+    container: { padding: spacing.lg, gap: spacing.xs },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    label: { ...type.label, color: c.textMuted },
+    titleInput: {
+      fontSize: 26,
+      fontFamily: fonts.extrabold,
+      fontWeight: "800",
+      letterSpacing: -0.4,
+      color: c.text,
+      padding: 0,
+    },
+    saved: {
+      fontSize: 12,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      marginTop: 4,
+      marginBottom: spacing.md,
+    },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.lg,
+    },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 13,
+    },
+    toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
+    divider: { height: StyleSheet.hairlineWidth },
     input: {
-      ...type.body,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      borderRadius: radius.md,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
+    sheetInput: {
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
+      backgroundColor: c.accentSoft,
+      color: c.text,
+    },
     notes: { minHeight: 120, textAlignVertical: "top" },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: 4,
+    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
+    empty: {
+      fontSize: 14,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      padding: spacing.sm,
     },
-    saved: { ...type.caption, color: c.textMuted, marginTop: 4 },
-    section: { marginTop: spacing.xl, gap: spacing.sm },
-    sectionTitle: { ...type.heading, color: c.text },
-    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
-    addBtn: {
-      padding: spacing.sm + 2,
-      paddingHorizontal: spacing.md + 2,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-      alignSelf: "flex-start",
-    },
-    addBtnText: { color: "#fff", fontWeight: "600" },
-    empty: { color: c.textMuted, padding: spacing.sm },
-    mediaRow: {
+    mediaCard: {
       padding: spacing.md,
       backgroundColor: c.card,
-      borderRadius: radius.md,
-      marginBottom: spacing.sm,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+      borderRadius: radius.lg,
       gap: 6,
     },
-    urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.sm },
-    urlText: { color: c.accent, ...type.body },
-    pdfLink: { color: c.accent, ...type.body },
-    deleteBtn: { alignSelf: "flex-end" },
-    pdfModal: { flex: 1 },
-    pdfDoneBar: {
-      padding: spacing.lg,
-      backgroundColor: c.bgElevated,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: c.border,
+    urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.xs },
+    urlText: { color: c.accent, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    pdfBadge: {
+      width: 34,
+      height: 34,
+      borderRadius: 9,
+      alignItems: "center",
+      justifyContent: "center",
     },
-    pdfDoneText: { color: c.accent, ...type.body },
-    urlSheet: { flex: 1, padding: spacing.xl, gap: spacing.md },
-    urlSheetActions: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: spacing.md,
-      marginTop: spacing.lg,
-    },
-    saveBtn: {
-      padding: spacing.md,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.xl,
-    },
-    saveBtnText: { color: "#fff", fontWeight: "600" },
+    pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    deleteBtn: { alignSelf: "flex-end", padding: 4 },
+    pdfDoneBar: { padding: spacing.lg },
   });
 }

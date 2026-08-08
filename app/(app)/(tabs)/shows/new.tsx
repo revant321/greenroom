@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useCreateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { GradientButton } from "@/components/GradientButton";
+import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewShow() {
   const router = useRouter();
@@ -25,11 +26,10 @@ export default function NewShow() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Show name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Rent"
+        placeholder="Show title"
         placeholderTextColor={colors.textMuted}
         autoFocus
         style={styles.input}
@@ -37,18 +37,19 @@ export default function NewShow() {
         onSubmitEditing={onSave}
       />
       <View style={styles.row}>
-        <Pressable style={styles.cancel} onPress={() => router.back()}>
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
-          style={styles.save}
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
+          onPress={() => router.back()}
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Add Show"
           onPress={onSave}
-          disabled={create.isPending}
-        >
-          <Text style={styles.saveText}>
-            {create.isPending ? "Saving…" : "Save"}
-          </Text>
-        </Pressable>
+          loading={create.isPending}
+          disabled={!name.trim()}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -56,30 +57,24 @@ export default function NewShow() {
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    container: { flex: 1, padding: spacing.xl, gap: spacing.md, backgroundColor: c.bg },
-    label: { ...type.label, color: c.textMuted },
+    container: {
+      flex: 1,
+      padding: spacing.lg + 4,
+      gap: spacing.md,
+      backgroundColor: c.bg,
+    },
     input: {
-      fontSize: 18,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      borderRadius: radius.md,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
     row: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: spacing.md,
-      marginTop: spacing.lg,
+      gap: spacing.sm + 2,
+      marginTop: spacing.sm,
     },
-    cancel: { padding: spacing.md },
-    save: {
-      padding: spacing.md,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.xl,
-    },
-    saveText: { color: "#fff", fontWeight: "600" },
   });
 }

@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TextInput,
   View,
@@ -22,17 +20,23 @@ import {
   useSceneRecordings,
 } from "@/services/sceneRecordingService";
 import { uploadMedia } from "@/services/mediaService";
-import { AudioRecorder } from "@/components/AudioRecorder";
+import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { Sheet } from "@/components/Sheet";
+import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { InlineAction } from "@/components/GradientButton";
+import { SectionLabel } from "@/components/ScreenTitle";
+import { RiseIn } from "@/components/RiseIn";
+import { Icon } from "@/components/Icon";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
   ColorTokens,
   FAB_CLEARANCE,
+  fonts,
   radius,
   spacing,
-  type,
 } from "@/theme/tokens";
 
 export default function SceneDetail() {
@@ -153,72 +157,80 @@ export default function SceneDetail() {
       ]}
       keyboardShouldPersistTaps="handled"
     >
-      <Stack.Screen options={{ title: name || "Scene" }} />
+      <Stack.Screen options={{ title: "" }} />
       {readOnly && showId && <ArchivedBanner showId={showId} />}
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-        placeholderTextColor={colors.textMuted}
-        editable={!readOnly}
-      />
-      <View style={styles.row}>
-        <Text style={styles.label}>I'm in this scene</Text>
-        <Switch
-          value={inScene}
-          onValueChange={setInScene}
-          disabled={readOnly}
+      <RiseIn index={0}>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder="Scene name"
+          placeholderTextColor={colors.textMuted}
+          style={styles.titleInput}
+          editable={!readOnly}
         />
-      </View>
-      <Text style={styles.label}>Notes</Text>
-      <TextInput
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        placeholder="Blocking, cues, costume change…"
-        placeholderTextColor={colors.textMuted}
-        style={[styles.input, styles.notes]}
-        editable={!readOnly}
-      />
-      {!readOnly && (
-        <Text style={styles.saved}>
-          {update.isPending
-            ? "Saving…"
-            : update.isError
-              ? "Offline — will retry when you edit."
-              : "Saved"}
-        </Text>
-      )}
+        {!readOnly && (
+          <Text style={styles.saved}>
+            {update.isPending
+              ? "Saving…"
+              : update.isError
+                ? "Offline — will retry when you edit."
+                : "Saved"}
+          </Text>
+        )}
+      </RiseIn>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recordings</Text>
+      <RiseIn index={1}>
+        <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>I'm in this scene</Text>
+            <AnimatedToggle
+              value={inScene}
+              onValueChange={setInScene}
+              disabled={readOnly}
+            />
+          </View>
+        </View>
+      </RiseIn>
+
+      <RiseIn index={2}>
+        <SectionLabel>Notes</SectionLabel>
+        <TextInput
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          placeholder="Blocking, cues, costume change…"
+          placeholderTextColor={colors.textMuted}
+          style={[styles.input, styles.notes]}
+          editable={!readOnly}
+        />
+      </RiseIn>
+
+      <RiseIn index={3}>
+        <SectionLabel
+          action={
+            !readOnly ? (
+              <InlineAction
+                label={uploading ? "Uploading…" : "Record"}
+                onPress={() => setRecOpen(true)}
+                disabled={uploading}
+              >
+                <Icon sf="mic.fill" ion="mic" size={12} color={colors.accent} />
+              </InlineAction>
+            ) : undefined
+          }
+        >
+          Recordings
+        </SectionLabel>
         {!readOnly && (
           <View style={styles.btnRow}>
-            <Pressable
-              style={styles.addBtn}
-              onPress={() => setRecOpen(true)}
-              disabled={uploading}
-            >
-              <Text style={styles.addBtnText}>Record audio</Text>
-            </Pressable>
-            <Pressable
-              style={styles.addBtn}
-              onPress={() => handlePickVideo(false)}
-              disabled={uploading}
-            >
-              <Text style={styles.addBtnText}>Pick video</Text>
-            </Pressable>
-            <Pressable
-              style={styles.addBtn}
-              onPress={() => handlePickVideo(true)}
-              disabled={uploading}
-            >
-              <Text style={styles.addBtnText}>Record video</Text>
-            </Pressable>
+            <InlineAction label="Pick video" onPress={() => handlePickVideo(false)} disabled={uploading}>
+              <Icon sf="plus" ion="add" size={12} color={colors.accent} />
+            </InlineAction>
+            <InlineAction label="Record video" onPress={() => handlePickVideo(true)} disabled={uploading}>
+              <Icon sf="video.fill" ion="videocam" size={12} color={colors.accent} />
+            </InlineAction>
           </View>
         )}
-        {uploading && <Text style={styles.status}>Uploading…</Text>}
         {(recordings ?? []).length === 0 && (
           <Text style={styles.empty}>
             {readOnly
@@ -226,81 +238,90 @@ export default function SceneDetail() {
               : "Record audio or add a video for this scene."}
           </Text>
         )}
-        {(recordings ?? []).map((r) => (
-          <View key={r.id} style={styles.recRow}>
-            {r.kind === "audio" ? (
-              <AudioPlayer storagePath={r.storage_path} />
-            ) : (
-              <VideoPlayer storagePath={r.storage_path} />
-            )}
-            {!readOnly && (
-              <Pressable
-                onPress={() => deleteRec.mutate(r)}
-                style={{ alignSelf: "flex-end" }}
-              >
-                <Text style={{ color: colors.danger }}>Delete</Text>
-              </Pressable>
-            )}
-          </View>
-        ))}
-      </View>
+        <View style={{ gap: spacing.sm }}>
+          {(recordings ?? []).map((r) => (
+            <View key={r.id} style={styles.mediaCard}>
+              {r.kind === "audio" ? (
+                <AudioPlayer storagePath={r.storage_path} />
+              ) : (
+                <VideoPlayer storagePath={r.storage_path} />
+              )}
+              {!readOnly && (
+                <Pressable
+                  onPress={() => deleteRec.mutate(r)}
+                  style={{ alignSelf: "flex-end", padding: 4 }}
+                >
+                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
+                </Pressable>
+              )}
+            </View>
+          ))}
+        </View>
+      </RiseIn>
 
-      <Modal
-        visible={recOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setRecOpen(false)}
-      >
-        <AudioRecorder
-          onFinish={handleRecordedAudio}
-          onCancel={() => setRecOpen(false)}
-        />
-      </Modal>
+      <Sheet open={recOpen} onClose={() => setRecOpen(false)}>
+        {recOpen && (
+          <VoiceRecorder
+            onFinish={handleRecordedAudio}
+            onCancel={() => setRecOpen(false)}
+          />
+        )}
+      </Sheet>
     </ScrollView>
   );
 }
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    container: { padding: spacing.lg, gap: spacing.sm },
+    container: { padding: spacing.lg, gap: spacing.xs },
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    label: { ...type.label, color: c.textMuted },
+    titleInput: {
+      fontSize: 26,
+      fontFamily: fonts.extrabold,
+      fontWeight: "800",
+      letterSpacing: -0.4,
+      color: c.text,
+      padding: 0,
+    },
+    saved: {
+      fontSize: 12,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
+      marginTop: 4,
+      marginBottom: spacing.md,
+    },
+    card: {
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.lg,
+    },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 13,
+    },
+    toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
     input: {
-      ...type.body,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      borderRadius: radius.md,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
+    empty: {
+      fontSize: 14,
+      fontFamily: fonts.regular,
+      color: c.textMuted,
       padding: spacing.sm,
     },
-    saved: { ...type.caption, color: c.textMuted, marginTop: 4 },
-    section: { marginTop: spacing.xl, gap: spacing.sm },
-    sectionTitle: { ...type.heading, color: c.text },
-    btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap" },
-    addBtn: {
-      padding: spacing.sm + 2,
-      paddingHorizontal: spacing.md + 2,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-    },
-    addBtnText: { color: "#fff", fontWeight: "600" },
-    status: { color: c.textMuted },
-    empty: { color: c.textMuted, padding: spacing.sm },
-    recRow: {
+    mediaCard: {
       padding: spacing.md,
       backgroundColor: c.card,
-      borderRadius: radius.md,
-      marginBottom: spacing.sm,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+      borderRadius: radius.lg,
       gap: 6,
     },
   });

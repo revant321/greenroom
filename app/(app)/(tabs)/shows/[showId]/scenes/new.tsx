@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCreateScene, useScenes } from "@/services/sceneService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { GradientButton } from "@/components/GradientButton";
+import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewScene() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -13,6 +15,7 @@ export default function NewScene() {
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const [name, setName] = useState("");
+  const [inScene, setInScene] = useState(true);
 
   async function onSave() {
     const trimmed = name.trim();
@@ -23,7 +26,7 @@ export default function NewScene() {
         show_id: showId,
         name: trimmed,
         order: nextOrder,
-        is_user_in_scene: false,
+        is_user_in_scene: inScene,
       });
       router.back();
     } catch (e: any) {
@@ -33,30 +36,34 @@ export default function NewScene() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Opening number"
+        placeholder="Scene name"
         placeholderTextColor={colors.textMuted}
         autoFocus
         style={styles.input}
         returnKeyType="done"
         onSubmitEditing={onSave}
       />
+      <View style={styles.toggleRow}>
+        <Text style={styles.toggleLabel}>I'm in this scene</Text>
+        <AnimatedToggle value={inScene} onValueChange={setInScene} />
+      </View>
       <View style={styles.row}>
-        <Pressable style={styles.cancel} onPress={() => router.back()}>
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
-          style={styles.save}
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
+          onPress={() => router.back()}
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Add Scene"
           onPress={onSave}
-          disabled={create.isPending}
-        >
-          <Text style={styles.saveText}>
-            {create.isPending ? "Saving…" : "Save"}
-          </Text>
-        </Pressable>
+          loading={create.isPending}
+          disabled={!name.trim()}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -66,33 +73,31 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.xl,
+      padding: spacing.lg + 4,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
-    label: { ...type.label, color: c.textMuted },
     input: {
-      fontSize: 18,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      borderRadius: radius.md,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    row: {
+    toggleRow: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: spacing.md,
-      marginTop: spacing.lg,
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: spacing.lg - 2,
+      backgroundColor: c.card,
+      borderRadius: radius.lg,
     },
-    cancel: { padding: spacing.md },
-    save: {
-      padding: spacing.md,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.xl,
+    toggleLabel: {
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      color: c.text,
     },
-    saveText: { color: "#fff", fontWeight: "600" },
+    row: { flexDirection: "row", gap: spacing.sm + 2, marginTop: spacing.sm },
   });
 }

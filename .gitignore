@@ -43,3 +43,6 @@ yarn-error.*
 
 # Claude Code scratch (worktrees, local settings, etc.)
 .claude/
+
+# UI overhaul design handoff bundle (reference only)
+design_handoff_ui_overhaul/

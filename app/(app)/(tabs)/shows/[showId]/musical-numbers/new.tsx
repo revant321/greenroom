@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   useCreateMusicalNumber,
   useMusicalNumbers,
 } from "@/services/musicalNumberService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { GradientButton } from "@/components/GradientButton";
+import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewMusicalNumber() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -35,11 +36,10 @@ export default function NewMusicalNumber() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Name</Text>
       <TextInput
         value={name}
         onChangeText={setName}
-        placeholder="Seasons of Love"
+        placeholder="Number title"
         placeholderTextColor={colors.textMuted}
         autoFocus
         style={styles.input}
@@ -47,18 +47,19 @@ export default function NewMusicalNumber() {
         onSubmitEditing={onSave}
       />
       <View style={styles.row}>
-        <Pressable style={styles.cancel} onPress={() => router.back()}>
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
-          style={styles.save}
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
+          onPress={() => router.back()}
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Add Number"
           onPress={onSave}
-          disabled={create.isPending}
-        >
-          <Text style={styles.saveText}>
-            {create.isPending ? "Saving…" : "Save"}
-          </Text>
-        </Pressable>
+          loading={create.isPending}
+          disabled={!name.trim()}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -68,33 +69,18 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.xl,
+      padding: spacing.lg + 4,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
-    label: { ...type.label, color: c.textMuted },
     input: {
-      fontSize: 18,
-      padding: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
-      borderRadius: radius.md,
+      fontSize: 16,
+      fontFamily: fonts.regular,
+      padding: spacing.lg - 2,
+      borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    row: {
-      flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: spacing.md,
-      marginTop: spacing.lg,
-    },
-    cancel: { padding: spacing.md },
-    save: {
-      padding: spacing.md,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.xl,
-    },
-    saveText: { color: "#fff", fontWeight: "600" },
+    row: { flexDirection: "row", gap: spacing.sm + 2, marginTop: spacing.sm },
   });
 }
