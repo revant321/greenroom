@@ -74,7 +74,7 @@ app/
 ├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
 ├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
 ├── (auth)/
-│   └── login.tsx              # Apple + Google sign-in (themed)
+│   └── login.tsx              # Apple + Google + email/password sign-in (themed)
 └── (app)/
     ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings modal
     ├── settings.tsx           # Settings sheet (modal route): theme picker + Completed shows link + Sign out
@@ -131,7 +131,7 @@ src/
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
-    ├── authService.ts         # signInWithApple / signInWithGoogle / signOut
+    ├── authService.ts         # Apple / Google / email sign-in + sign-out
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
     ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
@@ -170,11 +170,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-07-20
-**Currently working on:** UI overhaul applied on branch `feat/ui-overhaul` (off origin/main `09e69e2`, the exact commit the design handoff targeted — no drift to reconcile). Handoff bundle lives in `design_handoff_ui_overhaul/` (gitignored, tsc-excluded). Latest addition: animated "liquid gradient" on the big action elements — new `src/components/LiquidGradient.tsx` (Skia canvas: three drifting radial washes over #E9337A, blur + Turbulence/DisplacementMap warp, durations × `useTheme().speed`) used by GradientFab (`variant="fab"`) and GradientButton primary (`variant="button"`). Chips/tags/play buttons keep the static Gradient. New dep `@shopify/react-native-skia` 2.2.12 (bundled in Expo Go, no native build needed). tsc clean, 73/73 tests, Metro iOS export clean. Liquid gradient device-tested and approved. Follow-up fixes: tab switch no longer uses the 'shift' transition (it white-flashed then snapped) — tabs now snap with a themed `sceneStyle` background and re-play the RiseIn staggered entrance on every tab focus via new `src/hooks/useFocusRefresh.ts` (feeds `RiseIn refreshKey`). Trophy Case link removed from Settings (still reachable from the Shows-list footer card). Tab bar iterated on-device with the user: pill now 68pt tall × 75% usable width (`TAB_BAR_WIDTH_FRACTION` token), centered, purple glass tint, icons 30 (+4 for theatermasks), lozenge exactly one tab wide. Tabs switched from bottom-tabs to @react-navigation/material-top-tabs + react-native-pager-view (both Expo Go-safe) pinned to the bottom — swipe between Shows/Songs works and the lozenge tracks the pager's live `position`. Swipe not yet device-verified.
-**Completed this session:** Applied the full aubergine/Poppins UI overhaul from `design_handoff_ui_overhaul/overhaul-files/` in six commits: (1) new deps expo-linear-gradient + expo-font + @expo-google-fonts/poppins; (2) new theme tokens + ThemeProvider with persisted animation-speed setting (`useTheme().speed`); (3) new components — Gradient/GradientButton/GradientFab/Chip/RiseIn/Sheet/SegmentedControl/AnimatedToggle/VoiceRecorder/ScreenTitle/AddUrlForm, replaced AudioPlayer/EmptyState/SettingsButton, deleted AudioRecorder (VoiceRecorder keeps the same onFinish/onCancel contract) and the never-imported `src/components/ui/` folder; (4) all screens restyled with entrance animations + bottom sheets; (5) tsconfig/.gitignore exclude the handoff bundle; (6) carried-over local tweak: tab lozenge spring → 280ms ease-out timing. No service/hook/db/Supabase code changed. `npx tsc --noEmit` clean (the previous `/shows/complete` typed-route blocker is gone — the new shows screen doesn't use that route). 73/73 tests pass. Metro compiles the full iOS bundle cleanly with all overhaul modules present.
-**Next steps:** (1) **User action — device test on iPhone via Expo Go** (`npx expo start -c`): aubergine theme on Shows/Songs, glass gear opens/rotates/closes Settings, animation-speed control changes list-entrance speed, recording a harmony/part/scene opens the bottom-sheet recorder with live waveform and Save still uploads. (2) Push `feat/ui-overhaul` and open a PR to main. (3) Known follow-ups from the handoff: login screen not yet restyled; multi-category (AND) song filtering needs a `songService` change; Metro flags minor patch-version drift (expo 54.0.34→~54.0.35, expo-file-system, expo-router) — `npx expo install --fix` when convenient.
-**Blockers:** None for the code. Old `feat/ui-polish` branch is stale (already merged as PR #30) — its uncommitted `UI_Overview.md` deletion is still in the working tree, left for the user to decide.
+**Last session:** 2026-08-07
+**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
+**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
+**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
+**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
 
 ## Session Rules
 

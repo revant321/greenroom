@@ -102,7 +102,7 @@ Cloud sync via Supabase IS the backup. There is no manual export/import file for
 
 - **Database:** Supabase Postgres (cloud); local SQLite cache via expo-sqlite + TanStack Query persister for offline reads (added in Phase N2)
 - **Media storage:** Supabase Storage; cached locally via expo-file-system after first load
-- **Authentication:** Supabase Auth with Apple Sign In and Google Sign In
+- **Authentication:** Supabase Auth with Apple, Google, and email/password sign-in
 - **Offline reads:** Any data/media previously loaded is available without a network connection. Writes require network.
 
 ---
@@ -215,7 +215,7 @@ greenroom/
 │   ├── _layout.tsx                # Root: AuthProvider (+ QueryClient, Theme in later phases)
 │   ├── index.tsx                  # Redirect based on auth state
 │   ├── (auth)/
-│   │   └── login.tsx              # Apple + Google sign-in screen
+│   │   └── login.tsx              # Apple + Google + email/password sign-in screen
 │   └── (app)/
 │       ├── _layout.tsx            # Session gate; redirects to /login if unauthenticated
 │       ├── index.tsx              # Home screen (shows list)
@@ -227,7 +227,7 @@ greenroom/
 │   ├── hooks/
 │   │   └── useAuth.tsx            # AuthProvider + useAuth hook
 │   └── services/
-│       └── authService.ts         # signInWithApple / signInWithGoogle / signOut
+│       └── authService.ts         # Apple / Google / email sign-in + sign-out
 ├── __tests__/                     # Jest unit tests
 ├── supabase/
 │   └── migrations/                # SQL migration files (added in Phase N2)
