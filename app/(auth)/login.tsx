@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,22 +13,25 @@ import {
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
+import { Gradient } from "@/components/Gradient";
 import {
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
 } from "@/services/authService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, fonts, radius, spacing, type } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function Login() {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const styles = makeStyles(colors);
   const [busy, setBusy] = useState<"apple" | "google" | "email" | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const passwordInput = useRef<TextInput>(null);
+  const canSubmitEmail = busy === null && email.trim().length > 0 && password.length > 0;
 
   const [, , promptGoogle] = Google.useIdTokenAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
@@ -34,6 +39,8 @@ export default function Login() {
   });
 
   async function onApple() {
+    if (busy !== null) return;
+
     try {
       setBusy("apple");
       await signInWithApple();
@@ -47,6 +54,8 @@ export default function Login() {
   }
 
   async function onEmail() {
+    if (!canSubmitEmail) return;
+
     try {
       setBusy("email");
       await signInWithEmail(email.trim(), password);
@@ -58,6 +67,8 @@ export default function Login() {
   }
 
   async function onGoogle() {
+    if (busy !== null) return;
+
     try {
       setBusy("google");
       const result = await promptGoogle();
@@ -73,102 +84,154 @@ export default function Login() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>greenroom</Text>
-      <Text style={styles.subtitle}>Sign in to sync your shows.</Text>
-
-      {Platform.OS === "ios" && (
-        <AppleAuthentication.AppleAuthenticationButton
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-          buttonStyle={
-            colors === undefined
-              ? AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-              : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-          }
-          cornerRadius={10}
-          style={styles.appleButton}
-          onPress={onApple}
-        />
-      )}
-
-      <Pressable
-        accessibilityRole="button"
-        disabled={busy !== null}
-        onPress={onGoogle}
-        style={({ pressed }) => [
-          styles.googleButton,
-          pressed && { opacity: 0.8 },
-        ]}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={styles.keyboardView}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.googleButtonText}>
-          {busy === "google" ? "Signing in…" : "Continue with Google"}
-        </Text>
-      </Pressable>
+        <View style={styles.content}>
+          <Text style={styles.title}>greenroom</Text>
+          <Text style={styles.subtitle}>Sign in to sync your shows.</Text>
 
-      {__DEV__ && (
-        <View style={styles.devBlock}>
-          <Text style={styles.devLabel}>Dev sign-in (email + password)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="email"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="password"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-          <Pressable
-            accessibilityRole="button"
-            disabled={busy !== null || !email || !password}
-            onPress={onEmail}
-            style={({ pressed }) => [
-              styles.emailButton,
-              (busy !== null || !email || !password) && { opacity: 0.5 },
-              pressed && { opacity: 0.8 },
-            ]}
-          >
-            <Text style={styles.emailButtonText}>
-              {busy === "email" ? "Signing in…" : "Sign in with email"}
-            </Text>
-          </Pressable>
+          <View style={styles.socialButtons}>
+            {Platform.OS === "ios" && (
+              <View
+                pointerEvents={busy === null ? "auto" : "none"}
+                style={busy !== null && styles.disabled}
+              >
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={
+                    scheme === "dark"
+                      ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                      : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                  }
+                  cornerRadius={radius.md}
+                  style={styles.appleButton}
+                  onPress={onApple}
+                />
+              </View>
+            )}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: busy !== null, busy: busy === "google" }}
+              disabled={busy !== null}
+              onPress={onGoogle}
+              style={({ pressed }) => [
+                styles.googleButton,
+                busy !== null && styles.disabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.googleButtonText}>
+                {busy === "google" ? "Signing in…" : "Continue with Google"}
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or use email</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <View style={styles.emailForm}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              accessibilityLabel="Email"
+              placeholder="you@example.com"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              autoComplete="email"
+              autoCorrect={false}
+              keyboardType="email-address"
+              returnKeyType="next"
+              textContentType="emailAddress"
+              value={email}
+              onChangeText={setEmail}
+              onSubmitEditing={() => passwordInput.current?.focus()}
+            />
+
+            <Text style={[styles.label, styles.passwordLabel]}>Password</Text>
+            <TextInput
+              ref={passwordInput}
+              style={styles.input}
+              accessibilityLabel="Password"
+              placeholder="Your password"
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              autoComplete="current-password"
+              autoCorrect={false}
+              returnKeyType="go"
+              secureTextEntry
+              textContentType="password"
+              value={password}
+              onChangeText={setPassword}
+              onSubmitEditing={onEmail}
+            />
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canSubmitEmail, busy: busy === "email" }}
+              disabled={!canSubmitEmail}
+              onPress={onEmail}
+              style={({ pressed }) => [
+                styles.emailButton,
+                !canSubmitEmail && styles.disabled,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Gradient style={styles.emailButtonFill}>
+                <Text style={styles.emailButtonText}>
+                  {busy === "email" ? "Signing in…" : "Sign in with email"}
+                </Text>
+              </Gradient>
+            </Pressable>
+          </View>
         </View>
-      )}
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    container: {
+    keyboardView: {
       flex: 1,
+      backgroundColor: c.bg,
+    },
+    container: {
+      flexGrow: 1,
       alignItems: "center",
       justifyContent: "center",
       padding: spacing.xl,
-      gap: spacing.lg,
       backgroundColor: c.bg,
+    },
+    content: {
+      width: "100%",
+      maxWidth: 360,
+      alignItems: "center",
     },
     title: { ...type.title, color: c.text, marginBottom: 4 },
     subtitle: {
       ...type.body,
       color: c.textMuted,
-      marginBottom: spacing.xl,
+      marginBottom: spacing.xxl,
       textAlign: "center",
     },
-    appleButton: { width: 260, height: 48 },
+    socialButtons: {
+      width: "100%",
+      gap: spacing.md,
+    },
+    appleButton: { width: "100%", height: 50 },
     googleButton: {
-      width: 260,
-      height: 48,
+      width: "100%",
+      height: 50,
       borderRadius: radius.md,
       backgroundColor: c.bgElevated,
       borderWidth: 1,
@@ -177,35 +240,57 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "center",
     },
     googleButtonText: { ...type.bodyStrong, color: c.text },
-    devBlock: { width: 260, marginTop: spacing.xl, gap: spacing.sm },
-    devLabel: {
+    divider: {
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      marginVertical: spacing.xl,
+    },
+    dividerLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: c.border,
+    },
+    dividerText: {
       ...type.caption,
       color: c.textMuted,
       textAlign: "center",
-      marginBottom: 4,
     },
+    emailForm: { width: "100%" },
+    label: {
+      ...type.label,
+      color: c.text,
+      marginBottom: spacing.sm,
+    },
+    passwordLabel: { marginTop: spacing.lg },
     input: {
-      height: 44,
+      height: 50,
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: c.border,
       paddingHorizontal: spacing.md,
       backgroundColor: c.card,
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: c.text,
     },
     emailButton: {
-      height: 44,
-      borderRadius: radius.md,
-      backgroundColor: c.text,
+      width: "100%",
+      borderRadius: radius.lg,
+      marginTop: spacing.xl,
+      overflow: "hidden",
+    },
+    emailButtonFill: {
+      height: 50,
       alignItems: "center",
       justifyContent: "center",
-      marginTop: 4,
     },
     emailButtonText: {
-      fontSize: 15,
-      fontWeight: "600",
-      color: c.bg,
+      ...type.bodyStrong,
+      color: "#FFFFFF",
     },
+    pressed: { transform: [{ scale: 0.98 }] },
+    disabled: { opacity: 0.5 },
   });
 }
