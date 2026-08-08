@@ -1,4 +1,9 @@
-import { signInWithApple, signInWithEmail, signInWithGoogle, signOut } from "@/services/authService";
+import {
+  signInWithApple,
+  signInWithEmail,
+  signInWithGoogle,
+  signOut,
+} from "@/services/authService";
 import { supabase } from "@/lib/supabase";
 import * as AppleAuth from "expo-apple-authentication";
 
@@ -48,6 +53,17 @@ describe("authService", () => {
       provider: "google",
       token: "fake-google-token",
     });
+  });
+
+  test("signInWithGoogle explains an OAuth client audience mismatch", async () => {
+    (supabase.auth.signInWithIdToken as jest.Mock).mockResolvedValue({
+      data: { session: null },
+      error: new Error("Unacceptable audience in id_token"),
+    });
+
+    await expect(signInWithGoogle("wrong-audience-token")).rejects.toThrow(
+      /Web client ID first and the iOS client ID second/,
+    );
   });
 
   test("signInWithEmail passes credentials to Supabase", async () => {
