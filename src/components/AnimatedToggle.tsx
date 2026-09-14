@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
+import { press } from "@/theme/tokens";
 
 /**
  * Prototype toggle: 51×31 pill, knob glides with a gentle overshoot while
@@ -56,7 +57,7 @@ export function AnimatedToggle({
       accessibilityLabel={accessibilityLabel}
       onPress={() => !disabled && onValueChange(!value)}
       hitSlop={8}
-      style={disabled && { opacity: 0.5 }}
+      style={({ pressed }) => [disabled ? styles.disabled : pressed && press.scale]}
     >
       <Animated.View style={[styles.track, trackStyle]}>
         <Animated.View style={[styles.knob, knobStyle]} />
@@ -66,6 +67,7 @@ export function AnimatedToggle({
 }
 
 const styles = StyleSheet.create({
+  disabled: { opacity: 0.5 },
   track: {
     width: 51,
     height: 31,

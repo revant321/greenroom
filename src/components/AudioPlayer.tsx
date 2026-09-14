@@ -9,7 +9,7 @@ import {
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useMedia } from "@/services/mediaService";
 import { useTheme } from "@/theme/useTheme";
-import { spacing } from "@/theme/tokens";
+import { press, spacing } from "@/theme/tokens";
 import { Gradient, gradientShadow } from "./Gradient";
 import { Icon } from "./Icon";
 
@@ -48,38 +48,45 @@ export function AudioPlayer({ storagePath, label }: Props) {
       onPress={() => (playing ? player.pause() : player.play())}
       disabled={!ready}
       style={styles.row}
+      accessibilityRole="button"
       accessibilityLabel={playing ? "Pause" : "Play"}
     >
-      {playing ? (
-        <View style={[gradientShadow.glowSm, { transform: [{ scale: 1.08 }] }]}>
-          <Gradient style={styles.btn}>
-            <Icon sf="pause.fill" ion="pause" size={16} color="#fff" />
-          </Gradient>
-        </View>
-      ) : (
-        <View style={[styles.btn, { backgroundColor: colors.accentSoft }]}>
-          <Icon
-            sf="play.fill"
-            ion="play"
-            size={16}
-            color={ready ? colors.accent : colors.textMuted}
-          />
-        </View>
+      {({ pressed }) => (
+        <>
+          <View style={pressed && press.icon}>
+            {playing ? (
+              <View style={[gradientShadow.glowSm, { transform: [{ scale: 1.08 }] }]}>
+                <Gradient style={styles.btn}>
+                  <Icon sf="pause.fill" ion="pause" size={16} color="#fff" />
+                </Gradient>
+              </View>
+            ) : (
+              <View style={[styles.btn, { backgroundColor: colors.accentSoft }]}>
+                <Icon
+                  sf="play.fill"
+                  ion="play"
+                  size={16}
+                  color={ready ? colors.accent : colors.textMuted}
+                />
+              </View>
+            )}
+          </View>
+          <View style={styles.barArea}>
+            {label ? (
+              <Text style={[styles.label, { color: colors.text }]} numberOfLines={1}>
+                {label}
+              </Text>
+            ) : null}
+            <View style={[styles.track, { backgroundColor: colors.border }]}>
+              {playing || progress > 0 ? (
+                <Gradient
+                  style={[styles.fill, { width: `${Math.max(progress * 100, 2)}%` }]}
+                />
+              ) : null}
+            </View>
+          </View>
+        </>
       )}
-      <View style={styles.barArea}>
-        {label ? (
-          <Text style={[styles.label, { color: colors.text }]} numberOfLines={1}>
-            {label}
-          </Text>
-        ) : null}
-        <View style={[styles.track, { backgroundColor: colors.border }]}>
-          {playing || progress > 0 ? (
-            <Gradient
-              style={[styles.fill, { width: `${Math.max(progress * 100, 2)}%` }]}
-            />
-          ) : null}
-        </View>
-      </View>
     </Pressable>
   );
 }

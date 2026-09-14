@@ -11,7 +11,7 @@ import {
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Primary action button — gradient fill, white 700 text, presses with a
@@ -39,10 +39,12 @@ export function GradientButton({
       <Pressable
         onPress={onPress}
         disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading, busy: loading }}
         style={({ pressed }) => [
           styles.base,
           { backgroundColor: colors.accentSoft },
-          pressed && styles.pressed,
+          pressed && press.scale,
           (disabled || loading) && styles.disabled,
           style,
         ]}
@@ -56,9 +58,12 @@ export function GradientButton({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={({ pressed }) => [
         gradientShadow.glowSm,
-        pressed && styles.pressed,
+        pressed && press.scale,
         (disabled || loading) && styles.disabled,
         style,
       ]}
@@ -93,10 +98,12 @@ export function InlineAction({
       onPress={onPress}
       disabled={disabled}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.inline,
         { backgroundColor: colors.accentSoft },
-        pressed && { transform: [{ scale: 0.95 }] },
+        pressed && press.scale,
         disabled && styles.disabled,
       ]}
     >
@@ -118,7 +125,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     fontWeight: "700",
   },
-  pressed: { transform: [{ scale: 0.97 }] },
   disabled: { opacity: 0.5 },
   inline: {
     flexDirection: "row",

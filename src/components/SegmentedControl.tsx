@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Segmented control with a sliding thumb (prototype's appearance /
@@ -66,7 +66,13 @@ export function SegmentedControl<T extends string>({
         const label =
           labels?.[opt] ?? opt.charAt(0).toUpperCase() + opt.slice(1);
         return (
-          <Pressable key={opt} style={styles.seg} onPress={() => onChange(opt)}>
+          <Pressable
+            key={opt}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [styles.seg, pressed && press.dim]}
+            onPress={() => onChange(opt)}
+          >
             <Text
               style={[
                 styles.label,

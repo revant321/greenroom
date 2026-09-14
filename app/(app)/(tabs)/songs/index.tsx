@@ -14,6 +14,7 @@ import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { IconButton } from "@/components/IconButton";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
@@ -26,6 +27,8 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  press,
+  pressedCard,
   radius,
   spacing,
 } from "@/theme/tokens";
@@ -95,8 +98,9 @@ export default function Songs() {
       refreshKey={`${focusTick}-${searching ? "search" : preset}`}
     >
       <Pressable
-        style={styles.card}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         onPress={() => router.push(`/songs/${item.id}`)}
+        accessibilityRole="button"
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.title} numberOfLines={1}>
@@ -145,14 +149,14 @@ export default function Songs() {
             autoCorrect={false}
           />
           {searching && (
-            <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Icon
-                sf="xmark.circle.fill"
-                ion="close-circle"
-                size={18}
-                color={colors.textMuted}
-              />
-            </Pressable>
+            <IconButton
+              sf="xmark.circle.fill"
+              ion="close-circle"
+              size={18}
+              color={colors.textMuted}
+              label="Clear search"
+              onPress={() => setSearch("")}
+            />
           )}
         </View>
       </RiseIn>
@@ -165,7 +169,8 @@ export default function Songs() {
           </Text>
           <Pressable
             onPress={() => setPreset(0)}
-            style={[gradientShadow.glowSm]}
+            style={({ pressed }) => [gradientShadow.glowSm, pressed && press.scale]}
+            accessibilityRole="button"
             accessibilityLabel={`Clear ${PRESETS[preset].label} filter`}
           >
             <Gradient style={styles.showingChip}>
@@ -193,8 +198,9 @@ export default function Songs() {
                     {catResults.map((p) => (
                       <Pressable
                         key={p.label}
-                        style={styles.catRow}
+                        style={({ pressed }) => [styles.catRow, pressed && styles.cardPressed]}
                         onPress={() => applyCategory(p.label)}
+                        accessibilityRole="button"
                       >
                         <Gradient style={styles.catBadge}>
                           <Icon sf="folder.fill" ion="folder" size={18} color="#fff" />
@@ -364,6 +370,7 @@ function makeStyles(c: ColorTokens) {
       gap: spacing.md,
       padding: spacing.lg,
     },
+    cardPressed: pressedCard(c),
     title: {
       fontSize: 17,
       fontFamily: fonts.semibold,

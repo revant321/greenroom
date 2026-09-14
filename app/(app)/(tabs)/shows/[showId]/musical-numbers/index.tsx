@@ -24,6 +24,7 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  pressedCard,
   spacing,
 } from "@/theme/tokens";
 
@@ -79,10 +80,11 @@ export default function MusicalNumbers() {
         renderItem={({ item, index }) => (
           <RiseIn index={index + 1}>
             <Pressable
-              style={styles.card}
+              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
               onPress={() =>
                 router.push(`/shows/${showId}/musical-numbers/${item.id}`)
               }
+              accessibilityRole="button"
             >
               <Text style={styles.name} numberOfLines={1}>
                 {item.name}
@@ -136,6 +138,7 @@ function makeStyles(c: ColorTokens) {
       gap: spacing.md,
       padding: spacing.lg,
     },
+    cardPressed: pressedCard(c),
     name: {
       flex: 1,
       fontSize: 17,

@@ -10,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Icon } from "./Icon";
 import { useTheme } from "@/theme/useTheme";
+import { press } from "@/theme/tokens";
 
 /**
  * Omnipresent settings gear — 42px frosted glass circle, top-right.
@@ -43,8 +44,9 @@ export function SettingsButton() {
     <Pressable
       onPress={onPress}
       hitSlop={10}
+      accessibilityRole="button"
       accessibilityLabel="Settings"
-      style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [pressed && press.icon]}
     >
       <BlurView
         intensity={80}

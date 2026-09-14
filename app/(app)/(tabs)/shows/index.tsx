@@ -13,6 +13,7 @@ import { Show } from "@/lib/types";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { IconButton } from "@/components/IconButton";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
@@ -24,6 +25,7 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  pressedCard,
   radius,
   spacing,
 } from "@/theme/tokens";
@@ -91,7 +93,8 @@ export default function ShowsList() {
             <RiseIn index={Math.min(count, 8) + 1} refreshKey={focusTick}>
               <Link href="/shows/completed" asChild>
                 <Pressable
-                  style={styles.trophyCard}
+                  style={({ pressed }) => [styles.trophyCard, pressed && styles.cardPressed]}
+                  accessibilityRole="button"
                   accessibilityLabel="Open Trophy Case"
                 >
                   <View style={styles.trophyLeft}>
@@ -119,8 +122,9 @@ export default function ShowsList() {
         renderItem={({ item, index }: { item: Show; index: number }) => (
           <RiseIn index={index + 1} refreshKey={focusTick}>
             <Pressable
-              style={styles.card}
+              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
               onPress={() => router.push(`/shows/${item.id}`)}
+              accessibilityRole="button"
             >
               <View style={styles.initials}>
                 <Text style={styles.initialsText}>
@@ -138,23 +142,19 @@ export default function ShowsList() {
                 </Text>
               </View>
               <View style={styles.actions}>
-                <Pressable
+                <IconButton
+                  sf="checkmark.circle"
+                  ion="checkmark-circle-outline"
+                  size={24}
+                  color={colors.success}
+                  label="Mark complete"
                   onPress={() =>
                     router.push({
                       pathname: "/shows/complete",
                       params: { showId: item.id },
                     })
                   }
-                  accessibilityLabel="Mark complete"
-                  hitSlop={8}
-                >
-                  <Icon
-                    sf="checkmark.circle"
-                    ion="checkmark-circle-outline"
-                    size={24}
-                    color={colors.success}
-                  />
-                </Pressable>
+                />
                 <DeleteButton
                   title="Delete forever?"
                   message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`}
@@ -185,6 +185,7 @@ function makeStyles(c: ColorTokens) {
       gap: spacing.md,
       padding: spacing.lg,
     },
+    cardPressed: pressedCard(c),
     initials: {
       width: 44,
       height: 44,

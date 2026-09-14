@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   useArchiveShowWithSelection,
@@ -16,8 +8,10 @@ import {
 } from "@/services/showService";
 import { MediaKind } from "@/services/cascadeDelete";
 import { Skeleton } from "@/components/Skeleton";
+import { AnimatedToggle } from "@/components/AnimatedToggle";
+import { GradientButton } from "@/components/GradientButton";
 import { useTheme } from "@/theme/useTheme";
-import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { cardSurface, ColorTokens, spacing, type } from "@/theme/tokens";
 
 const KIND_LABELS: Record<MediaKind, string> = {
   audio: "Audio recordings",
@@ -85,11 +79,12 @@ export default function CompleteShow() {
                 {KIND_LABELS[kind]}{" "}
                 <Text style={styles.rowCount}>({counts?.[kind] ?? 0})</Text>
               </Text>
-              <Switch
+              <AnimatedToggle
                 value={keep[kind]}
                 onValueChange={(v) =>
                   setKeep((prev) => ({ ...prev, [kind]: v }))
                 }
+                accessibilityLabel={`Keep ${KIND_LABELS[kind].toLowerCase()}`}
               />
             </View>
           ))}
@@ -100,27 +95,20 @@ export default function CompleteShow() {
       )}
 
       <View style={styles.actions}>
-        <Pressable
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
           onPress={() => router.back()}
-          style={styles.cancel}
           disabled={archive.isPending}
-        >
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Complete & Archive"
           onPress={onConfirm}
-          style={styles.confirm}
-          disabled={archive.isPending || isLoading}
-        >
-          {archive.isPending ? (
-            <View style={styles.confirmInner}>
-              <ActivityIndicator color="#fff" size="small" />
-              <Text style={styles.confirmText}>Archiving…</Text>
-            </View>
-          ) : (
-            <Text style={styles.confirmText}>Complete & Archive</Text>
-          )}
-        </Pressable>
+          loading={archive.isPending}
+          disabled={isLoading}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -149,22 +137,8 @@ function makeStyles(c: ColorTokens) {
     emptyNote: { ...type.body, color: c.textMuted },
     actions: {
       flexDirection: "row",
-      justifyContent: "flex-end",
       gap: spacing.md,
       marginTop: "auto",
     },
-    cancel: { padding: spacing.md },
-    confirm: {
-      padding: spacing.md,
-      paddingHorizontal: spacing.xl,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-    },
-    confirmInner: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-    },
-    confirmText: { color: "#fff", fontWeight: "600" },
   });
 }

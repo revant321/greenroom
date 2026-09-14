@@ -21,6 +21,7 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  pressedCard,
   spacing,
 } from "@/theme/tokens";
 
@@ -83,8 +84,13 @@ export default function Scenes() {
           return (
             <RiseIn index={index + 1}>
               <Pressable
-                style={[styles.card, grayed && { opacity: 0.45 }]}
+                style={({ pressed }) => [
+                  styles.card,
+                  grayed && styles.cardGrayed,
+                  pressed && styles.cardPressed,
+                ]}
                 onPress={() => router.push(`/shows/${showId}/scenes/${item.id}`)}
+                accessibilityRole="button"
               >
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name} numberOfLines={1}>
@@ -144,6 +150,8 @@ function makeStyles(c: ColorTokens) {
       gap: spacing.md,
       padding: spacing.lg,
     },
+    cardPressed: pressedCard(c),
+    cardGrayed: { opacity: 0.45 },
     name: {
       fontSize: 17,
       fontFamily: fonts.semibold,

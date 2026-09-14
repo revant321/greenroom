@@ -15,6 +15,7 @@ import {
   TAB_BAR_HEIGHT,
   TAB_BAR_HORIZONTAL_MARGIN,
   TAB_BAR_WIDTH_FRACTION,
+  press,
   radius,
   spacing,
   type,
@@ -114,7 +115,7 @@ export function FloatingGlassTabBar({
               style={({ pressed }) => [
                 styles.tab,
                 { width: tabWidth },
-                pressed && { opacity: 0.85 },
+                pressed && press.dim,
               ]}
             >
               {options.tabBarIcon?.({ focused, color: tintColor })}

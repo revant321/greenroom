@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { fonts, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -154,13 +154,23 @@ export function VoiceRecorder({
         {formatTimer(seconds)}
       </Text>
       <View style={styles.controls}>
-        <Pressable onPress={cancel} hitSlop={12} style={styles.sideBtn}>
+        <Pressable
+          onPress={cancel}
+          hitSlop={12}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.sideBtn, pressed && press.dim]}
+        >
           <Text style={[styles.sideLabel, { color: colors.textMuted }]}>
             Cancel
           </Text>
         </Pressable>
         <PulsingStop onPress={stopAndSave} />
-        <Pressable onPress={stopAndSave} hitSlop={12} style={styles.sideBtn}>
+        <Pressable
+          onPress={stopAndSave}
+          hitSlop={12}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.sideBtn, pressed && press.dim]}
+        >
           <Text
             style={[styles.sideLabel, { color: colors.accent, fontFamily: fonts.semibold }]}
           >
@@ -190,7 +200,7 @@ function PulsingStop({ onPress }: { onPress: () => void }) {
   }));
 
   return (
-    <Pressable onPress={onPress} accessibilityLabel="Stop and save">
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Stop and save">
       {({ pressed }) => (
         <View style={[styles.stopWrap, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Animated.View style={[styles.stopRing, ring]} />

@@ -6,21 +6,23 @@ import {
   Text,
   View,
 } from "react-native";
-import { Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { useDeleteShow, useShows, useUpdateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
-import { Icon } from "@/components/Icon";
 import { DeleteButton } from "@/components/DeleteButton";
+import { IconButton } from "@/components/IconButton";
 import { EmptyState } from "@/components/EmptyState";
 import {
   cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
+  pressedCard,
   spacing,
   type,
 } from "@/theme/tokens";
 
 export default function Completed() {
+  const router = useRouter();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
   const { data, isLoading } = useShows({ completed: true });
@@ -54,28 +56,28 @@ export default function Completed() {
         />
       }
       renderItem={({ item }) => (
-        <View style={styles.card}>
-          <Link href={`/shows/${item.id}`} style={styles.nameLink}>
+        <Pressable
+          style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+          onPress={() => router.push(`/shows/${item.id}`)}
+          accessibilityRole="button"
+        >
+          <View style={styles.nameLink}>
             <Text style={styles.name}>{item.name}</Text>
-          </Link>
+          </View>
           <View style={styles.actions}>
-            <Pressable
+            <IconButton
+              sf="arrow.uturn.backward.circle"
+              ion="arrow-undo-circle-outline"
+              size={24}
+              color={colors.accent}
+              label="Restore show"
               onPress={() =>
                 update.mutate({
                   id: item.id,
                   patch: { is_completed: false, completed_at: null },
                 })
               }
-              accessibilityLabel="Restore show"
-              hitSlop={8}
-            >
-              <Icon
-                sf="arrow.uturn.backward.circle"
-                ion="arrow-undo-circle-outline"
-                size={24}
-                color={colors.accent}
-              />
-            </Pressable>
+            />
             <DeleteButton
               title="Delete permanently?"
               message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF associated with it. This can't be undone.`}
@@ -85,7 +87,7 @@ export default function Completed() {
               size={22}
             />
           </View>
-        </View>
+        </Pressable>
       )}
     />
   );
@@ -101,6 +103,7 @@ function makeStyles(c: ColorTokens) {
       ...cardSurface(c),
       padding: spacing.lg,
     },
+    cardPressed: pressedCard(c),
     nameLink: { flex: 1 },
     name: { ...type.bodyStrong, color: c.text },
     actions: { flexDirection: "row", gap: spacing.lg, alignItems: "center" },

@@ -6,7 +6,7 @@ import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { SectionLabel } from "@/components/ScreenTitle";
-import { cardSurface, ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, fonts, press, radius, spacing } from "@/theme/tokens";
 
 const SPEED_HINTS: Record<AnimSpeed, string> = {
   slower: "A more relaxed, unhurried pace.",
@@ -68,7 +68,7 @@ export default function Settings() {
       </View>
 
       <Pressable
-        style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.85 }]}
+        style={({ pressed }) => [styles.signOut, pressed && press.scale]}
         onPress={onSignOut}
         accessibilityRole="button"
       >

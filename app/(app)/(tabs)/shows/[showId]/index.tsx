@@ -10,6 +10,7 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  pressedCard,
   radius,
   spacing,
 } from "@/theme/tokens";
@@ -46,8 +47,9 @@ export default function ShowHub() {
 
       <RiseIn index={1}>
         <Pressable
-          style={styles.tile}
+          style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
           onPress={() => router.push(`/shows/${show.id}/musical-numbers`)}
+          accessibilityRole="button"
         >
           <View style={[styles.tileBadge, { backgroundColor: colors.accentSoft }]}>
             <Icon sf="music.note.list" ion="musical-notes" size={24} color={colors.accent} />
@@ -62,8 +64,9 @@ export default function ShowHub() {
 
       <RiseIn index={2}>
         <Pressable
-          style={styles.tile}
+          style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
           onPress={() => router.push(`/shows/${show.id}/scenes`)}
+          accessibilityRole="button"
         >
           <View style={[styles.tileBadge, { backgroundColor: "rgba(192,107,255,0.14)" }]}>
             <Icon sf="list.clipboard" ion="clipboard-outline" size={23} color="#C06BFF" />
@@ -104,6 +107,7 @@ function makeStyles(c: ColorTokens) {
       gap: spacing.md,
       padding: spacing.lg,
     },
+    tilePressed: pressedCard(c),
     tileBadge: {
       width: 50,
       height: 50,

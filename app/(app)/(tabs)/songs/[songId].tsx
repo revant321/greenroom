@@ -50,6 +50,7 @@ import {
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
+  press,
   radius,
   spacing,
 } from "@/theme/tokens";
@@ -349,7 +350,8 @@ export default function SongDetail() {
               {t.kind === "link" && t.external_url && (
                 <Pressable
                   onPress={() => t.external_url && Linking.openURL(t.external_url)}
-                  style={styles.urlLine}
+                  style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                  accessibilityRole="link"
                 >
                   <Icon sf="arrow.up.right.square" ion="open-outline" size={18} color={colors.accent} />
                   <Text style={styles.urlText} numberOfLines={1}>
@@ -386,7 +388,8 @@ export default function SongDetail() {
             <View key={s.id} style={styles.mediaCard}>
               <Pressable
                 onPress={() => setPdfViewerPath(s.storage_path)}
-                style={styles.urlLine}
+                style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                accessibilityRole="button"
               >
                 <View style={[styles.pdfBadge, { backgroundColor: "rgba(255,92,122,0.12)" }]}>
                   <Icon sf="doc.fill" ion="document" size={16} color="#FF5C7A" />
@@ -441,7 +444,13 @@ export default function SongDetail() {
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
-            style={[styles.pdfDoneBar, { backgroundColor: colors.bgElevated }]}
+            style={({ pressed }) => [
+              styles.pdfDoneBar,
+              { backgroundColor: colors.bgElevated },
+              pressed && press.dim,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Done"
           >
             <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.semibold }}>
               Done

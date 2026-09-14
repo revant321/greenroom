@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/Icon";
 import { useUpdateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 export function ArchivedBanner({ showId }: { showId: string }) {
   const { colors } = useTheme();
@@ -24,8 +24,9 @@ export function ArchivedBanner({ showId }: { showId: string }) {
       </View>
       <Pressable
         onPress={onRestore}
-        style={styles.restore}
+        style={({ pressed }) => [styles.restore, pressed && press.scale]}
         disabled={update.isPending}
+        accessibilityRole="button"
       >
         <Text style={styles.restoreText}>
           {update.isPending ? "Restoring…" : "Restore"}

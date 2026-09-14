@@ -20,7 +20,7 @@ import {
   signInWithGoogle,
 } from "@/services/authService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, fonts, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, fonts, press, radius, spacing, type } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -155,7 +155,7 @@ export default function Login() {
               style={({ pressed }) => [
                 styles.googleButton,
                 (busy !== null || !googleRequest) && styles.disabled,
-                pressed && styles.pressed,
+                pressed && press.scale,
               ]}
             >
               <Text style={styles.googleButtonText}>
@@ -217,7 +217,7 @@ export default function Login() {
               style={({ pressed }) => [
                 styles.emailButton,
                 !canSubmitEmail && styles.disabled,
-                pressed && styles.pressed,
+                pressed && press.scale,
               ]}
             >
               <Gradient style={styles.emailButtonFill}>
@@ -324,7 +324,6 @@ function makeStyles(c: ColorTokens) {
       ...type.bodyStrong,
       color: "#FFFFFF",
     },
-    pressed: { transform: [{ scale: 0.98 }] },
     disabled: { opacity: 0.5 },
   });
 }
