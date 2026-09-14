@@ -71,60 +71,60 @@ export default function Scenes() {
           />
         </View>
       ) : (
-      <FlatList
-        data={data ?? []}
-        keyExtractor={(s) => s.id}
-        refreshing={isRefetching}
-        onRefresh={refetch}
-        contentContainerStyle={{
-          padding: spacing.lg,
-          gap: spacing.md,
-          paddingBottom: contentInset.fab,
-        }}
-        ListEmptyComponent={
-          <RiseIn index={1}>
-            <EmptyState
-              icon="🎬"
-              title="No scenes yet"
-              body="Tap + to add a scene to this show."
-            />
-          </RiseIn>
-        }
-        renderItem={({ item, index }) => {
-          const grayed = !item.is_user_in_scene;
-          return (
-            <RiseIn index={index + 1}>
-              <Pressable
-                style={({ pressed }) => [
-                  styles.card,
-                  grayed && styles.cardGrayed,
-                  pressed && styles.cardPressed,
-                ]}
-                onPress={() => router.push(`/shows/${showId}/scenes/${item.id}`)}
-                accessibilityRole="button"
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.caption}>
-                    {grayed ? "Not in this scene" : "You're in this scene"}
-                  </Text>
-                </View>
-                {!readOnly && (
-                  <DeleteButton
-                    title="Delete this scene?"
-                    message={`Removes “${item.name}” and every recording inside it.`}
-                    onConfirm={() => del.mutate(item.id)}
-                    label="Delete scene"
-                  />
-                )}
-                <Icon sf="chevron.right" ion="chevron-forward" size={14} color={colors.textMuted} />
-              </Pressable>
+        <FlatList
+          data={data ?? []}
+          keyExtractor={(s) => s.id}
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          contentContainerStyle={{
+            padding: spacing.lg,
+            gap: spacing.md,
+            paddingBottom: contentInset.fab,
+          }}
+          ListEmptyComponent={
+            <RiseIn index={1}>
+              <EmptyState
+                icon="🎬"
+                title="No scenes yet"
+                body="Tap + to add a scene to this show."
+              />
             </RiseIn>
-          );
-        }}
-      />
+          }
+          renderItem={({ item, index }) => {
+            const grayed = !item.is_user_in_scene;
+            return (
+              <RiseIn index={index + 1}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.card,
+                    grayed && styles.cardGrayed,
+                    pressed && styles.cardPressed,
+                  ]}
+                  onPress={() => router.push(`/shows/${showId}/scenes/${item.id}`)}
+                  accessibilityRole="button"
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.caption}>
+                      {grayed ? "Not in this scene" : "You're in this scene"}
+                    </Text>
+                  </View>
+                  {!readOnly && (
+                    <DeleteButton
+                      title="Delete this scene?"
+                      message={`Removes “${item.name}” and every recording inside it.`}
+                      onConfirm={() => del.mutate(item.id)}
+                      label="Delete scene"
+                    />
+                  )}
+                  <Icon sf="chevron.right" ion="chevron-forward" size={14} color={colors.textMuted} />
+                </Pressable>
+              </RiseIn>
+            );
+          }}
+        />
       )}
       {!readOnly && (
         <GradientFab

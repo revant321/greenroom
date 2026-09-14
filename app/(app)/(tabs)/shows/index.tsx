@@ -68,104 +68,104 @@ export default function ShowsList() {
           />
         </View>
       ) : (
-      <FlatList
-        data={data ?? []}
-        keyExtractor={(s) => s.id}
-        refreshing={isRefetching}
-        onRefresh={refetch}
-        contentContainerStyle={{
-          padding: spacing.lg,
-          gap: spacing.md,
-          paddingBottom: contentInset.fab,
-        }}
-        ListEmptyComponent={
-          <RiseIn index={1} refreshKey={focusTick}>
-            <EmptyState
-              icon="🎭"
-              title="No shows yet"
-              body="Shows hold your songs and scenes. Tap + to add one."
-            />
-          </RiseIn>
-        }
-        ListFooterComponent={
-          trophyCount > 0 ? (
-            <RiseIn index={Math.min(count, 8) + 1} refreshKey={focusTick}>
-              <Link href="/shows/completed" asChild>
-                <Pressable
-                  style={({ pressed }) => [styles.trophyCard, pressed && styles.cardPressed]}
-                  accessibilityRole="button"
-                  accessibilityLabel="Open Trophy Case"
-                >
-                  <View style={styles.trophyLeft}>
-                    <View style={styles.trophyBadge}>
-                      <Icon sf="trophy.fill" ion="trophy" size={20} color={colors.warn} />
-                    </View>
-                    <View>
-                      <Text style={styles.trophyText}>Trophy Case</Text>
-                      <Text style={styles.trophySub}>
-                        {trophyCount} completed show{trophyCount === 1 ? "" : "s"}
-                      </Text>
-                    </View>
-                  </View>
-                  <Icon
-                    sf="chevron.right"
-                    ion="chevron-forward"
-                    size={16}
-                    color={colors.textMuted}
-                  />
-                </Pressable>
-              </Link>
+        <FlatList
+          data={data ?? []}
+          keyExtractor={(s) => s.id}
+          refreshing={isRefetching}
+          onRefresh={refetch}
+          contentContainerStyle={{
+            padding: spacing.lg,
+            gap: spacing.md,
+            paddingBottom: contentInset.fab,
+          }}
+          ListEmptyComponent={
+            <RiseIn index={1} refreshKey={focusTick}>
+              <EmptyState
+                icon="🎭"
+                title="No shows yet"
+                body="Shows hold your songs and scenes. Tap + to add one."
+              />
             </RiseIn>
-          ) : null
-        }
-        renderItem={({ item, index }: { item: Show; index: number }) => (
-          <RiseIn index={index + 1} refreshKey={focusTick}>
-            <Pressable
-              style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
-              onPress={() => router.push(`/shows/${item.id}`)}
-              accessibilityRole="button"
-            >
-              <View style={styles.initials}>
-                <Text style={styles.initialsText} maxFontSizeMultiplier={fontScale.fixed}>
-                  {item.name
-                    .split(/\s+/)
-                    .map((w) => w[0] ?? "")
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.nameWrap}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
-                </Text>
-              </View>
-              <View style={styles.actions}>
-                <IconButton
-                  sf="checkmark.circle"
-                  ion="checkmark-circle-outline"
-                  size={24}
-                  color={colors.success}
-                  label="Mark complete"
-                  onPress={() =>
-                    router.push({
-                      pathname: "/shows/complete",
-                      params: { showId: item.id },
-                    })
-                  }
-                />
-                <DeleteButton
-                  title="Delete forever?"
-                  message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`}
-                  onConfirm={() => del.mutate(item.id)}
-                  label="Delete show"
-                  size={22}
-                />
-              </View>
-            </Pressable>
-          </RiseIn>
-        )}
-      />
+          }
+          ListFooterComponent={
+            trophyCount > 0 ? (
+              <RiseIn index={Math.min(count, 8) + 1} refreshKey={focusTick}>
+                <Link href="/shows/completed" asChild>
+                  <Pressable
+                    style={({ pressed }) => [styles.trophyCard, pressed && styles.cardPressed]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Open Trophy Case"
+                  >
+                    <View style={styles.trophyLeft}>
+                      <View style={styles.trophyBadge}>
+                        <Icon sf="trophy.fill" ion="trophy" size={20} color={colors.warn} />
+                      </View>
+                      <View>
+                        <Text style={styles.trophyText}>Trophy Case</Text>
+                        <Text style={styles.trophySub}>
+                          {trophyCount} completed show{trophyCount === 1 ? "" : "s"}
+                        </Text>
+                      </View>
+                    </View>
+                    <Icon
+                      sf="chevron.right"
+                      ion="chevron-forward"
+                      size={16}
+                      color={colors.textMuted}
+                    />
+                  </Pressable>
+                </Link>
+              </RiseIn>
+            ) : null
+          }
+          renderItem={({ item, index }: { item: Show; index: number }) => (
+            <RiseIn index={index + 1} refreshKey={focusTick}>
+              <Pressable
+                style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+                onPress={() => router.push(`/shows/${item.id}`)}
+                accessibilityRole="button"
+              >
+                <View style={styles.initials}>
+                  <Text style={styles.initialsText} maxFontSizeMultiplier={fontScale.fixed}>
+                    {item.name
+                      .split(/\s+/)
+                      .map((w) => w[0] ?? "")
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.nameWrap}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                </View>
+                <View style={styles.actions}>
+                  <IconButton
+                    sf="checkmark.circle"
+                    ion="checkmark-circle-outline"
+                    size={24}
+                    color={colors.success}
+                    label="Mark complete"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/shows/complete",
+                        params: { showId: item.id },
+                      })
+                    }
+                  />
+                  <DeleteButton
+                    title="Delete forever?"
+                    message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`}
+                    onConfirm={() => del.mutate(item.id)}
+                    label="Delete show"
+                    size={22}
+                  />
+                </View>
+              </Pressable>
+            </RiseIn>
+          )}
+        />
       )}
       <GradientFab
         onPress={() => router.push("/shows/new")}
