@@ -15,6 +15,8 @@ import { Icon } from "./Icon";
 
 type Props = { storagePath: string; label?: string };
 
+const BUTTON_SIZE = 38;
+
 /**
  * Prototype audio row: 38px circular play button that "pops" to the
  * signature gradient while playing, with a slim gradient progress bar.
@@ -94,9 +96,9 @@ export function AudioPlayer({ storagePath, label }: Props) {
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.xs },
   btn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    borderRadius: BUTTON_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
   },

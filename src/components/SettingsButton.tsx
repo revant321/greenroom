@@ -17,6 +17,8 @@ import { press } from "@/theme/tokens";
  * Rotates 60° (one cog-tooth realignment) while the Settings screen is
  * open; tapping it again closes Settings.
  */
+const SIZE = 42;
+
 export function SettingsButton() {
   const router = useRouter();
   const pathname = usePathname();
@@ -74,9 +76,9 @@ export function SettingsButton() {
 
 const styles = StyleSheet.create({
   circle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: SIZE,
+    height: SIZE,
+    borderRadius: SIZE / 2,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",
