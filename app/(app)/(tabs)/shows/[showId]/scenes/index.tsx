@@ -21,6 +21,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   pressedCard,
   spacing,
 } from "@/theme/tokens";
@@ -45,7 +46,9 @@ export default function Scenes() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
-        <Text style={styles.heading}>Scenes</Text>
+        <Text style={styles.heading} maxFontSizeMultiplier={fontScale.display}>
+          Scenes
+        </Text>
         <Text style={styles.sub} numberOfLines={1}>
           {sub}
         </Text>

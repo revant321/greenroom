@@ -27,6 +27,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   press,
   pressedCard,
   radius,
@@ -147,6 +148,7 @@ export default function Songs() {
           <TextInput
             value={search}
             onChangeText={setSearch}
+            accessibilityLabel="Search songs and categories"
             placeholder="Search songs & categories"
             placeholderTextColor={colors.textMuted}
             style={[styles.searchInput, { color: colors.text }]}
@@ -178,7 +180,9 @@ export default function Songs() {
             accessibilityLabel={`Clear ${PRESETS[preset].label} filter`}
           >
             <Gradient style={styles.showingChip}>
-              <Text style={styles.showingChipText}>{PRESETS[preset].label}</Text>
+              <Text style={styles.showingChipText} maxFontSizeMultiplier={fontScale.compact}>
+                {PRESETS[preset].label}
+              </Text>
               <Icon sf="xmark" ion="close" size={11} color="#fff" />
             </Gradient>
           </Pressable>
@@ -291,7 +295,12 @@ export default function Songs() {
 function Tag({ label, colors }: { label: string; colors: ColorTokens }) {
   return (
     <View style={[tagStyles.tag, { backgroundColor: colors.accentSoft }]}>
-      <Text style={[tagStyles.tagText, { color: colors.textMuted }]}>{label}</Text>
+      <Text
+        style={[tagStyles.tagText, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -309,6 +318,7 @@ function StatusPill({ done, colors }: { done: boolean; colors: ColorTokens }) {
           tagStyles.tagText,
           { color: done ? colors.accent : colors.textMuted },
         ]}
+        maxFontSizeMultiplier={fontScale.compact}
       >
         {done ? "Completed" : "In progress"}
       </Text>

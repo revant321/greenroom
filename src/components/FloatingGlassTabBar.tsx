@@ -15,6 +15,7 @@ import {
   TAB_BAR_HEIGHT,
   TAB_BAR_HORIZONTAL_MARGIN,
   TAB_BAR_WIDTH_FRACTION,
+  fontScale,
   press,
   radius,
   spacing,
@@ -126,6 +127,7 @@ export function FloatingGlassTabBar({
                   { color: tintColor, opacity: focused ? 1 : 0.7 },
                 ]}
                 numberOfLines={1}
+                maxFontSizeMultiplier={fontScale.fixed}
               >
                 {label}
               </Text>

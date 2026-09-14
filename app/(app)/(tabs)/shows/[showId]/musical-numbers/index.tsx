@@ -24,6 +24,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   pressedCard,
   spacing,
 } from "@/theme/tokens";
@@ -45,7 +46,9 @@ export default function MusicalNumbers() {
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
-        <Text style={styles.heading}>Musical Numbers</Text>
+        <Text style={styles.heading} maxFontSizeMultiplier={fontScale.display}>
+          Musical Numbers
+        </Text>
         <Text style={styles.sub} numberOfLines={1}>
           {show?.name ?? " "}
         </Text>

@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Gradient, gradientShadow } from "./Gradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Filter / category chip. Active = signature gradient with a slight lift
@@ -33,7 +33,10 @@ export function Chip({
         ]}
       >
         <Gradient style={[styles.chip, small && styles.small]}>
-          <Text style={[styles.label, small && styles.labelSmall, { color: "#fff" }]}>
+          <Text
+            style={[styles.label, small && styles.labelSmall, { color: "#fff" }]}
+            maxFontSizeMultiplier={fontScale.compact}
+          >
             {label}
           </Text>
         </Gradient>
@@ -59,6 +62,7 @@ export function Chip({
     >
       <Text
         style={[styles.label, small && styles.labelSmall, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
       >
         {label}
       </Text>

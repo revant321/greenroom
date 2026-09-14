@@ -57,6 +57,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   press,
   radius,
   spacing,
@@ -223,9 +224,11 @@ export default function MusicalNumberDetail() {
         <TextInput
           value={name}
           onChangeText={setName}
+          accessibilityLabel="Number title"
           placeholder="Number title"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
           editable={!readOnly}
         />
         {!readOnly && (
@@ -245,6 +248,7 @@ export default function MusicalNumberDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Tempo, cues, reminders…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}
@@ -470,6 +474,7 @@ function HarmonyRow({
         <TextInput
           value={measure}
           onChangeText={setMeasure}
+          accessibilityLabel="Measure number"
           placeholder="Measure #"
           placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
@@ -479,6 +484,7 @@ function HarmonyRow({
         <TextInput
           value={caption}
           onChangeText={setCaption}
+          accessibilityLabel="Caption"
           placeholder="Caption"
           placeholderTextColor={colors.textMuted}
           style={[styles.smallInput, { flex: 1 }]}

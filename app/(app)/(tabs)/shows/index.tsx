@@ -25,6 +25,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   pressedCard,
   radius,
   spacing,
@@ -125,7 +126,7 @@ export default function ShowsList() {
               accessibilityRole="button"
             >
               <View style={styles.initials}>
-                <Text style={styles.initialsText}>
+                <Text style={styles.initialsText} maxFontSizeMultiplier={fontScale.fixed}>
                   {item.name
                     .split(/\s+/)
                     .map((w) => w[0] ?? "")

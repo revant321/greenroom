@@ -11,7 +11,7 @@ import {
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Primary action button — gradient fill, white 700 text, presses with a
@@ -49,7 +49,9 @@ export function GradientButton({
           style,
         ]}
       >
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.text }]} maxFontSizeMultiplier={fontScale.display}>
+          {label}
+        </Text>
       </Pressable>
     );
   }
@@ -73,7 +75,9 @@ export function GradientButton({
         {loading ? (
           <ActivityIndicator color="#fff" size="small" />
         ) : (
-          <Text style={[styles.label, { color: "#fff" }]}>{label}</Text>
+          <Text style={[styles.label, { color: "#fff" }]} maxFontSizeMultiplier={fontScale.display}>
+            {label}
+          </Text>
         )}
       </View>
     </Pressable>
@@ -108,7 +112,9 @@ export function InlineAction({
       ]}
     >
       {children}
-      <Text style={[styles.inlineLabel, { color: colors.accent }]}>{label}</Text>
+      <Text style={[styles.inlineLabel, { color: colors.accent }]} maxFontSizeMultiplier={fontScale.compact}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

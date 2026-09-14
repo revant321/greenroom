@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, spacing } from "@/theme/tokens";
+import { fonts, fontScale, spacing } from "@/theme/tokens";
 
 /** Large screen title + optional subtitle (prototype header). */
 export function ScreenTitle({
@@ -17,7 +17,9 @@ export function ScreenTitle({
   return (
     <View style={styles.wrap}>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.text }]} maxFontSizeMultiplier={fontScale.display}>
+          {title}
+        </Text>
         {subtitle ? (
           <Text
             style={[styles.subtitle, { color: colors.textMuted }]}
@@ -43,7 +45,10 @@ export function SectionLabel({
   const { colors } = useTheme();
   return (
     <View style={styles.sectionRow}>
-      <Text style={[styles.section, { color: colors.textMuted }]}>
+      <Text
+        style={[styles.section, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
         {children.toUpperCase()}
       </Text>
       {action}

@@ -29,6 +29,7 @@ export default function NewShow() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Show title"
         placeholder="Show title"
         placeholderTextColor={colors.textMuted}
         autoFocus

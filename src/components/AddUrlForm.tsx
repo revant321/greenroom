@@ -21,6 +21,7 @@ export function AddUrlForm({
       <TextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Link title"
         placeholder="Title"
         placeholderTextColor={colors.textMuted}
         style={styles.input}
@@ -28,6 +29,7 @@ export function AddUrlForm({
       <TextInput
         value={url}
         onChangeText={setUrl}
+        accessibilityLabel="Link URL"
         placeholder="https://youtu.be/…"
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"

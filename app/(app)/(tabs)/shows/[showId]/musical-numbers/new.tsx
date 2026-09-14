@@ -39,6 +39,7 @@ export default function NewMusicalNumber() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Number title"
         placeholder="Number title"
         placeholderTextColor={colors.textMuted}
         autoFocus

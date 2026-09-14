@@ -39,6 +39,7 @@ export default function NewSong() {
       <TextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Song title"
         placeholder="Song title"
         placeholderTextColor={colors.textMuted}
         autoFocus

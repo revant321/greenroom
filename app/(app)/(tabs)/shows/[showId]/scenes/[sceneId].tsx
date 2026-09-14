@@ -37,6 +37,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   radius,
   spacing,
 } from "@/theme/tokens";
@@ -171,9 +172,11 @@ export default function SceneDetail() {
         <TextInput
           value={name}
           onChangeText={setName}
+          accessibilityLabel="Scene name"
           placeholder="Scene name"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
           editable={!readOnly}
         />
         {!readOnly && (
@@ -195,6 +198,7 @@ export default function SceneDetail() {
               value={inScene}
               onValueChange={setInScene}
               disabled={readOnly}
+              accessibilityLabel="I'm in this scene"
             />
           </View>
         </View>
@@ -206,6 +210,7 @@ export default function SceneDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Blocking, cues, costume change…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}

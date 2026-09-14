@@ -12,6 +12,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   pressedCard,
   radius,
   spacing,
@@ -49,7 +50,11 @@ export default function ShowHub() {
       <Stack.Screen options={{ title: "" }} />
       {show.is_completed && <ArchivedBanner showId={show.id} />}
       <RiseIn index={0}>
-        <Text style={styles.title} numberOfLines={2}>
+        <Text
+          style={styles.title}
+          numberOfLines={2}
+          maxFontSizeMultiplier={fontScale.display}
+        >
           {show.name}
         </Text>
       </RiseIn>

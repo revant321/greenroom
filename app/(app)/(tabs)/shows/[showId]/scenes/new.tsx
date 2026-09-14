@@ -39,6 +39,7 @@ export default function NewScene() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Scene name"
         placeholder="Scene name"
         placeholderTextColor={colors.textMuted}
         autoFocus
@@ -48,7 +49,11 @@ export default function NewScene() {
       />
       <View style={styles.toggleRow}>
         <Text style={styles.toggleLabel}>I'm in this scene</Text>
-        <AnimatedToggle value={inScene} onValueChange={setInScene} />
+        <AnimatedToggle
+          value={inScene}
+          onValueChange={setInScene}
+          accessibilityLabel="I'm in this scene"
+        />
       </View>
       <View style={styles.row}>
         <GradientButton

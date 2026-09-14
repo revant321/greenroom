@@ -51,6 +51,7 @@ import {
   ColorTokens,
   contentInset,
   fonts,
+  fontScale,
   press,
   radius,
   spacing,
@@ -254,9 +255,11 @@ export default function SongDetail() {
         <TextInput
           value={title}
           onChangeText={setTitle}
+          accessibilityLabel="Song title"
           placeholder="Song title"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
         />
         <Text style={styles.saved}>
           {updateSong.isPending
@@ -271,7 +274,11 @@ export default function SongDetail() {
         <View style={styles.card}>
           <View style={styles.toggleRow}>
             <Text style={styles.toggleLabel}>Audition song</Text>
-            <AnimatedToggle value={audition} onValueChange={setAudition} />
+            <AnimatedToggle
+              value={audition}
+              onValueChange={setAudition}
+              accessibilityLabel="Audition song"
+            />
           </View>
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
           <View style={styles.toggleRow}>
@@ -279,6 +286,7 @@ export default function SongDetail() {
             <AnimatedToggle
               value={status === "completed"}
               onValueChange={(v) => setStatus(v ? "completed" : "in-progress")}
+              accessibilityLabel="Completed"
             />
           </View>
         </View>
@@ -290,6 +298,7 @@ export default function SongDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Practice notes, tempo, lyrics tips…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}

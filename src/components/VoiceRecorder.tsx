@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -134,7 +134,10 @@ export function VoiceRecorder({
 
   return (
     <View>
-      <Text style={[styles.eyebrow, { color: colors.textMuted }]}>
+      <Text
+        style={[styles.eyebrow, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
         RECORDING
       </Text>
       <View style={styles.wave}>
@@ -150,7 +153,10 @@ export function VoiceRecorder({
           />
         ))}
       </View>
-      <Text style={[styles.timer, { color: colors.text }]}>
+      <Text
+        style={[styles.timer, { color: colors.text }]}
+        maxFontSizeMultiplier={fontScale.display}
+      >
         {formatTimer(seconds)}
       </Text>
       <View style={styles.controls}>

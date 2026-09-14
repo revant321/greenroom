@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
 
 /**
  * Segmented control with a sliding thumb (prototype's appearance /
@@ -78,6 +78,7 @@ export function SegmentedControl<T extends string>({
                 styles.label,
                 { color: active ? colors.text : colors.textMuted },
               ]}
+              maxFontSizeMultiplier={fontScale.compact}
             >
               {label}
             </Text>
