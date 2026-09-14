@@ -22,7 +22,7 @@ import { GradientFab } from "@/components/GradientFab";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   pressedCard,
   spacing,
@@ -46,7 +46,9 @@ export default function MusicalNumbers() {
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
         <Text style={styles.heading}>Musical Numbers</Text>
-        <Text style={styles.sub}>{show?.name ?? " "}</Text>
+        <Text style={styles.sub} numberOfLines={1}>
+          {show?.name ?? " "}
+        </Text>
       </RiseIn>
       {readOnly && (
         <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
@@ -74,7 +76,7 @@ export default function MusicalNumbers() {
         contentContainerStyle={{
           padding: spacing.lg,
           gap: spacing.md,
-          paddingBottom: FAB_CLEARANCE + spacing.lg,
+          paddingBottom: contentInset.fab,
         }}
         ListEmptyComponent={
           <RiseIn index={1}>

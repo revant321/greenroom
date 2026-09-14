@@ -19,7 +19,10 @@ export function ScreenTitle({
       <View style={{ flex: 1 }}>
         <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
         {subtitle ? (
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+          <Text
+            style={[styles.subtitle, { color: colors.textMuted }]}
+            numberOfLines={1}
+          >
             {subtitle}
           </Text>
         ) : null}

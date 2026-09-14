@@ -10,7 +10,7 @@ import { useTheme } from "@/theme/useTheme";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   pressedCard,
   radius,
@@ -49,7 +49,9 @@ export default function ShowHub() {
       <Stack.Screen options={{ title: "" }} />
       {show.is_completed && <ArchivedBanner showId={show.id} />}
       <RiseIn index={0}>
-        <Text style={styles.title}>{show.name}</Text>
+        <Text style={styles.title} numberOfLines={2}>
+          {show.name}
+        </Text>
       </RiseIn>
 
       <RiseIn index={1}>
@@ -96,7 +98,7 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.lg,
       gap: spacing.md,
       backgroundColor: c.bg,
-      paddingBottom: FAB_CLEARANCE + spacing.lg,
+      paddingBottom: contentInset.tabBar,
     },
     titleGhost: { width: "60%", height: 36, marginBottom: spacing.sm },
     tilesGhost: { padding: 0 },

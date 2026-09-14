@@ -15,7 +15,7 @@ import { EmptyState } from "@/components/EmptyState";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   pressedCard,
   spacing,
   type,
@@ -58,7 +58,7 @@ export default function Completed() {
       contentContainerStyle={{
         padding: spacing.lg,
         gap: spacing.md,
-        paddingBottom: FAB_CLEARANCE + spacing.lg,
+        paddingBottom: contentInset.tabBar,
         flexGrow: 1,
       }}
       ListEmptyComponent={
@@ -75,7 +75,9 @@ export default function Completed() {
           accessibilityRole="button"
         >
           <View style={styles.nameLink}>
-            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
           </View>
           <View style={styles.actions}>
             <IconButton

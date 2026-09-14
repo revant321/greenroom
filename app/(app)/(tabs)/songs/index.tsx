@@ -25,7 +25,7 @@ import { SettingsButton } from "@/components/SettingsButton";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   press,
   pressedCard,
@@ -190,6 +190,7 @@ export default function Songs() {
           data={songResults}
           keyExtractor={(s) => s.id}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={styles.listPad}
           ListHeaderComponent={
             <>
@@ -367,7 +368,7 @@ function makeStyles(c: ColorTokens) {
     listPad: {
       padding: spacing.lg,
       paddingTop: spacing.md,
-      paddingBottom: FAB_CLEARANCE + spacing.lg,
+      paddingBottom: contentInset.fab,
     },
     resultHead: {
       fontSize: 12,

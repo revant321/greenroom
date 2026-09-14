@@ -23,7 +23,7 @@ import { SettingsButton } from "@/components/SettingsButton";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   pressedCard,
   radius,
@@ -75,7 +75,7 @@ export default function ShowsList() {
         contentContainerStyle={{
           padding: spacing.lg,
           gap: spacing.md,
-          paddingBottom: FAB_CLEARANCE + spacing.lg,
+          paddingBottom: contentInset.fab,
         }}
         ListEmptyComponent={
           <RiseIn index={1} refreshKey={focusTick}>

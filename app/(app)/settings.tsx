@@ -39,7 +39,9 @@ export default function Settings() {
         <View style={styles.rowBetween}>
           <View>
             <Text style={styles.rowLabel}>Signed in as</Text>
-            <Text style={styles.email}>{session?.user.email ?? "(unknown)"}</Text>
+            <Text style={styles.email} numberOfLines={1}>
+              {session?.user.email ?? "(unknown)"}
+            </Text>
           </View>
         </View>
       </View>

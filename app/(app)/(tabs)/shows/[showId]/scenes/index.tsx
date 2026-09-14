@@ -19,7 +19,7 @@ import { GradientFab } from "@/components/GradientFab";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   pressedCard,
   spacing,
@@ -46,7 +46,9 @@ export default function Scenes() {
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
         <Text style={styles.heading}>Scenes</Text>
-        <Text style={styles.sub}>{sub}</Text>
+        <Text style={styles.sub} numberOfLines={1}>
+          {sub}
+        </Text>
       </RiseIn>
       {readOnly && (
         <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
@@ -74,7 +76,7 @@ export default function Scenes() {
         contentContainerStyle={{
           padding: spacing.lg,
           gap: spacing.md,
-          paddingBottom: FAB_CLEARANCE + spacing.lg,
+          paddingBottom: contentInset.fab,
         }}
         ListEmptyComponent={
           <RiseIn index={1}>

@@ -109,7 +109,9 @@ export function Sheet({
           >
             <View style={[styles.grabber, { backgroundColor: colors.border }]} />
             {title ? (
-              <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+              <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                {title}
+              </Text>
             ) : null}
             {children}
           </Animated.View>

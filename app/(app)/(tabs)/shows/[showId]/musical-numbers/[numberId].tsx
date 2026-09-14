@@ -55,7 +55,7 @@ import { useTheme } from "@/theme/useTheme";
 import {
   cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
   press,
   radius,
@@ -211,9 +211,11 @@ export default function MusicalNumberDetail() {
       style={{ backgroundColor: colors.bg }}
       contentContainerStyle={[
         styles.container,
-        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+        { paddingBottom: contentInset.tabBar },
       ]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
     >
       <Stack.Screen options={{ title: "" }} />
       {readOnly && showId && <ArchivedBanner showId={showId} />}
