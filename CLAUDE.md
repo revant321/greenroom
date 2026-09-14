@@ -108,6 +108,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -181,6 +182,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 **Currently working on:** Guest mode (GitHub issue #51) — using the app without an account, via anonymous Supabase auth (Option A from the issue).
 **Completed this session:** A fresh install now signs in as a guest automatically and opens Shows; the login screen (reached after a sign-out, or if guest sign-in fails offline) has "Continue without an account". `useAuth` exposes `isGuest` and clears the persisted query cache when the user id changes. New "Create an account" modal (`app/(app)/upgrade.tsx`) links Apple / Google / email to the *same* guest user so nothing migrates; when the identity already belongs to another account the app offers "keep guest work" vs "switch" instead of overwriting. Guest banner on Shows + Songs (dismissible per launch), Settings shows Guest + upgrade button, and guest sign-out warns that data is lost forever. Added a cleanup migration for empty anonymous users older than 30 days and verified RLS isolation between two guests against a local Postgres. Docs in `docs/guest-mode.md`. TypeScript clean; 94 tests pass.
 **Next steps:** (1) In Supabase dashboard turn on "Anonymous sign-ins" and "Allow manual linking" (Authentication → Sign In / Providers), and enable pg_cron (Database → Extensions), then apply the new migration. (2) Device-test on a new native build: fresh install → record a harmony with no sign-in; Create an account via Apple, Google and email; the conflict path with an identity that already has an account; guest sign-out warning. (3) Paste the App Store review notes from `docs/guest-mode.md` into App Store Connect.
+**Still pending from the recorder work (issue #65, merged from main):** device-test cancel of short and long takes, deny mic permission then use Open Settings, let a take hit the duration cap, and re-verify #59 (video volume after recording).
 **Blockers:** The two dashboard toggles above must be on before guest mode works on a device.
 
 ## Session Rules

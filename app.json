@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -15,6 +15,15 @@
     },
     "ios": {
       "supportsTablet": false,
+      "splash": {
+        "image": "./assets/splash-icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#EFEDF7",
+        "dark": {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#1C1B2E"
+        }
+      },
       "usesAppleSignIn": true,
       "bundleIdentifier": "com.codeflixacademy.greenroom",
       "infoPlist": {

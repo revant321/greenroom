@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, AlertButton, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   AudioModule,
   RecordingPresets,
-  setAudioModeAsync,
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Linking from "expo-linking";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -17,6 +18,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { fonts } from "@/theme/tokens";
+import { enterRecordingMode, exitRecordingMode } from "@/lib/audioSession";
+import { confirm } from "@/utils/confirm";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -26,9 +29,26 @@ import { fonts } from "@/theme/tokens";
  * - Large thin timer, pulsing red stop square, Cancel / Save.
  * - Same props as the old AudioRecorder, so callers are unchanged.
  *   Present inside <Sheet> (see screens) rather than a full-screen modal.
+ *
+ * Lifecycle guarantees (see GitHub issues #59 and #65):
+ * - Exactly one of onFinish / onCancel fires, at most once.
+ * - The iOS audio session leaves record mode on every exit path, even if
+ *   stop() throws, so later playback isn't quiet.
+ * - A take that isn't saved (Cancel, unmount, permission or storage
+ *   failure) has its temp file deleted so nothing lingers in the cache.
+ * - Recording stops on its own at `maxDurationSeconds` and what was
+ *   captured is saved.
  */
 const BAR_COUNT = 44;
 const REC_RED = "#FF5C7A";
+
+export const DEFAULT_MAX_DURATION_SECONDS = 10 * 60;
+const WARN_BEFORE_END_SECONDS = 30;
+// Cancelling a take shorter than this is cheap to redo, so skip the confirm.
+const CONFIRM_DISCARD_AFTER_MS = 3000;
+// HIGH_QUALITY AAC is roughly 1 MB/minute; a full take plus the copy that
+// uploadMedia keeps in the documents folder fits comfortably under this.
+const MIN_FREE_BYTES = 50 * 1024 * 1024;
 
 // Gradient across the bar row: warm → pink → violet.
 function barColor(i: number): string {
@@ -45,12 +65,48 @@ function barColor(i: number): string {
   return `rgb(${mix(a[0], b[0])},${mix(a[1], b[1])},${mix(a[2], b[2])})`;
 }
 
+async function deleteTake(uri: string | null) {
+  if (!uri) return;
+  await FileSystem.deleteAsync(uri, { idempotent: true }).catch(() => {});
+}
+
+async function hasEnoughFreeSpace(): Promise<boolean> {
+  try {
+    const free = await FileSystem.getFreeDiskStorageAsync();
+    return free >= MIN_FREE_BYTES;
+  } catch {
+    // If the check itself isn't available, don't block recording over it.
+    return true;
+  }
+}
+
+function showPermissionDenied(canAskAgain: boolean) {
+  const buttons: AlertButton[] = [{ text: canAskAgain ? "OK" : "Not Now", style: "cancel" }];
+  if (!canAskAgain) {
+    buttons.push({
+      text: "Open Settings",
+      onPress: () => {
+        Linking.openSettings().catch(() => {});
+      },
+    });
+  }
+  Alert.alert(
+    "Microphone access needed",
+    canAskAgain
+      ? "greenroom needs the microphone to record. Try again and tap Allow."
+      : "Microphone access is turned off for greenroom. Turn it on in Settings → greenroom → Microphone.",
+    buttons,
+  );
+}
+
 export function VoiceRecorder({
   onFinish,
   onCancel,
+  maxDurationSeconds = DEFAULT_MAX_DURATION_SECONDS,
 }: {
   onFinish: (uri: string) => void;
   onCancel: () => void;
+  maxDurationSeconds?: number;
 }) {
   const { colors } = useTheme();
   const recorder = useAudioRecorder({
@@ -63,28 +119,84 @@ export function VoiceRecorder({
   );
   const [started, setStarted] = useState(false);
   const phase = useRef(0);
+  // Where the take is being written. Captured right after prepare so the
+  // unmount cleanup can delete it even after expo-audio releases the recorder.
+  const uriRef = useRef<string | null>(null);
+  // Set once we've handed off to onFinish/onCancel; every exit path checks it
+  // so a take is never both saved and deleted.
+  const doneRef = useRef(false);
+  const sawRecordingRef = useRef(false);
+
+  // Stop the recorder and take the audio session back out of record mode.
+  // The finally guarantees the session is restored even if stop() throws.
+  async function release() {
+    try {
+      await recorder.stop();
+    } catch {
+      /* already stopped or released */
+    } finally {
+      await exitRecordingMode();
+    }
+  }
 
   // Start recording as soon as the sheet opens.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (cancelled) return;
       if (!perm.granted) {
+        doneRef.current = true;
+        showPermissionDenied(perm.canAskAgain);
+        onCancel();
+        return;
+      }
+      if (!(await hasEnoughFreeSpace())) {
+        if (cancelled) return;
+        doneRef.current = true;
         Alert.alert(
-          "Microphone permission needed",
-          "Enable microphone access in iOS Settings → greenroom.",
+          "Not enough storage",
+          "Free up some space on this iPhone before recording.",
         );
         onCancel();
         return;
       }
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
       if (cancelled) return;
-      recorder.record();
+      await enterRecordingMode();
+      if (cancelled) {
+        // Unmounted while we were switching modes: undo it, since the
+        // unmount cleanup already ran before record mode was entered.
+        await exitRecordingMode();
+        return;
+      }
+      await recorder.prepareToRecordAsync();
+      const uri = recorder.uri;
+      if (cancelled) {
+        // Unmounted while preparing: the empty file still exists, drop it.
+        await deleteTake(uri);
+        await exitRecordingMode();
+        return;
+      }
+      uriRef.current = uri;
+      recorder.record({ forDuration: maxDurationSeconds });
       setStarted(true);
     })();
     return () => {
       cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // If the sheet closes without Save/Cancel (backdrop tap, navigating away),
+  // treat it as a cancel: stop, restore the audio session, drop the file.
+  useEffect(() => {
+    return () => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      void (async () => {
+        await release();
+        await deleteTake(uriRef.current);
+      })();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -106,13 +218,23 @@ export function VoiceRecorder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.metering, state.durationMillis, started, state.isRecording]);
 
-  async function stopAndSave() {
-    try {
-      await recorder.stop();
-    } catch {
-      /* already stopped */
+  // The native recorder stops itself at maxDurationSeconds (or on a system
+  // interruption). When we see it go from recording to stopped, keep the take.
+  useEffect(() => {
+    if (!started || doneRef.current) return;
+    if (state.isRecording) {
+      sawRecordingRef.current = true;
+      return;
     }
-    const uri = recorder.uri;
+    if (sawRecordingRef.current) void stopAndSave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, state.isRecording]);
+
+  async function stopAndSave() {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    await release();
+    const uri = uriRef.current ?? recorder.uri;
     if (uri) onFinish(uri);
     else {
       Alert.alert("Recording failed", "No file was produced.");
@@ -120,21 +242,36 @@ export function VoiceRecorder({
     }
   }
 
-  async function cancel() {
-    try {
-      await recorder.stop();
-    } catch {
-      /* noop */
-    }
+  async function discard() {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    await release();
+    await deleteTake(uriRef.current);
     onCancel();
   }
 
+  function cancel() {
+    if (doneRef.current) return;
+    if ((state.durationMillis ?? 0) < CONFIRM_DISCARD_AFTER_MS) {
+      void discard();
+      return;
+    }
+    confirm(
+      "Discard recording?",
+      "This take will be deleted.",
+      () => void discard(),
+      "Discard",
+    );
+  }
+
   const seconds = Math.floor((state.durationMillis ?? 0) / 1000);
+  const remaining = Math.max(0, maxDurationSeconds - seconds);
+  const nearEnd = started && remaining <= WARN_BEFORE_END_SECONDS;
 
   return (
     <View>
-      <Text style={[styles.eyebrow, { color: colors.textMuted }]}>
-        RECORDING
+      <Text style={[styles.eyebrow, { color: nearEnd ? REC_RED : colors.textMuted }]}>
+        {nearEnd ? `RECORDING · ${formatTimer(remaining)} LEFT` : "RECORDING"}
       </Text>
       <View style={styles.wave}>
         {levels.map((lvl, i) => (

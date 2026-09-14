@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/Toast";
 import { shouldAutoStartGuest, signInAsGuest } from "@/services/authService";
+import { useTheme } from "@/theme/useTheme";
 
 type Bootstrap = "pending" | "guest-started" | "show-login";
 
@@ -15,6 +16,7 @@ type Bootstrap = "pending" | "guest-started" | "show-login";
  */
 export default function Index() {
   const { session, loading } = useAuth();
+  const { colors } = useTheme();
   const toast = useToast();
   const [bootstrap, setBootstrap] = useState<Bootstrap>("pending");
 
@@ -46,8 +48,15 @@ export default function Index() {
   if (session) return <Redirect href="/shows" />;
   if (loading || bootstrap === "pending" || bootstrap === "guest-started") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: colors.bg,
+        }}
+      >
+        <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
