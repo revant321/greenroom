@@ -1,5 +1,4 @@
 import { Stack } from "expo-router";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   Poppins_400Regular,
@@ -10,7 +9,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/poppins";
 import { AuthProvider } from "@/hooks/useAuth";
-import { persister, queryClient } from "@/lib/queryClient";
+import { UserQueryCacheProvider } from "@/lib/UserQueryCacheProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
 import { ToastProvider } from "@/components/Toast";
 
@@ -27,18 +26,15 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister }}
-      >
-        <AuthProvider>
+      <AuthProvider>
+        <UserQueryCacheProvider>
           <ThemeProvider>
             <ToastProvider>
               <Stack screenOptions={{ headerShown: false }} />
             </ToastProvider>
           </ThemeProvider>
-        </AuthProvider>
-      </PersistQueryClientProvider>
+        </UserQueryCacheProvider>
+      </AuthProvider>
     </GestureHandlerRootView>
   );
 }
