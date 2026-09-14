@@ -3,7 +3,7 @@ import { Alert } from "react-native";
 import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Linking from "expo-linking";
-import { AudioModule } from "expo-audio";
+import { AudioModule, setAudioModeAsync } from "expo-audio";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 
 const TAKE_URI = "file:///cache/take.m4a";
@@ -47,6 +47,9 @@ jest.mock("expo-linking", () => ({
 const requestPerm = AudioModule.requestRecordingPermissionsAsync as jest.Mock;
 const deleteAsync = FileSystem.deleteAsync as jest.Mock;
 const getFreeDiskStorageAsync = FileSystem.getFreeDiskStorageAsync as jest.Mock;
+const mockSetMode = setAudioModeAsync as jest.Mock;
+const RECORD_ON = { allowsRecording: true, playsInSilentMode: true };
+const RECORD_OFF = { allowsRecording: false, playsInSilentMode: true };
 
 function lastAlert() {
   const calls = (Alert.alert as jest.Mock).mock.calls;
@@ -78,6 +81,7 @@ function renderRecorder(maxDurationSeconds?: number) {
 async function startRecording(maxDurationSeconds?: number) {
   const r = renderRecorder(maxDurationSeconds);
   await waitFor(() => expect(mockRecorder.record).toHaveBeenCalled());
+  expect(mockSetMode).toHaveBeenCalledWith(RECORD_ON);
   return r;
 }
 
@@ -85,6 +89,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(Alert, "alert").mockImplementation(() => {});
   requestPerm.mockResolvedValue({ granted: true, canAskAgain: true });
+  mockRecorder.stop.mockResolvedValue(undefined);
   mockState.isRecording = true;
   mockState.durationMillis = 0;
 });
@@ -196,11 +201,50 @@ describe("VoiceRecorder", () => {
     expect(lastAlert().title).toBe("Not enough storage");
     expect(mockRecorder.prepareToRecordAsync).not.toHaveBeenCalled();
     expect(mockRecorder.record).not.toHaveBeenCalled();
+    expect(mockSetMode).not.toHaveBeenCalledWith(RECORD_ON);
   });
 
   test("still records when the free-space check is unavailable", async () => {
     getFreeDiskStorageAsync.mockRejectedValueOnce(new Error("unsupported"));
     await startRecording();
     expect(mockRecorder.record).toHaveBeenCalled();
+  });
+});
+
+describe("VoiceRecorder audio session", () => {
+  test("restores the session after Save", async () => {
+    const { getByText, onFinish } = await startRecording();
+    await act(async () => {
+      fireEvent.press(getByText("Save"));
+    });
+    await waitFor(() => expect(onFinish).toHaveBeenCalledWith(TAKE_URI));
+    expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
+  });
+
+  test("restores the session after Cancel", async () => {
+    const { getByText, onCancel } = await startRecording();
+    await act(async () => {
+      fireEvent.press(getByText("Cancel"));
+    });
+    await waitFor(() => expect(onCancel).toHaveBeenCalled());
+    expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
+  });
+
+  test("restores the session on unmount mid-recording", async () => {
+    const { unmount } = await startRecording();
+    await act(async () => {
+      unmount();
+    });
+    await waitFor(() => expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF));
+  });
+
+  test("still restores the session if stop() throws", async () => {
+    const { getByText, onFinish } = await startRecording();
+    mockRecorder.stop.mockRejectedValueOnce(new Error("already stopped"));
+    await act(async () => {
+      fireEvent.press(getByText("Save"));
+    });
+    await waitFor(() => expect(onFinish).toHaveBeenCalled());
+    expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
   });
 });

@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -171,9 +172,9 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #65 — recorder edge cases in `src/components/VoiceRecorder.tsx`.
-**Completed this session:** Cancelled or abandoned takes now delete their temp `.m4a` (Cancel, sheet unmount, and unmount-during-prepare all go through one guarded `doneRef` path so a take is never both saved and deleted). Cancelling a take longer than 3 seconds confirms via `confirm.ts`. A permanently denied mic permission alerts with an Open Settings button (`Linking.openSettings`). Recording is capped at a configurable `maxDurationSeconds` (default 10 min) using expo-audio's native `forDuration`, auto-saves what was captured when the recorder stops, and shows a red countdown in the last 30 seconds. A 50 MB free-space check runs before preparing. `Sheet` gained a `dismissable` prop and the three recorder sheets pass `dismissable={false}` so the only exits are Cancel/Save. Added `__tests__/VoiceRecorder.test.tsx` (12 tests). All 86 tests pass. `tsc` errors are pre-existing and come from packages missing in this worktree's `node_modules`.
-**Next steps:** Device-test the recorder: cancel short and long takes, deny mic permission then use Open Settings, and let a take hit the cap (set `maxDurationSeconds` low temporarily). Consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds — the saved path still leaves the original behind.
+**Currently working on:** GitHub issue #65 — recorder edge cases in `src/components/VoiceRecorder.tsx` (merged on top of the #59 audio-session fix).
+**Completed this session:** Cancelled or abandoned takes now delete their temp `.m4a` (Cancel, sheet unmount, and unmount-during-prepare all go through one guarded `doneRef` path so a take is never both saved and deleted). Every exit path also restores the iOS audio session via `exitRecordingMode()` from `src/lib/audioSession.ts`, inside a `finally` so a failed `stop()` still restores it. Cancelling a take longer than 3 seconds confirms via `confirm.ts`. A permanently denied mic permission alerts with an Open Settings button (`Linking.openSettings`). Recording is capped at a configurable `maxDurationSeconds` (default 10 min) using expo-audio's native `forDuration`, auto-saves what was captured when the recorder stops, and shows a red countdown in the last 30 seconds. A 50 MB free-space check runs before preparing. `Sheet` gained a `dismissable` prop and the three recorder sheets pass `dismissable={false}` so the only exits are Cancel/Save. `__tests__/VoiceRecorder.test.tsx` now holds 16 tests (12 for #65 plus the 4 audio-session ones from #59). `tsc` errors in this worktree are pre-existing and come from packages missing in its `node_modules`.
+**Next steps:** Device-test the recorder: cancel short and long takes, deny mic permission then use Open Settings, and let a take hit the cap (set `maxDurationSeconds` low temporarily). Also re-verify #59 on device: play a video, record a harmony, play the video again at the same volume. Consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds — the saved path still leaves the original behind.
 **Blockers:** None.
 
 ## Session Rules

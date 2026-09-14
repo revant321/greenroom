@@ -3,7 +3,6 @@ import { Alert, AlertButton, Pressable, StyleSheet, Text, View } from "react-nat
 import {
   AudioModule,
   RecordingPresets,
-  setAudioModeAsync,
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
@@ -19,6 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { fonts } from "@/theme/tokens";
+import { enterRecordingMode, exitRecordingMode } from "@/lib/audioSession";
 import { confirm } from "@/utils/confirm";
 
 /**
@@ -30,8 +30,10 @@ import { confirm } from "@/utils/confirm";
  * - Same props as the old AudioRecorder, so callers are unchanged.
  *   Present inside <Sheet> (see screens) rather than a full-screen modal.
  *
- * Lifecycle guarantees (see GitHub issue #65):
+ * Lifecycle guarantees (see GitHub issues #59 and #65):
  * - Exactly one of onFinish / onCancel fires, at most once.
+ * - The iOS audio session leaves record mode on every exit path, even if
+ *   stop() throws, so later playback isn't quiet.
  * - A take that isn't saved (Cancel, unmount, permission or storage
  *   failure) has its temp file deleted so nothing lingers in the cache.
  * - Recording stops on its own at `maxDurationSeconds` and what was
@@ -125,6 +127,18 @@ export function VoiceRecorder({
   const doneRef = useRef(false);
   const sawRecordingRef = useRef(false);
 
+  // Stop the recorder and take the audio session back out of record mode.
+  // The finally guarantees the session is restored even if stop() throws.
+  async function release() {
+    try {
+      await recorder.stop();
+    } catch {
+      /* already stopped or released */
+    } finally {
+      await exitRecordingMode();
+    }
+  }
+
   // Start recording as soon as the sheet opens.
   useEffect(() => {
     let cancelled = false;
@@ -148,12 +162,19 @@ export function VoiceRecorder({
         return;
       }
       if (cancelled) return;
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await enterRecordingMode();
+      if (cancelled) {
+        // Unmounted while we were switching modes: undo it, since the
+        // unmount cleanup already ran before record mode was entered.
+        await exitRecordingMode();
+        return;
+      }
       await recorder.prepareToRecordAsync();
       const uri = recorder.uri;
       if (cancelled) {
         // Unmounted while preparing: the empty file still exists, drop it.
-        void deleteTake(uri);
+        await deleteTake(uri);
+        await exitRecordingMode();
         return;
       }
       uriRef.current = uri;
@@ -167,13 +188,17 @@ export function VoiceRecorder({
   }, []);
 
   // If the sheet closes without Save/Cancel (backdrop tap, navigating away),
-  // treat it as a cancel: the recorder is released by expo-audio, we drop the file.
+  // treat it as a cancel: stop, restore the audio session, drop the file.
   useEffect(() => {
     return () => {
       if (doneRef.current) return;
       doneRef.current = true;
-      void deleteTake(uriRef.current);
+      void (async () => {
+        await release();
+        await deleteTake(uriRef.current);
+      })();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Push a new amplitude sample as metering updates.
@@ -205,18 +230,10 @@ export function VoiceRecorder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [started, state.isRecording]);
 
-  async function stopRecorder() {
-    try {
-      await recorder.stop();
-    } catch {
-      /* already stopped or released */
-    }
-  }
-
   async function stopAndSave() {
     if (doneRef.current) return;
     doneRef.current = true;
-    await stopRecorder();
+    await release();
     const uri = uriRef.current ?? recorder.uri;
     if (uri) onFinish(uri);
     else {
@@ -228,7 +245,7 @@ export function VoiceRecorder({
   async function discard() {
     if (doneRef.current) return;
     doneRef.current = true;
-    await stopRecorder();
+    await release();
     await deleteTake(uriRef.current);
     onCancel();
   }
