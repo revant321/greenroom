@@ -114,20 +114,24 @@ src/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
-│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
 │   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
 │   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
-│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
-│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
 │   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
 │   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
 │   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
 │   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
-│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── Skeleton.tsx           # Skeleton + ListSkeleton + DetailSkeleton loading placeholders
+│   ├── IconButton.tsx         # icon-only Pressable: required VoiceOver label, 44pt target, pressed state
+│   ├── DeleteButton.tsx       # trash IconButton that always confirms first — the only way to delete
+│   ├── LoadingScreen.tsx      # themed full-screen spinner for the auth gate
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
@@ -170,11 +174,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** GitHub issue #66 — the UI consistency / interaction polish / accessibility pass.
+**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. TypeScript clean, 74 tests pass.
+**Next steps:** Post the audit checklist to issue #66 and open the PR. Then a device pass: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
+**Blockers:** None in code. Haptics and Dynamic Type can only be verified on hardware.
 
 ## Session Rules
 
