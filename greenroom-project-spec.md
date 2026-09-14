@@ -104,6 +104,7 @@ Cloud sync via Supabase IS the backup. There is no manual export/import file for
 - **Media storage:** Supabase Storage; cached locally via expo-file-system after first load
 - **Authentication:** Supabase Auth with Apple, Google, and email/password sign-in
 - **Offline reads:** Any data/media previously loaded is available without a network connection. Writes require network.
+- **Sign-out wipes the device:** Signing out clears in-memory queries, the persisted query cache, and every downloaded media file. The persisted query cache is keyed by user id, so one account's data is never restored for another account on the same device.
 
 ---
 
@@ -227,7 +228,7 @@ greenroom/
 │   ├── hooks/
 │   │   └── useAuth.tsx            # AuthProvider + useAuth hook
 │   └── services/
-│       └── authService.ts         # Apple / Google / email sign-in + sign-out
+│       └── authService.ts         # Apple / Google / email sign-in + sign-out (clears local caches)
 ├── __tests__/                     # Jest unit tests
 ├── supabase/
 │   └── migrations/                # SQL migration files (added in Phase N2)

@@ -71,7 +71,7 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 
 ```
 app/
-├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
+├── _layout.tsx                # Root: GestureHandlerRoot + Auth + UserQueryCache + Theme + Toast
 ├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
 ├── (auth)/
 │   └── login.tsx              # Apple + Google + email/password sign-in (themed)
@@ -108,7 +108,9 @@ src/
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
 │   ├── supabase.ts            # Supabase client
-│   ├── queryClient.ts         # TanStack QueryClient + persister
+│   ├── queryClient.ts         # TanStack QueryClient + per-user persister (cache key includes user id)
+│   ├── localData.ts           # clearLocalData: wipe in-memory queries, persisted cache, and media files
+│   ├── UserQueryCacheProvider.tsx # QueryClientProvider that restores/persists the signed-in user's cache and wipes on user change
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
 ├── hooks/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
@@ -131,11 +133,11 @@ src/
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
-    ├── authService.ts         # Apple / Google / email sign-in + sign-out
+    ├── authService.ts         # Apple / Google / email sign-in + signOutAndReset (sign out, then clearLocalData)
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
     ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
-    ├── mediaService.ts        # uploadMedia / deleteMedia / useMedia (cached signed-URL download)
+    ├── mediaService.ts        # uploadMedia / deleteMedia / deleteAllCachedMedia / useMedia (cached signed-URL download)
     ├── harmonyService.ts      # useHarmonies / useCreateHarmony / useUpdateHarmony / useDeleteHarmony
     ├── sceneRecordingService.ts # useSceneRecordings / useCreate / useDelete (audio + video scene clips)
     ├── danceVideoService.ts   # useDanceVideos / useCreate / useUpdate / useDelete (file OR external URL)
@@ -170,11 +172,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** GitHub issue #50 — sign-out left the previous user's cached data on the device.
+**Completed this session:** Added `clearLocalData()` (drops in-memory queries, deletes every persisted query-cache row, deletes the `media` directory and empties `media_cache`). Replaced `signOut()` with `signOutAndReset()`, which signs out first and then clears (Supabase contacts the server before dropping the session, so a failed sign-out keeps the user signed in with their offline data intact). Scoped the persisted query cache key by user id and replaced TanStack's `PersistQueryClientProvider` with `UserQueryCacheProvider`, which restores the signed-in user's cache and wipes local data whenever the user id changes, so sign-outs that bypass the Settings button (expired sessions) are covered too. The persister ignores throttled writes that land after sign-out. TypeScript is clean and all 91 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
+**Next steps:** Device-test the acceptance list on issue #50: sign in as A, create a show and add a harmony, sign out, confirm the app's documents directory has no `media` folder, sign in as B, confirm no flash of A's data. Then unblock issue #21 (data isolation testing).
+**Blockers:** None in code. Device testing needs two Supabase accounts on one phone.
 
 ## Session Rules
 
