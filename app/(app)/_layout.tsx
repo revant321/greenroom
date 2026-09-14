@@ -24,6 +24,14 @@ export default function AppLayout() {
         name="settings"
         options={{ presentation: "modal", headerShown: true, title: "Settings" }}
       />
+      <Stack.Screen
+        name="upgrade"
+        options={{
+          presentation: "modal",
+          headerShown: true,
+          title: "Create an account",
+        }}
+      />
     </Stack>
   );
 }

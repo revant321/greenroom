@@ -19,6 +19,7 @@ import { RiseIn } from "@/components/RiseIn";
 import { GradientFab } from "@/components/GradientFab";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
+import { GuestBanner } from "@/components/GuestBanner";
 import {
   ColorTokens,
   FAB_CLEARANCE,
@@ -66,6 +67,7 @@ export default function ShowsList() {
           right={<SettingsButton />}
         />
       </RiseIn>
+      <GuestBanner />
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
