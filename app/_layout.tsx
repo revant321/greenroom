@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
@@ -12,6 +13,7 @@ import {
 import { AuthProvider } from "@/hooks/useAuth";
 import { persister, queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+import { useTheme } from "@/theme/useTheme";
 import { ToastProvider } from "@/components/Toast";
 
 export default function RootLayout() {
@@ -34,11 +36,26 @@ export default function RootLayout() {
         <AuthProvider>
           <ThemeProvider>
             <ToastProvider>
-              <Stack screenOptions={{ headerShown: false }} />
+              <RootNavigator />
             </ToastProvider>
           </ThemeProvider>
         </AuthProvider>
       </PersistQueryClientProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function RootNavigator() {
+  const { colors, scheme } = useTheme();
+  return (
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      />
+    </>
   );
 }
