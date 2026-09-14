@@ -8,6 +8,7 @@ import {
   useAudioRecorderState,
 } from "expo-audio";
 import Animated, {
+  cancelAnimation,
   Easing,
   useAnimatedStyle,
   useSharedValue,
@@ -23,7 +24,10 @@ import { fonts } from "@/theme/tokens";
  * - Live amplitude waveform: bar height = input loudness, newest sample
  *   scrolls in from the right (falls back to a simulated envelope when
  *   metering is unavailable).
- * - Large thin timer, pulsing red stop square, Cancel / Save.
+ * - Large thin timer, pulsing red pause/resume button, Cancel / Done.
+ * - Pause and resume continue into the same file: the native recorder
+ *   (AVAudioRecorder) handles it and expo-audio reports the accumulated
+ *   duration, so the timer never counts wall-clock time while paused.
  * - Same props as the old AudioRecorder, so callers are unchanged.
  *   Present inside <Sheet> (see screens) rather than a full-screen modal.
  */
@@ -62,6 +66,7 @@ export function VoiceRecorder({
     () => new Array(BAR_COUNT).fill(0.05),
   );
   const [started, setStarted] = useState(false);
+  const [paused, setPaused] = useState(false);
   const phase = useRef(0);
 
   // Start recording as soon as the sheet opens.
@@ -89,9 +94,10 @@ export function VoiceRecorder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Push a new amplitude sample as metering updates.
+  // Push a new amplitude sample as metering updates. While paused the
+  // waveform freezes in place; a scrolling flat line would look like a dead mic.
   useEffect(() => {
-    if (!started || !state.isRecording) return;
+    if (!started || paused || !state.isRecording) return;
     let lvl: number;
     if (typeof state.metering === "number" && isFinite(state.metering)) {
       // metering is dBFS (-160..0): map -50..0 dB → 0..1
@@ -104,7 +110,18 @@ export function VoiceRecorder({
     }
     setLevels((prev) => [...prev.slice(1), lvl]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.metering, state.durationMillis, started, state.isRecording]);
+  }, [state.metering, state.durationMillis, started, paused, state.isRecording]);
+
+  function togglePause() {
+    if (!started) return;
+    if (paused) {
+      recorder.record();
+      setPaused(false);
+    } else {
+      recorder.pause();
+      setPaused(true);
+    }
+  }
 
   async function stopAndSave() {
     try {
@@ -133,8 +150,10 @@ export function VoiceRecorder({
 
   return (
     <View>
-      <Text style={[styles.eyebrow, { color: colors.textMuted }]}>
-        RECORDING
+      <Text
+        style={[styles.eyebrow, { color: paused ? colors.accent : colors.textMuted }]}
+      >
+        {paused ? "PAUSED" : "RECORDING"}
       </Text>
       <View style={styles.wave}>
         {levels.map((lvl, i) => (
@@ -158,12 +177,17 @@ export function VoiceRecorder({
             Cancel
           </Text>
         </Pressable>
-        <PulsingStop onPress={stopAndSave} />
-        <Pressable onPress={stopAndSave} hitSlop={12} style={styles.sideBtn}>
+        <PauseResumeButton paused={paused} onPress={togglePause} />
+        <Pressable
+          onPress={stopAndSave}
+          hitSlop={12}
+          style={styles.sideBtn}
+          accessibilityLabel="Done"
+        >
           <Text
             style={[styles.sideLabel, { color: colors.accent, fontFamily: fonts.semibold }]}
           >
-            Save
+            Done
           </Text>
         </Pressable>
       </View>
@@ -171,9 +195,24 @@ export function VoiceRecorder({
   );
 }
 
-function PulsingStop({ onPress }: { onPress: () => void }) {
+function PauseResumeButton({
+  paused,
+  onPress,
+}: {
+  paused: boolean;
+  onPress: () => void;
+}) {
   const pulse = useSharedValue(0);
+  const ringVisible = useSharedValue(1);
   useEffect(() => {
+    if (paused) {
+      // Stop the heartbeat and fade the ring out so "paused" reads at a glance.
+      cancelAnimation(pulse);
+      pulse.value = withTiming(0, { duration: 200 });
+      ringVisible.value = withTiming(0, { duration: 200 });
+      return;
+    }
+    ringVisible.value = withTiming(1, { duration: 200 });
     pulse.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 1260, easing: Easing.out(Easing.quad) }),
@@ -181,20 +220,31 @@ function PulsingStop({ onPress }: { onPress: () => void }) {
       ),
       -1,
     );
-  }, [pulse]);
+  }, [pulse, ringVisible, paused]);
 
   const ring = useAnimatedStyle(() => ({
     transform: [{ scale: 1 + pulse.value * 0.35 }],
-    opacity: 0.45 * (1 - pulse.value),
+    opacity: 0.45 * (1 - pulse.value) * ringVisible.value,
   }));
 
   return (
-    <Pressable onPress={onPress} accessibilityLabel="Stop and save">
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel={paused ? "Resume recording" : "Pause recording"}
+      accessibilityState={{ selected: paused }}
+    >
       {({ pressed }) => (
         <View style={[styles.stopWrap, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Animated.View style={[styles.stopRing, ring]} />
           <View style={styles.stopBg}>
-            <View style={styles.stopSquare} />
+            {paused ? (
+              <View style={styles.resumeDot} />
+            ) : (
+              <View style={styles.pauseBars}>
+                <View style={styles.pauseBar} />
+                <View style={styles.pauseBar} />
+              </View>
+            )}
           </View>
         </View>
       )}
@@ -257,10 +307,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  stopSquare: {
+  pauseBars: { flexDirection: "row", gap: 7 },
+  pauseBar: {
+    width: 9,
+    height: 30,
+    borderRadius: 3,
+    backgroundColor: REC_RED,
+    shadowColor: REC_RED,
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 6,
+  },
+  resumeDot: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: 15,
     backgroundColor: REC_RED,
     shadowColor: REC_RED,
     shadowOpacity: 0.6,
