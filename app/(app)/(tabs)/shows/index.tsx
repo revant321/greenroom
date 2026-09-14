@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -17,6 +16,7 @@ import { IconButton } from "@/components/IconButton";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
+import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
@@ -43,32 +43,30 @@ export default function ShowsList() {
   const del = useDeleteShow();
   const focusTick = useFocusRefresh();
 
-  if (isLoading && !data) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
-      </View>
-    );
-  }
-  if (error) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Couldn't load shows.</Text>
-      </View>
-    );
-  }
-
+  const loading = isLoading && !data;
   const count = data?.length ?? 0;
+  const subtitle = loading
+    ? "Loading your shows…"
+    : `${count} production${count === 1 ? "" : "s"} in progress`;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg, paddingTop: insets.top }}>
       <RiseIn index={0} refreshKey={focusTick}>
-        <ScreenTitle
-          title="Shows"
-          subtitle={`${count} production${count === 1 ? "" : "s"} in progress`}
-          right={<SettingsButton />}
-        />
+        <ScreenTitle title="Shows" subtitle={subtitle} right={<SettingsButton />} />
       </RiseIn>
+      {loading ? (
+        <ListSkeleton badge />
+      ) : error && !data ? (
+        <View style={styles.listPad}>
+          <EmptyState
+            icon="⚠️"
+            title="Couldn't load shows"
+            body="Check your connection and try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
+        </View>
+      ) : (
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
@@ -167,6 +165,7 @@ export default function ShowsList() {
           </RiseIn>
         )}
       />
+      )}
       <GradientFab
         onPress={() => router.push("/shows/new")}
         accessibilityLabel="Add show"
@@ -177,7 +176,7 @@ export default function ShowsList() {
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    listPad: { padding: spacing.lg },
     card: {
       ...cardSurface(c),
       flexDirection: "row",

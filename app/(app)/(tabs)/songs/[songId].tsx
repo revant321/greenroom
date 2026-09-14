@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -43,6 +42,8 @@ import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { GradientButton, InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
@@ -220,15 +221,19 @@ export default function SongDetail() {
 
   if (isLoading && !song) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!song) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎵"
+          title="Song not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -466,7 +471,7 @@ export default function SongDetail() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    fill: { flex: 1, backgroundColor: c.bg },
     titleInput: {
       fontSize: 26,
       fontFamily: fonts.extrabold,

@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -15,6 +14,7 @@ import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
+import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import {
   cardSurface,
@@ -30,36 +30,42 @@ export default function Scenes() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data, isLoading, refetch, isRefetching } = useScenes(showId);
+  const { data, isLoading, error, refetch, isRefetching } = useScenes(showId);
   const { data: show } = useShow(showId);
   const readOnly = show?.is_completed === true;
   const del = useDeleteScene();
 
-  if (isLoading && !data) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
-      </View>
-    );
-  }
-
+  const loading = isLoading && !data;
   const inCount = (data ?? []).filter((s) => s.is_user_in_scene).length;
+  const sub = loading
+    ? "Loading…"
+    : `${show?.name ? `${show.name} · ` : ""}You're in ${inCount} of ${(data ?? []).length} scenes`;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
         <Text style={styles.heading}>Scenes</Text>
-        <Text style={styles.sub}>
-          {show?.name ? `${show.name} · ` : ""}
-          You're in {inCount} of {(data ?? []).length} scenes
-        </Text>
+        <Text style={styles.sub}>{sub}</Text>
       </RiseIn>
       {readOnly && (
         <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
           <ArchivedBanner showId={showId!} />
         </View>
       )}
+      {loading ? (
+        <ListSkeleton twoLine />
+      ) : error && !data ? (
+        <View style={styles.listPad}>
+          <EmptyState
+            icon="⚠️"
+            title="Couldn't load scenes"
+            body="Check your connection and try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
+        </View>
+      ) : (
       <FlatList
         data={data ?? []}
         keyExtractor={(s) => s.id}
@@ -114,6 +120,7 @@ export default function Scenes() {
           );
         }}
       />
+      )}
       {!readOnly && (
         <GradientFab
           onPress={() => router.push(`/shows/${showId}/scenes/new`)}
@@ -126,7 +133,7 @@ export default function Scenes() {
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    listPad: { padding: spacing.lg },
     heading: {
       fontSize: 28,
       fontFamily: fonts.extrabold,

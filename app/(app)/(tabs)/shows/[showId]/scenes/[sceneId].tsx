@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -27,6 +26,8 @@ import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { Icon } from "@/components/Icon";
 import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
@@ -136,15 +137,19 @@ export default function SceneDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎬"
+          title="Scene not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -276,7 +281,7 @@ export default function SceneDetail() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    fill: { flex: 1, backgroundColor: c.bg },
     titleInput: {
       fontSize: 26,
       fontFamily: fonts.extrabold,

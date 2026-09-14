@@ -1,8 +1,10 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useShow } from "@/services/showService";
 import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { ListSkeleton, Skeleton } from "@/components/Skeleton";
 import { Icon } from "@/components/Icon";
 import { useTheme } from "@/theme/useTheme";
 import {
@@ -24,15 +26,20 @@ export default function ShowHub() {
 
   if (isLoading && !show) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.container}>
+        <Skeleton style={styles.titleGhost} />
+        <ListSkeleton rows={2} badge twoLine style={styles.tilesGhost} />
       </View>
     );
   }
   if (!show) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Show not found.</Text>
+      <View style={styles.container}>
+        <EmptyState
+          icon="🎭"
+          title="Show not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -91,7 +98,8 @@ function makeStyles(c: ColorTokens) {
       backgroundColor: c.bg,
       paddingBottom: FAB_CLEARANCE + spacing.lg,
     },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    titleGhost: { width: "60%", height: 36, marginBottom: spacing.sm },
+    tilesGhost: { padding: 0 },
     title: {
       fontSize: 30,
       fontFamily: fonts.extrabold,

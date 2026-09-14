@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import Animated, {
   Easing,
   interpolateColor,
@@ -14,6 +14,8 @@ import { press } from "@/theme/tokens";
  * Prototype toggle: 51×31 pill, knob glides with a gentle overshoot while
  * the track color cross-fades (no snap). Replaces RN's <Switch>.
  */
+export const TOGGLE_WIDTH = 51;
+export const TOGGLE_HEIGHT = 31;
 const KNOB_TRAVEL = 20;
 const EASE = Easing.bezier(0.34, 1.4, 0.5, 1);
 
@@ -69,8 +71,8 @@ export function AnimatedToggle({
 const styles = StyleSheet.create({
   disabled: { opacity: 0.5 },
   track: {
-    width: 51,
-    height: 31,
+    width: TOGGLE_WIDTH,
+    height: TOGGLE_HEIGHT,
     borderRadius: 16,
     justifyContent: "center",
   },

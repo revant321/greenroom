@@ -8,10 +8,14 @@ import {
 } from "@/services/showService";
 import { MediaKind } from "@/services/cascadeDelete";
 import { Skeleton } from "@/components/Skeleton";
-import { AnimatedToggle } from "@/components/AnimatedToggle";
+import {
+  AnimatedToggle,
+  TOGGLE_HEIGHT,
+  TOGGLE_WIDTH,
+} from "@/components/AnimatedToggle";
 import { GradientButton } from "@/components/GradientButton";
 import { useTheme } from "@/theme/useTheme";
-import { cardSurface, ColorTokens, spacing, type } from "@/theme/tokens";
+import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 const KIND_LABELS: Record<MediaKind, string> = {
   audio: "Audio recordings",
@@ -62,10 +66,13 @@ export default function CompleteShow() {
       <Text style={styles.subhead}>Keep these in your Trophy Case:</Text>
 
       {isLoading ? (
-        <View style={{ gap: spacing.sm }}>
-          <Skeleton style={{ height: 40 }} />
-          <Skeleton style={{ height: 40 }} />
-          <Skeleton style={{ height: 40 }} />
+        <View style={styles.list}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.row}>
+              <Skeleton style={{ width: "50%", height: 20 }} />
+              <Skeleton style={styles.toggleGhost} />
+            </View>
+          ))}
         </View>
       ) : visibleKinds.length === 0 ? (
         <Text style={styles.emptyNote}>
@@ -130,6 +137,11 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "space-between",
       ...cardSurface(c),
       padding: spacing.lg,
+    },
+    toggleGhost: {
+      width: TOGGLE_WIDTH,
+      height: TOGGLE_HEIGHT,
+      borderRadius: radius.pill,
     },
     rowLabel: { ...type.body, color: c.text },
     rowCount: { color: c.textMuted },

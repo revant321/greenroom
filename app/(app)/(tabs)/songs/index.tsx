@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -18,6 +17,7 @@ import { IconButton } from "@/components/IconButton";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
+import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import { Gradient, gradientShadow } from "@/components/Gradient";
 import { ScreenTitle } from "@/components/ScreenTitle";
@@ -57,7 +57,7 @@ export default function Songs() {
   const styles = makeStyles(colors);
   const [preset, setPreset] = useState(0);
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useSongs(PRESETS[preset].filter);
+  const { data, isLoading, error, refetch } = useSongs(PRESETS[preset].filter);
   const { data: allSongs } = useSongs({});
   const del = useDeleteSong();
   const focusTick = useFocusRefresh();
@@ -83,6 +83,10 @@ export default function Songs() {
   );
 
   const totalCount = allSongs?.length ?? 0;
+  const loading = isLoading && !data;
+  const subtitle = allSongs
+    ? `${totalCount} song${totalCount === 1 ? "" : "s"} in your library`
+    : "Loading your library…";
 
   function applyCategory(label: string) {
     const i = PRESETS.findIndex((p) => p.label === label);
@@ -135,7 +139,7 @@ export default function Songs() {
       <RiseIn index={0} refreshKey={focusTick}>
         <ScreenTitle
           title="Songs"
-          subtitle={`${totalCount} song${totalCount === 1 ? "" : "s"} in your library`}
+          subtitle={subtitle}
           right={<SettingsButton />}
         />
         <View style={[styles.search, { backgroundColor: colors.accentSoft }]}>
@@ -240,8 +244,18 @@ export default function Songs() {
           renderItem={({ item, index }) => songCard(item, index)}
           ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
         />
-      ) : isLoading && !data ? (
-        <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.text} />
+      ) : loading ? (
+        <ListSkeleton twoLine style={{ paddingTop: spacing.md }} />
+      ) : error && !data ? (
+        <View style={styles.listPad}>
+          <EmptyState
+            icon="⚠️"
+            title="Couldn't load songs"
+            body="Check your connection and try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
+        </View>
       ) : (
         <FlatList
           data={data ?? []}

@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -18,6 +17,7 @@ import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
+import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import {
   cardSurface,
@@ -33,31 +33,39 @@ export default function MusicalNumbers() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data, isLoading, refetch, isRefetching } = useMusicalNumbers(showId);
+  const { data, isLoading, error, refetch, isRefetching } =
+    useMusicalNumbers(showId);
   const { data: show } = useShow(showId);
   const readOnly = show?.is_completed === true;
   const del = useDeleteMusicalNumber();
 
-  if (isLoading && !data) {
-    return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
-      </View>
-    );
-  }
+  const loading = isLoading && !data;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
         <Text style={styles.heading}>Musical Numbers</Text>
-        {show?.name ? <Text style={styles.sub}>{show.name}</Text> : null}
+        <Text style={styles.sub}>{show?.name ?? " "}</Text>
       </RiseIn>
       {readOnly && (
         <View style={{ padding: spacing.lg, paddingBottom: 0 }}>
           <ArchivedBanner showId={showId!} />
         </View>
       )}
+      {loading ? (
+        <ListSkeleton />
+      ) : error && !data ? (
+        <View style={styles.listPad}>
+          <EmptyState
+            icon="⚠️"
+            title="Couldn't load musical numbers"
+            body="Check your connection and try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
+        </View>
+      ) : (
       <FlatList
         data={data ?? []}
         keyExtractor={(m) => m.id}
@@ -102,6 +110,7 @@ export default function MusicalNumbers() {
           </RiseIn>
         )}
       />
+      )}
       {!readOnly && (
         <GradientFab
           onPress={() => router.push(`/shows/${showId}/musical-numbers/new`)}
@@ -114,7 +123,7 @@ export default function MusicalNumbers() {
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    listPad: { padding: spacing.lg },
     heading: {
       fontSize: 28,
       fontFamily: fonts.extrabold,

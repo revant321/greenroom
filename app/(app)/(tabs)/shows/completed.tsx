@@ -1,5 +1,4 @@
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -11,6 +10,7 @@ import { useDeleteShow, useShows, useUpdateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { DeleteButton } from "@/components/DeleteButton";
 import { IconButton } from "@/components/IconButton";
+import { ListSkeleton } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import {
   cardSurface,
@@ -25,14 +25,27 @@ export default function Completed() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const { data, isLoading } = useShows({ completed: true });
+  const { data, isLoading, error, refetch } = useShows({ completed: true });
   const update = useUpdateShow();
   const del = useDeleteShow();
 
-  if (isLoading && !data) {
+  const loading = isLoading && !data;
+  if (loading || (error && !data)) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={{ flex: 1, backgroundColor: colors.bg }}>
+        {loading ? (
+          <ListSkeleton rows={3} />
+        ) : (
+          <View style={styles.listPad}>
+            <EmptyState
+              icon="⚠️"
+              title="Couldn't load your Trophy Case"
+              body="Check your connection and try again."
+              actionLabel="Retry"
+              onAction={() => refetch()}
+            />
+          </View>
+        )}
       </View>
     );
   }
@@ -95,7 +108,7 @@ export default function Completed() {
 
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    listPad: { padding: spacing.lg },
     card: {
       flexDirection: "row",
       alignItems: "center",

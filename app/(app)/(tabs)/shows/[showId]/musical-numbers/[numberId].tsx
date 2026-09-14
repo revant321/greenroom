@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -46,6 +45,8 @@ import { Sheet } from "@/components/Sheet";
 import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { AddUrlForm } from "@/components/AddUrlForm";
 import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
@@ -188,15 +189,19 @@ export default function MusicalNumberDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎵"
+          title="Musical number not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -494,7 +499,7 @@ function HarmonyRow({
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
+    fill: { flex: 1, backgroundColor: c.bg },
     titleInput: {
       fontSize: 26,
       fontFamily: fonts.extrabold,
