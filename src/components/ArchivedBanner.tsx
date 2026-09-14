@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "@/components/Icon";
 import { useUpdateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, fonts, press, radius, spacing, type } from "@/theme/tokens";
 
 export function ArchivedBanner({ showId }: { showId: string }) {
   const { colors } = useTheme();
@@ -58,6 +58,11 @@ function makeStyles(c: ColorTokens) {
       borderRadius: radius.pill,
       backgroundColor: c.accent,
     },
-    restoreText: { color: "#fff", fontWeight: "600" },
+    restoreText: {
+      ...type.label,
+      fontFamily: fonts.semibold,
+      fontWeight: "600",
+      color: "#fff",
+    },
   });
 }

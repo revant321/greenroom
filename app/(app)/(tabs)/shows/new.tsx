@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useCreateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
 import { haptics } from "@/utils/haptics";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewShow() {
   const router = useRouter();
@@ -67,8 +67,7 @@ function makeStyles(c: ColorTokens) {
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,

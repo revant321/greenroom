@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 import { haptics } from "@/utils/haptics";
 
 /**
@@ -231,13 +231,7 @@ function formatTimer(s: number) {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: {
-    fontSize: 13,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-    letterSpacing: 1,
-    textAlign: "center",
-  },
+  eyebrow: { ...type.eyebrow, letterSpacing: 1, textAlign: "center" },
   wave: {
     flexDirection: "row",
     alignItems: "center",
@@ -262,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   sideBtn: { width: 60, alignItems: "center" },
-  sideLabel: { fontSize: 16, fontFamily: fonts.medium, fontWeight: "500" },
+  sideLabel: { ...type.body, fontFamily: fonts.medium, fontWeight: "500" },
   stopWrap: { width: STOP_SIZE, height: STOP_SIZE, alignItems: "center", justifyContent: "center" },
   stopRing: {
     position: "absolute",

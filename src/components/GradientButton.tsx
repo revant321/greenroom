@@ -11,7 +11,7 @@ import {
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 
 /**
  * Primary action button — gradient fill, white 700 text, presses with a
@@ -126,11 +126,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  label: {
-    fontSize: 16,
-    fontFamily: fonts.bold,
-    fontWeight: "700",
-  },
+  label: { ...type.button },
   disabled: { opacity: 0.5 },
   inline: {
     flexDirection: "row",
@@ -141,7 +137,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   inlineLabel: {
-    fontSize: 13,
+    ...type.caption,
     fontFamily: fonts.semibold,
     fontWeight: "600",
   },

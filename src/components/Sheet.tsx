@@ -20,7 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
 
 /**
  * Prototype bottom sheet: dimmed + blurred backdrop, card slides up with
@@ -148,10 +148,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: 22,
-    fontFamily: fonts.extrabold,
-    fontWeight: "800",
-    letterSpacing: -0.4,
+    ...type.subheading,
     textAlign: "center",
     marginBottom: spacing.lg,
   },

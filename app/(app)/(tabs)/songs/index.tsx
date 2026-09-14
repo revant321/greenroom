@@ -32,6 +32,7 @@ import {
   pressedCard,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 /**
@@ -332,7 +333,7 @@ const tagStyles = StyleSheet.create({
     paddingVertical: spacing.xxs,
     borderRadius: radius.pill,
   },
-  tagText: { fontSize: 12, fontFamily: fonts.medium, fontWeight: "500" },
+  tagText: { ...type.caption, fontFamily: fonts.medium, fontWeight: "500" },
 });
 
 function makeStyles(c: ColorTokens) {
@@ -347,12 +348,7 @@ function makeStyles(c: ColorTokens) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.md,
     },
-    searchInput: {
-      flex: 1,
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: 0,
-    },
+    searchInput: { ...type.body, flex: 1, padding: 0 },
     showingRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -360,7 +356,7 @@ function makeStyles(c: ColorTokens) {
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.md,
     },
-    showingLabel: { fontSize: 13, fontFamily: fonts.regular },
+    showingLabel: { ...type.caption },
     showingChip: {
       flexDirection: "row",
       alignItems: "center",
@@ -370,10 +366,10 @@ function makeStyles(c: ColorTokens) {
       borderRadius: radius.pill,
     },
     showingChipText: {
-      color: "#fff",
-      fontSize: 13,
+      ...type.caption,
       fontFamily: fonts.bold,
       fontWeight: "700",
+      color: "#fff",
     },
     listPad: {
       padding: spacing.lg,
@@ -381,10 +377,7 @@ function makeStyles(c: ColorTokens) {
       paddingBottom: contentInset.fab,
     },
     resultHead: {
-      fontSize: 12,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: 0.9,
+      ...type.eyebrow,
       marginBottom: spacing.sm,
       paddingHorizontal: spacing.xxs,
     },
@@ -396,13 +389,7 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.lg,
     },
     cardPressed: pressedCard(c),
-    title: {
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      letterSpacing: -0.2,
-      color: c.text,
-    },
+    title: { ...type.bodyStrong, color: c.text },
     tagRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -424,12 +411,7 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       justifyContent: "center",
     },
-    catName: {
-      fontSize: 16,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-    },
-    catSub: { fontSize: 13, fontFamily: fonts.regular, marginTop: spacing.xxs },
+    catName: { ...type.bodyStrong, fontFamily: fonts.bold, fontWeight: "700" },
+    catSub: { ...type.caption, marginTop: spacing.xxs },
   });
 }

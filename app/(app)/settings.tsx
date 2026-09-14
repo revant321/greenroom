@@ -6,7 +6,7 @@ import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { SectionLabel } from "@/components/ScreenTitle";
-import { cardSurface, ColorTokens, fonts, press, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 const SPEED_HINTS: Record<AnimSpeed, string> = {
   slower: "A more relaxed, unhurried pace.",
@@ -96,17 +96,10 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "space-between",
       padding: spacing.xs,
     },
-    rowLabel: { fontSize: 13, fontFamily: fonts.regular, color: c.textMuted },
-    email: {
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      color: c.text,
-      marginTop: spacing.xxs,
-    },
+    rowLabel: { ...type.caption, color: c.textMuted },
+    email: { ...type.bodyStrong, color: c.text, marginTop: spacing.xxs },
     hint: {
-      fontSize: 13,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
       paddingTop: spacing.md,
       paddingHorizontal: spacing.sm,
@@ -119,11 +112,6 @@ function makeStyles(c: ColorTokens) {
       backgroundColor: c.danger,
       alignItems: "center",
     },
-    signOutText: {
-      color: "#fff",
-      fontSize: 16,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-    },
+    signOutText: { ...type.button, color: "#fff" },
   });
 }

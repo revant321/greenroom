@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Gradient, gradientShadow } from "./Gradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 import { haptics } from "@/utils/haptics";
 
 /**
@@ -86,10 +86,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   small: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  label: {
-    fontSize: 14,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-  },
-  labelSmall: { fontSize: 12 },
+  label: { ...type.label, fontFamily: fonts.semibold, fontWeight: "600" },
+  labelSmall: { fontSize: type.caption.fontSize },
 });

@@ -20,7 +20,7 @@ import {
   signInWithGoogle,
 } from "@/services/authService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, fonts, press, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -305,8 +305,7 @@ function makeStyles(c: ColorTokens) {
       borderColor: c.border,
       paddingHorizontal: spacing.md,
       backgroundColor: c.card,
-      fontSize: 15,
-      fontFamily: fonts.regular,
+      ...type.body,
       color: c.text,
     },
     emailButton: {

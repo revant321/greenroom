@@ -6,7 +6,7 @@ import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
 import { haptics } from "@/utils/haptics";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
-import { cardSurface, ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewScene() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -85,8 +85,7 @@ function makeStyles(c: ColorTokens) {
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
@@ -99,11 +98,7 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "space-between",
       padding: spacing.lg,
     },
-    toggleLabel: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      color: c.text,
-    },
+    toggleLabel: { ...type.body, color: c.text },
     row: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm },
   });
 }

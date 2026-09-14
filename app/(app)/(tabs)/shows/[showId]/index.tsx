@@ -11,11 +11,11 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   pressedCard,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function ShowHub() {
@@ -107,14 +107,7 @@ function makeStyles(c: ColorTokens) {
     },
     titleGhost: { width: "60%", height: 36, marginBottom: spacing.sm },
     tilesGhost: { padding: 0 },
-    title: {
-      fontSize: 30,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      marginBottom: spacing.sm,
-    },
+    title: { ...type.heading, color: c.text, marginBottom: spacing.sm },
     tile: {
       flexDirection: "row",
       alignItems: "center",
@@ -130,18 +123,7 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       justifyContent: "center",
     },
-    tileText: {
-      fontSize: 19,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: -0.3,
-      color: c.text,
-    },
-    tileSub: {
-      fontSize: 13,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      marginTop: spacing.xxs,
-    },
+    tileText: { ...type.subheading, color: c.text },
+    tileSub: { ...type.caption, color: c.textMuted, marginTop: spacing.xxs },
   });
 }

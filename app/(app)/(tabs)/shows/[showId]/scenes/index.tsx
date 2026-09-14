@@ -20,10 +20,10 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   pressedCard,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function Scenes() {
@@ -140,17 +140,13 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     listPad: { padding: spacing.lg },
     heading: {
-      fontSize: 28,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
+      ...type.heading,
       color: c.text,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
     },
     sub: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
+      ...type.label,
       color: c.textMuted,
       paddingHorizontal: spacing.lg,
       marginTop: spacing.xxs,
@@ -164,17 +160,7 @@ function makeStyles(c: ColorTokens) {
     },
     cardPressed: pressedCard(c),
     cardGrayed: { opacity: 0.45 },
-    name: {
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      color: c.text,
-    },
-    caption: {
-      fontSize: 13,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      marginTop: spacing.xxs,
-    },
+    name: { ...type.bodyStrong, color: c.text },
+    caption: { ...type.caption, color: c.textMuted, marginTop: spacing.xxs },
   });
 }

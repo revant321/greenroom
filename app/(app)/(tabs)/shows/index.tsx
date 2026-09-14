@@ -24,11 +24,11 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   pressedCard,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function ShowsList() {
@@ -194,20 +194,9 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       justifyContent: "center",
     },
-    initialsText: {
-      fontSize: 16,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      color: c.accent,
-    },
+    initialsText: { ...type.button, color: c.accent },
     nameWrap: { flex: 1 },
-    name: {
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      letterSpacing: -0.2,
-      color: c.text,
-    },
+    name: { ...type.bodyStrong, color: c.text },
     actions: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
     trophyCard: {
       flexDirection: "row",
@@ -228,17 +217,7 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       justifyContent: "center",
     },
-    trophyText: {
-      fontSize: 16,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      color: c.warn,
-    },
-    trophySub: {
-      fontSize: 13,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      marginTop: spacing.xxs,
-    },
+    trophyText: { ...type.bodyStrong, color: c.warn },
+    trophySub: { ...type.caption, color: c.textMuted, marginTop: spacing.xxs },
   });
 }

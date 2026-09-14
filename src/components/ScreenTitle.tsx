@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, fontScale, spacing } from "@/theme/tokens";
+import { fontScale, spacing, type } from "@/theme/tokens";
 
 /** Large screen title + optional subtitle (prototype header). */
 export function ScreenTitle({
@@ -63,17 +63,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
-  title: {
-    fontSize: 34,
-    fontFamily: fonts.extrabold,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: fonts.regular,
-    marginTop: spacing.xxs,
-  },
+  title: { ...type.title },
+  subtitle: { ...type.label, marginTop: spacing.xxs },
   sectionRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -82,10 +73,5 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     marginTop: spacing.xl,
   },
-  section: {
-    fontSize: 13,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-    letterSpacing: 0.8,
-  },
+  section: { ...type.eyebrow },
 });

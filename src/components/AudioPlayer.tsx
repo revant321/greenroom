@@ -9,7 +9,7 @@ import {
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useMedia } from "@/services/mediaService";
 import { useTheme } from "@/theme/useTheme";
-import { press, spacing } from "@/theme/tokens";
+import { press, spacing, type } from "@/theme/tokens";
 import { Gradient, gradientShadow } from "./Gradient";
 import { Icon } from "./Icon";
 
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   barArea: { flex: 1, gap: spacing.sm },
-  label: { fontSize: 15, fontWeight: "500" },
+  label: { ...type.label },
   track: { height: 3, borderRadius: 2, overflow: "hidden" },
   fill: { height: "100%", borderRadius: 2 },
 });

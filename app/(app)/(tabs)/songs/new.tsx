@@ -7,7 +7,7 @@ import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
 import { haptics } from "@/utils/haptics";
 import { Chip } from "@/components/Chip";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewSong() {
   const router = useRouter();
@@ -93,21 +93,13 @@ function makeStyles(c: ColorTokens) {
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    sectionLabel: {
-      fontSize: 12,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: 0.9,
-      color: c.textMuted,
-      marginTop: spacing.xs,
-    },
+    sectionLabel: { ...type.eyebrow, color: c.textMuted, marginTop: spacing.xs },
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
     footer: {
       flexDirection: "row",

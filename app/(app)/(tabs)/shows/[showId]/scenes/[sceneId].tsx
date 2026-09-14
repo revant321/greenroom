@@ -36,10 +36,10 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function SceneDetail() {
@@ -289,17 +289,9 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
     fill: { flex: 1, backgroundColor: c.bg },
-    titleInput: {
-      fontSize: 26,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      padding: 0,
-    },
+    titleInput: { ...type.heading, color: c.text, padding: 0 },
     saved: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
       marginTop: spacing.xs,
       marginBottom: spacing.md,
@@ -314,10 +306,9 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "space-between",
       paddingVertical: spacing.md,
     },
-    toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
+    toggleLabel: { ...type.body, color: c.text },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
@@ -325,12 +316,7 @@ function makeStyles(c: ColorTokens) {
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
     btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
-    empty: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      padding: spacing.sm,
-    },
+    empty: { ...type.caption, color: c.textMuted, padding: spacing.sm },
     mediaCard: {
       ...cardSurface(c),
       padding: spacing.md,

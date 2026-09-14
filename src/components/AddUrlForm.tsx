@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { GradientButton } from "./GradientButton";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 /** "Add Link" form used inside a <Sheet> on song / musical-number details. */
 export function AddUrlForm({
@@ -54,8 +54,7 @@ export function AddUrlForm({
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.accentSoft,

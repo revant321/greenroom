@@ -56,11 +56,11 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   press,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function MusicalNumberDetail() {
@@ -430,7 +430,7 @@ export default function MusicalNumberDetail() {
             accessibilityRole="button"
             accessibilityLabel="Done"
           >
-            <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.semibold }}>
+            <Text style={{ ...type.bodyStrong, color: colors.accent }}>
               Done
             </Text>
           </Pressable>
@@ -508,24 +508,15 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
     fill: { flex: 1, backgroundColor: c.bg },
-    titleInput: {
-      fontSize: 26,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      padding: 0,
-    },
+    titleInput: { ...type.heading, color: c.text, padding: 0 },
     saved: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
       marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
+      ...type.body,
       padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
@@ -533,12 +524,7 @@ function makeStyles(c: ColorTokens) {
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
     btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
-    empty: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      padding: spacing.sm,
-    },
+    empty: { ...type.caption, color: c.textMuted, padding: spacing.sm },
     mediaCard: {
       ...cardSurface(c),
       padding: spacing.md,
@@ -547,15 +533,14 @@ function makeStyles(c: ColorTokens) {
     deleteBtn: { alignSelf: "flex-end" },
     harmonyFields: { flexDirection: "row", gap: spacing.sm },
     smallInput: {
+      ...type.label,
       padding: spacing.sm,
-      fontSize: 14,
-      fontFamily: fonts.regular,
       borderRadius: radius.sm,
       backgroundColor: c.accentSoft,
       color: c.text,
     },
     urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.xs },
-    urlText: { color: c.accent, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    urlText: { ...type.bodyStrong, color: c.accent, flex: 1 },
     pdfBadge: {
       width: 34,
       height: 34,
@@ -563,7 +548,7 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       justifyContent: "center",
     },
-    pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    pdfLink: { ...type.bodyStrong, color: c.text, flex: 1 },
     pdfDoneBar: { padding: spacing.lg },
   });
 }

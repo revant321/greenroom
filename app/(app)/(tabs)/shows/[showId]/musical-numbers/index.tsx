@@ -23,10 +23,10 @@ import {
   cardSurface,
   ColorTokens,
   contentInset,
-  fonts,
   fontScale,
   pressedCard,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function MusicalNumbers() {
@@ -130,17 +130,13 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     listPad: { padding: spacing.lg },
     heading: {
-      fontSize: 28,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
+      ...type.heading,
       color: c.text,
       paddingHorizontal: spacing.lg,
       paddingTop: spacing.sm,
     },
     sub: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
+      ...type.label,
       color: c.textMuted,
       paddingHorizontal: spacing.lg,
       marginTop: spacing.xxs,
@@ -153,12 +149,6 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.lg,
     },
     cardPressed: pressedCard(c),
-    name: {
-      flex: 1,
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      color: c.text,
-    },
+    name: { ...type.bodyStrong, flex: 1, color: c.text },
   });
 }

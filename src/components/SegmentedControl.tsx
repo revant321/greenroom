@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 import { haptics } from "@/utils/haptics";
 
 /**
@@ -118,9 +118,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     zIndex: 1,
   },
-  label: {
-    fontSize: 14,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-  },
+  label: { ...type.label, fontFamily: fonts.semibold, fontWeight: "600" },
 });
