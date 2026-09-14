@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -171,10 +172,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** Dark mode in real builds (GitHub issue #38).
-**Completed this session:** Changed `userInterfaceStyle` in `app.json` from `light` to `automatic` so iOS no longer locks native chrome (keyboard, alerts, share sheets) to light in EAS builds. `ThemeProvider` now calls `Appearance.setColorScheme` with the picked mode (or `null` for System), which sets the iOS window override so the Settings picker restyles native chrome as well as our screens. Root layout renders an `expo-status-bar` that follows our `scheme` and paints the Stack background with the theme color; the auth loading spinners and the Settings modal header are themed too. Added an iOS dark splash variant (`ios.splash.dark`, background `#1C1B2E`) and set the light splash to the light theme background. Added `__tests__/ThemeProvider.test.tsx` (4 tests). All 78 tests pass. `npx expo config --type introspect` confirms `UIUserInterfaceStyle: Automatic` and the dark splash in the generated iOS config.
-**Next steps:** Verify on a real EAS build (not Expo Go): with the phone in dark mode and the picker on System, the keyboard, alerts, and status bar should be dark; switching the picker to Light should make everything light, and vice versa; launching in dark mode should show the dark splash. Then continue Phase N8 (skeletons, toasts, TestFlight).
-**Blockers:** None in code. This worktree's `node_modules` is missing a few packages (`@expo-google-fonts/poppins`, `expo-linear-gradient`, `@shopify/react-native-skia`, `@react-navigation/material-top-tabs`), so `tsc` reports unrelated import errors until `npm install` is run there.
+**Currently working on:** Fixing the quiet-playback bug (#59, likely the cause of #26).
+**Completed this session:** Added `src/lib/audioSession.ts` with `enterRecordingMode()` / `exitRecordingMode()` and made it the only place that calls `setAudioModeAsync`. `VoiceRecorder` now restores the audio session after Save, after Cancel, and on unmount, inside a `finally` so a failed `stop()` still restores it. Added unit tests for the helper and for the recorder's cleanup paths. TypeScript is clean and all 81 tests pass.
+**Next steps:** Device-verify per #59: play a video on a fresh launch, record a harmony, play the same video again — volume should match and come from the main speaker. If confirmed, close #26 as well.
+**Blockers:** None.
 
 ## Session Rules
 
