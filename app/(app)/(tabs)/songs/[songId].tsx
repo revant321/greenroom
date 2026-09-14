@@ -394,7 +394,7 @@ export default function SongDetail() {
         </View>
       </RiseIn>
 
-      <Sheet open={recOpen} onClose={() => setRecOpen(false)}>
+      <Sheet open={recOpen} onClose={() => setRecOpen(false)} dismissable={false}>
         {recOpen && (
           <VoiceRecorder onFinish={recordPart} onCancel={() => setRecOpen(false)} />
         )}

@@ -1,4 +1,5 @@
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   Poppins_400Regular,
@@ -11,6 +12,7 @@ import {
 import { AuthProvider } from "@/hooks/useAuth";
 import { UserQueryCacheProvider } from "@/lib/UserQueryCacheProvider";
 import { ThemeProvider } from "@/theme/ThemeProvider";
+import { useTheme } from "@/theme/useTheme";
 import { ToastProvider } from "@/components/Toast";
 
 export default function RootLayout() {
@@ -30,11 +32,26 @@ export default function RootLayout() {
         <UserQueryCacheProvider>
           <ThemeProvider>
             <ToastProvider>
-              <Stack screenOptions={{ headerShown: false }} />
+              <RootNavigator />
             </ToastProvider>
           </ThemeProvider>
         </UserQueryCacheProvider>
       </AuthProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function RootNavigator() {
+  const { colors, scheme } = useTheme();
+  return (
+    <>
+      <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bg },
+        }}
+      />
+    </>
   );
 }

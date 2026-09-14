@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + per-user persister (cache key includes user id)
 │   ├── localData.ts           # clearLocalData: wipe in-memory queries, persisted cache, and media files
@@ -173,9 +174,9 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #50 — sign-out left the previous user's cached data on the device.
-**Completed this session:** Added `clearLocalData()` (drops in-memory queries, deletes every persisted query-cache row, deletes the `media` directory and empties `media_cache`). Replaced `signOut()` with `signOutAndReset()`, which signs out first and then clears (Supabase contacts the server before dropping the session, so a failed sign-out keeps the user signed in with their offline data intact). Scoped the persisted query cache key by user id and replaced TanStack's `PersistQueryClientProvider` with `UserQueryCacheProvider`, which restores the signed-in user's cache and wipes local data whenever the user id changes, so sign-outs that bypass the Settings button (expired sessions) are covered too. The persister ignores throttled writes that land after sign-out. TypeScript is clean and all 91 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test the acceptance list on issue #50: sign in as A, create a show and add a harmony, sign out, confirm the app's documents directory has no `media` folder, sign in as B, confirm no flash of A's data. Then unblock issue #21 (data isolation testing).
+**Currently working on:** GitHub issue #50 — sign-out left the previous user's cached data on the device (merged on top of the #65 recorder and #59 audio-session work from `main`).
+**Completed this session:** Added `clearLocalData()` (drops in-memory queries, deletes every persisted query-cache row, deletes the `media` directory and empties `media_cache`). Replaced `signOut()` with `signOutAndReset()`, which signs out first and then clears (Supabase contacts the server before dropping the session, so a failed sign-out keeps the user signed in with their offline data intact). Scoped the persisted query cache key by user id and replaced TanStack's `PersistQueryClientProvider` with `UserQueryCacheProvider`, which restores the signed-in user's cache and wipes local data whenever the user id changes, so sign-outs that bypass the Settings button (expired sessions) are covered too. The persister ignores throttled writes that land after sign-out. TypeScript is clean and all tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
+**Next steps:** Device-test the acceptance list on issue #50: sign in as A, create a show and add a harmony, sign out, confirm the app's documents directory has no `media` folder, sign in as B, confirm no flash of A's data. Then unblock issue #21 (data isolation testing). Still open from #65/#59: device-test the recorder (cancel short and long takes, deny mic permission then use Open Settings, let a take hit the cap by lowering `maxDurationSeconds`), re-verify video volume after recording a harmony, and consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds.
 **Blockers:** None in code. Device testing needs two Supabase accounts on one phone.
 
 ## Session Rules

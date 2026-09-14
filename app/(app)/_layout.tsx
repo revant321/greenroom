@@ -1,14 +1,24 @@
 import { Redirect, Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "@/hooks/useAuth";
+import { useTheme } from "@/theme/useTheme";
+import { fonts } from "@/theme/tokens";
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
+  const { colors } = useTheme();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: colors.bg,
+        }}
+      >
+        <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
@@ -22,7 +32,19 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
         name="settings"
-        options={{ presentation: "modal", headerShown: true, title: "Settings" }}
+        options={{
+          presentation: "modal",
+          headerShown: true,
+          title: "Settings",
+          headerStyle: { backgroundColor: colors.bg },
+          headerShadowVisible: false,
+          headerTintColor: colors.accent,
+          headerTitleStyle: {
+            color: colors.text,
+            fontFamily: fonts.semibold,
+            fontWeight: "600" as const,
+          },
+        }}
       />
     </Stack>
   );

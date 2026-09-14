@@ -369,7 +369,7 @@ export default function MusicalNumberDetail() {
         </View>
       </RiseIn>
 
-      <Sheet open={recorderOpen} onClose={() => setRecorderOpen(false)}>
+      <Sheet open={recorderOpen} onClose={() => setRecorderOpen(false)} dismissable={false}>
         {recorderOpen && (
           <VoiceRecorder
             onFinish={onRecordingFinished}
