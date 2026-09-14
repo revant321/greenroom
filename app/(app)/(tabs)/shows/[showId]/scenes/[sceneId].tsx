@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -29,6 +28,7 @@ import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
 import { Icon } from "@/components/Icon";
+import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
@@ -248,12 +248,13 @@ export default function SceneDetail() {
                 <VideoPlayer storagePath={r.storage_path} />
               )}
               {!readOnly && (
-                <Pressable
-                  onPress={() => deleteRec.mutate(r)}
-                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this recording?"
+                  message="The recording will be removed for good."
+                  onConfirm={() => deleteRec.mutate(r)}
+                  label="Delete recording"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -323,5 +324,6 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.md,
       gap: spacing.sm,
     },
+    deleteBtn: { alignSelf: "flex-end" },
   });
 }

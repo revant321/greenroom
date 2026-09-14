@@ -11,10 +11,10 @@ import {
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
-import { confirm } from "@/utils/confirm";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
 import { GradientFab } from "@/components/GradientFab";
@@ -116,18 +116,12 @@ export default function Songs() {
             />
           </View>
         </View>
-        <Pressable
-          onPress={() =>
-            confirm(
-              "Delete forever?",
-              `Removes “${item.title}” and every part, track, and PDF inside it.`,
-              () => del.mutate(item.id),
-            )
-          }
-          hitSlop={8}
-        >
-          <Icon sf="trash" ion="trash-outline" size={20} color={colors.danger} />
-        </Pressable>
+        <DeleteButton
+          title="Delete forever?"
+          message={`Removes “${item.title}” and every part, track, and PDF inside it.`}
+          onConfirm={() => del.mutate(item.id)}
+          label="Delete song"
+        />
       </Pressable>
     </RiseIn>
   );

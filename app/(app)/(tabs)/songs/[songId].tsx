@@ -38,6 +38,7 @@ import { PdfViewer } from "@/components/PdfViewer";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { AddUrlForm } from "@/components/AddUrlForm";
+import { DeleteButton } from "@/components/DeleteButton";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { GradientButton, InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
@@ -308,9 +309,13 @@ export default function SongDetail() {
           {(parts ?? []).map((p) => (
             <View key={p.id} style={styles.mediaCard}>
               <AudioPlayer storagePath={p.storage_path} />
-              <Pressable onPress={() => deletePart.mutate(p)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this part?"
+                message="The recording will be removed for good."
+                onConfirm={() => deletePart.mutate(p)}
+                label="Delete part"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -352,9 +357,12 @@ export default function SongDetail() {
                   </Text>
                 </Pressable>
               )}
-              <Pressable onPress={() => deleteTrack.mutate(t)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this track?"
+                onConfirm={() => deleteTrack.mutate(t)}
+                label="Delete track"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -387,9 +395,12 @@ export default function SongDetail() {
                   {s.title || "Sheet music"}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => deleteSheet.mutate(s)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this PDF?"
+                onConfirm={() => deleteSheet.mutate(s)}
+                label="Delete sheet music"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -513,7 +524,7 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "center",
     },
     pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
-    deleteBtn: { alignSelf: "flex-end", padding: spacing.xs },
+    deleteBtn: { alignSelf: "flex-end" },
     pdfDoneBar: { padding: spacing.lg },
   });
 }

@@ -8,9 +8,9 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { useDeleteShow, useShows, useUpdateShow } from "@/services/showService";
-import { confirm } from "@/utils/confirm";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import {
   cardSurface,
@@ -76,25 +76,14 @@ export default function Completed() {
                 color={colors.accent}
               />
             </Pressable>
-            <Pressable
-              onPress={() =>
-                confirm(
-                  "Delete permanently?",
-                  `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF associated with it. This can't be undone.`,
-                  () => del.mutate(item.id),
-                  "Delete forever",
-                )
-              }
-              accessibilityLabel="Delete forever"
-              hitSlop={8}
-            >
-              <Icon
-                sf="trash"
-                ion="trash-outline"
-                size={22}
-                color={colors.danger}
-              />
-            </Pressable>
+            <DeleteButton
+              title="Delete permanently?"
+              message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF associated with it. This can't be undone.`}
+              confirmLabel="Delete forever"
+              onConfirm={() => del.mutate(item.id)}
+              label="Delete show forever"
+              size={22}
+            />
           </View>
         </View>
       )}

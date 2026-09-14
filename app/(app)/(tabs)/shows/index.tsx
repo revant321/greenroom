@@ -10,10 +10,10 @@ import { Link, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDeleteShow, useShows } from "@/services/showService";
 import { Show } from "@/lib/types";
-import { confirm } from "@/utils/confirm";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
 import { GradientFab } from "@/components/GradientFab";
@@ -155,19 +155,13 @@ export default function ShowsList() {
                     color={colors.success}
                   />
                 </Pressable>
-                <Pressable
-                  onPress={() =>
-                    confirm(
-                      "Delete forever?",
-                      `Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`,
-                      () => del.mutate(item.id),
-                    )
-                  }
-                  accessibilityLabel="Delete show"
-                  hitSlop={8}
-                >
-                  <Icon sf="trash" ion="trash-outline" size={22} color={colors.danger} />
-                </Pressable>
+                <DeleteButton
+                  title="Delete forever?"
+                  message={`Removes “${item.name}” and every harmony, scene recording, dance video, and PDF inside it.`}
+                  onConfirm={() => del.mutate(item.id)}
+                  label="Delete show"
+                  size={22}
+                />
               </View>
             </Pressable>
           </RiseIn>

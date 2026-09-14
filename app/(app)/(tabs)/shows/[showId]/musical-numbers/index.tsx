@@ -15,6 +15,7 @@ import { useShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { ArchivedBanner } from "@/components/ArchivedBanner";
+import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
 import { GradientFab } from "@/components/GradientFab";
@@ -87,13 +88,12 @@ export default function MusicalNumbers() {
                 {item.name}
               </Text>
               {!readOnly && (
-                <Pressable
-                  onPress={() => del.mutate(item.id)}
-                  accessibilityLabel="Delete"
-                  hitSlop={8}
-                >
-                  <Icon sf="trash" ion="trash-outline" size={20} color={colors.danger} />
-                </Pressable>
+                <DeleteButton
+                  title="Delete this number?"
+                  message={`Removes “${item.name}” and every harmony, dance video, and PDF inside it.`}
+                  onConfirm={() => del.mutate(item.id)}
+                  label="Delete musical number"
+                />
               )}
               <Icon sf="chevron.right" ion="chevron-forward" size={14} color={colors.textMuted} />
             </Pressable>

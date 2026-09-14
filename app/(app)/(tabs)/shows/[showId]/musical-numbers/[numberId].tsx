@@ -47,6 +47,7 @@ import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
 import { AddUrlForm } from "@/components/AddUrlForm";
+import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { Harmony } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
@@ -312,12 +313,12 @@ export default function MusicalNumberDetail() {
                 </Pressable>
               )}
               {!readOnly && (
-                <Pressable
-                  onPress={() => deleteVideo.mutate(v)}
-                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this video?"
+                  onConfirm={() => deleteVideo.mutate(v)}
+                  label="Delete video"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -358,12 +359,12 @@ export default function MusicalNumberDetail() {
                 </Text>
               </Pressable>
               {!readOnly && (
-                <Pressable
-                  onPress={() => deletePdf.mutate(p)}
-                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this PDF?"
+                  onConfirm={() => deletePdf.mutate(p)}
+                  label="Delete sheet music"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -469,12 +470,13 @@ function HarmonyRow({
         />
       </View>
       {!readOnly && (
-        <Pressable
-          onPress={() => del.mutate(item)}
-          style={{ alignSelf: "flex-end", padding: spacing.xs }}
-        >
-          <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-        </Pressable>
+        <DeleteButton
+          title="Delete this harmony?"
+          message="The recording will be removed for good."
+          onConfirm={() => del.mutate(item)}
+          label="Delete harmony"
+          style={styles.deleteBtn}
+        />
       )}
     </View>
   );
@@ -520,6 +522,7 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.md,
       gap: spacing.sm,
     },
+    deleteBtn: { alignSelf: "flex-end" },
     harmonyFields: { flexDirection: "row", gap: spacing.sm },
     smallInput: {
       padding: spacing.sm,
