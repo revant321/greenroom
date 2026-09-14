@@ -170,11 +170,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** Dark mode in real builds (GitHub issue #38).
+**Completed this session:** Changed `userInterfaceStyle` in `app.json` from `light` to `automatic` so iOS no longer locks native chrome (keyboard, alerts, share sheets) to light in EAS builds. `ThemeProvider` now calls `Appearance.setColorScheme` with the picked mode (or `null` for System), which sets the iOS window override so the Settings picker restyles native chrome as well as our screens. Root layout renders an `expo-status-bar` that follows our `scheme` and paints the Stack background with the theme color; the auth loading spinners and the Settings modal header are themed too. Added an iOS dark splash variant (`ios.splash.dark`, background `#1C1B2E`) and set the light splash to the light theme background. Added `__tests__/ThemeProvider.test.tsx` (4 tests). All 78 tests pass. `npx expo config --type introspect` confirms `UIUserInterfaceStyle: Automatic` and the dark splash in the generated iOS config.
+**Next steps:** Verify on a real EAS build (not Expo Go): with the phone in dark mode and the picker on System, the keyboard, alerts, and status bar should be dark; switching the picker to Light should make everything light, and vice versa; launching in dark mode should show the dark splash. Then continue Phase N8 (skeletons, toasts, TestFlight).
+**Blockers:** None in code. This worktree's `node_modules` is missing a few packages (`@expo-google-fonts/poppins`, `expo-linear-gradient`, `@shopify/react-native-skia`, `@react-navigation/material-top-tabs`), so `tsc` reports unrelated import errors until `npm install` is run there.
 
 ## Session Rules
 
