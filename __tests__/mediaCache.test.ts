@@ -15,6 +15,8 @@ jest.mock("@/db/sqlite", () => ({
           downloaded_at: params[2],
           size_bytes: params[3] ?? null,
         });
+      } else if (sql.startsWith("DELETE") && params.length === 0) {
+        mockRows.clear();
       } else if (sql.startsWith("DELETE")) {
         mockRows.delete(params[0]);
       }
@@ -41,5 +43,13 @@ describe("mediaCache", () => {
     mediaCache.put("a/b.m4a", "file:///tmp/b.m4a", 10);
     mediaCache.remove("a/b.m4a");
     expect(mediaCache.get("a/b.m4a")).toBeNull();
+  });
+
+  test("clear deletes every entry", () => {
+    mediaCache.put("a/b.m4a", "file:///tmp/b.m4a", 10);
+    mediaCache.put("a/c.mp4", "file:///tmp/c.mp4", 20);
+    mediaCache.clear();
+    expect(mediaCache.get("a/b.m4a")).toBeNull();
+    expect(mediaCache.get("a/c.mp4")).toBeNull();
   });
 });

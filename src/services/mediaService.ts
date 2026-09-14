@@ -5,6 +5,7 @@ import { mediaCache } from "@/db/mediaCache";
 import { supabase } from "@/lib/supabase";
 
 const BUCKET = "media";
+export const MEDIA_DIR = `${FileSystem.documentDirectory}media`;
 
 export type MediaSubdir =
   | "harmonies"
@@ -38,10 +39,8 @@ export async function uploadMedia(
   });
   if (error) throw error;
 
-  const cachedUri = `${FileSystem.documentDirectory}media/${id}.${extension}`;
-  await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}media`, {
-    intermediates: true,
-  }).catch(() => {});
+  const cachedUri = `${MEDIA_DIR}/${id}.${extension}`;
+  await FileSystem.makeDirectoryAsync(MEDIA_DIR, { intermediates: true }).catch(() => {});
   await FileSystem.copyAsync({ from: localUri, to: cachedUri });
   const info = await FileSystem.getInfoAsync(cachedUri);
   mediaCache.put(
@@ -63,6 +62,13 @@ export async function deleteMedia(storagePath: string): Promise<void> {
   }
 }
 
+// Files go first: if deleting them fails, the table still points at real files
+// instead of leaving orphans on disk that nothing tracks.
+export async function deleteAllCachedMedia(): Promise<void> {
+  await FileSystem.deleteAsync(MEDIA_DIR, { idempotent: true });
+  mediaCache.clear();
+}
+
 export function useMedia(storagePath: string | null | undefined) {
   return useQuery({
     queryKey: ["media", storagePath],
@@ -79,10 +85,8 @@ export function useMedia(storagePath: string | null | undefined) {
       if (error || !signed) throw error ?? new Error("No signed URL");
 
       const filename = path.split("/").pop() ?? "file";
-      const dest = `${FileSystem.documentDirectory}media/${filename}`;
-      await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}media`, {
-        intermediates: true,
-      }).catch(() => {});
+      const dest = `${MEDIA_DIR}/${filename}`;
+      await FileSystem.makeDirectoryAsync(MEDIA_DIR, { intermediates: true }).catch(() => {});
       const res = await FileSystem.downloadAsync(signed.signedUrl, dest);
       if (res.status !== 200) throw new Error(`Download failed: ${res.status}`);
       const info = await FileSystem.getInfoAsync(dest);
