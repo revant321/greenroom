@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -170,11 +171,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** Fixing the quiet-playback bug (#59, likely the cause of #26).
+**Completed this session:** Added `src/lib/audioSession.ts` with `enterRecordingMode()` / `exitRecordingMode()` and made it the only place that calls `setAudioModeAsync`. `VoiceRecorder` now restores the audio session after Save, after Cancel, and on unmount, inside a `finally` so a failed `stop()` still restores it. Added unit tests for the helper and for the recorder's cleanup paths. TypeScript is clean and all 81 tests pass.
+**Next steps:** Device-verify per #59: play a video on a fresh launch, record a harmony, play the same video again — volume should match and come from the main speaker. If confirmed, close #26 as well.
+**Blockers:** None.
 
 ## Session Rules
 
