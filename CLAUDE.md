@@ -72,12 +72,13 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 ```
 app/
 ├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
-├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
+├── index.tsx                  # Entry: fresh install → auto guest sign-in → /shows; else /login
 ├── (auth)/
-│   └── login.tsx              # Apple + Google + email/password sign-in (themed)
+│   └── login.tsx              # Apple + Google + email/password sign-in + "Continue without an account"
 └── (app)/
-    ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings modal
-    ├── settings.tsx           # Settings sheet (modal route): theme picker + Completed shows link + Sign out
+    ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings + upgrade modals
+    ├── settings.tsx           # Settings sheet (modal): account (guest → "Create an account"), theme, sign out
+    ├── upgrade.tsx            # "Create an account" for guests: links Apple/Google/email to the same user
     └── (tabs)/
         ├── _layout.tsx        # 2-tab swipeable pager (material-top-tabs, bar pinned bottom, FloatingGlassTabBar): Shows + Songs
         ├── shows/             # Shows tab — a Stack
@@ -111,7 +112,7 @@ src/
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
 ├── hooks/
-│   ├── useAuth.tsx            # AuthProvider + useAuth
+│   ├── useAuth.tsx            # AuthProvider + useAuth (session, isGuest, guest banner state, cache clear on user change)
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
 │   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
@@ -120,6 +121,8 @@ src/
 ├── utils/
 │   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
 ├── components/
+│   ├── AuthOptions.tsx        # Shared Apple / Google / email controls used by login + upgrade
+│   ├── GuestBanner.tsx        # "You're using greenroom without an account" banner on Shows + Songs lists
 │   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
@@ -131,7 +134,7 @@ src/
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
-    ├── authService.ts         # Apple / Google / email sign-in + sign-out
+    ├── authService.ts         # Apple / Google / email / guest sign-in, sign-out, linkApple/linkGoogle/linkEmail (guest → account)
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
     ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
@@ -147,7 +150,10 @@ src/
     └── cascadeDelete.ts       # collectShowStoragePaths / collectSongStoragePaths / deleteShowWithMedia / deleteSongWithMedia
 supabase/
 └── migrations/
-    └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
+    ├── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
+    └── 20260914000001_anonymous_user_cleanup.sql  # delete_abandoned_anonymous_users() + pg_cron schedule
+docs/
+└── guest-mode.md              # Guest mode: dashboard toggles, RLS check, App Store review notes
 __tests__/                     # Jest unit tests
 ```
 
@@ -165,16 +171,17 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | N6    | Standalone songs (parts, tracks, sheet music, filters)    | DONE        |
 | N7    | Completed shows archive + cascading storage cleanup       | DONE        |
 | N8    | Theme, skeletons, toasts, SF Symbols, EAS → TestFlight    | PENDING     |
+| G1    | Guest mode: anonymous auth, upgrade-to-account, cleanup (issue #51) | CODE DONE, device test pending |
 
 ## Current Session State
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** Guest mode (GitHub issue #51) — using the app without an account, via anonymous Supabase auth (Option A from the issue).
+**Completed this session:** A fresh install now signs in as a guest automatically and opens Shows; the login screen (reached after a sign-out, or if guest sign-in fails offline) has "Continue without an account". `useAuth` exposes `isGuest` and clears the persisted query cache when the user id changes. New "Create an account" modal (`app/(app)/upgrade.tsx`) links Apple / Google / email to the *same* guest user so nothing migrates; when the identity already belongs to another account the app offers "keep guest work" vs "switch" instead of overwriting. Guest banner on Shows + Songs (dismissible per launch), Settings shows Guest + upgrade button, and guest sign-out warns that data is lost forever. Added a cleanup migration for empty anonymous users older than 30 days and verified RLS isolation between two guests against a local Postgres. Docs in `docs/guest-mode.md`. TypeScript clean; 94 tests pass.
+**Next steps:** (1) In Supabase dashboard turn on "Anonymous sign-ins" and "Allow manual linking" (Authentication → Sign In / Providers), and enable pg_cron (Database → Extensions), then apply the new migration. (2) Device-test on a new native build: fresh install → record a harmony with no sign-in; Create an account via Apple, Google and email; the conflict path with an identity that already has an account; guest sign-out warning. (3) Paste the App Store review notes from `docs/guest-mode.md` into App Store Connect.
+**Blockers:** The two dashboard toggles above must be on before guest mode works on a device.
 
 ## Session Rules
 
