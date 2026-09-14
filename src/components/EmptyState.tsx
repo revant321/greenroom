@@ -35,7 +35,7 @@ export function EmptyState({ icon, title, body, actionLabel, onAction }: Props) 
 const styles = StyleSheet.create({
   wrap: {
     alignItems: "center",
-    padding: spacing.xl + 6,
+    padding: spacing.xxl,
     gap: spacing.sm,
     borderWidth: 1.5,
     borderStyle: "dashed",

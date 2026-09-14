@@ -45,6 +45,7 @@ import { RiseIn } from "@/components/RiseIn";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
@@ -458,26 +459,25 @@ function makeStyles(c: ColorTokens) {
       fontSize: 12,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     card: {
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      ...cardSurface(c),
       paddingHorizontal: spacing.lg,
     },
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 13,
+      paddingVertical: spacing.md,
     },
     toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
     divider: { height: StyleSheet.hairlineWidth },
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -485,7 +485,7 @@ function makeStyles(c: ColorTokens) {
     sheetInput: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.accentSoft,
       color: c.text,
@@ -499,22 +499,21 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.sm,
     },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
     urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.xs },
     urlText: { color: c.accent, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
     pdfBadge: {
       width: 34,
       height: 34,
-      borderRadius: 9,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },
     pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
-    deleteBtn: { alignSelf: "flex-end", padding: 4 },
+    deleteBtn: { alignSelf: "flex-end", padding: spacing.xs },
     pdfDoneBar: { padding: spacing.lg },
   });
 }

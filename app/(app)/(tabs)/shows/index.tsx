@@ -20,6 +20,7 @@ import { GradientFab } from "@/components/GradientFab";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
@@ -184,21 +185,16 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     center: { flex: 1, alignItems: "center", justifyContent: "center" },
     card: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.md,
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      shadowColor: "#000",
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      shadowOffset: { width: 0, height: 1 },
+      padding: spacing.lg,
     },
     initials: {
       width: 44,
       height: 44,
-      borderRadius: 12,
+      borderRadius: radius.md,
       backgroundColor: c.accentSoft,
       alignItems: "center",
       justifyContent: "center",
@@ -222,10 +218,9 @@ function makeStyles(c: ColorTokens) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      padding: spacing.lg - 2,
+      ...cardSurface(c),
+      padding: spacing.lg,
       marginTop: spacing.xl,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: "rgba(255,176,58,0.28)",
     },
@@ -233,7 +228,7 @@ function makeStyles(c: ColorTokens) {
     trophyBadge: {
       width: 44,
       height: 44,
-      borderRadius: 12,
+      borderRadius: radius.md,
       backgroundColor: "rgba(255,176,58,0.10)",
       alignItems: "center",
       justifyContent: "center",
@@ -248,7 +243,7 @@ function makeStyles(c: ColorTokens) {
       fontSize: 13,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 1,
+      marginTop: spacing.xxs,
     },
   });
 }

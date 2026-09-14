@@ -85,14 +85,14 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -108,7 +108,7 @@ function makeStyles(c: ColorTokens) {
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
     footer: {
       flexDirection: "row",
-      gap: spacing.sm + 2,
+      gap: spacing.md,
       marginTop: spacing.lg,
     },
   });

@@ -5,7 +5,14 @@ import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { RiseIn } from "@/components/RiseIn";
 import { Icon } from "@/components/Icon";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, FAB_CLEARANCE, fonts, radius, spacing } from "@/theme/tokens";
+import {
+  cardSurface,
+  ColorTokens,
+  FAB_CLEARANCE,
+  fonts,
+  radius,
+  spacing,
+} from "@/theme/tokens";
 
 export default function ShowHub() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -93,19 +100,14 @@ function makeStyles(c: ColorTokens) {
     tile: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 14,
-      padding: spacing.lg + 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      shadowColor: "#000",
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      shadowOffset: { width: 0, height: 1 },
+      ...cardSurface(c),
+      gap: spacing.md,
+      padding: spacing.lg,
     },
     tileBadge: {
       width: 50,
       height: 50,
-      borderRadius: 13,
+      borderRadius: radius.lg,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -120,7 +122,7 @@ function makeStyles(c: ColorTokens) {
       fontSize: 13,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 2,
+      marginTop: spacing.xxs,
     },
   });
 }

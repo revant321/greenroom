@@ -11,7 +11,7 @@ import {
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
 
 /**
  * Primary action button — gradient fill, white 700 text, presses with a
@@ -109,7 +109,7 @@ export function InlineAction({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radius.lg,
-    paddingVertical: 14,
+    paddingVertical: spacing.lg,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -123,9 +123,9 @@ const styles = StyleSheet.create({
   inline: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
     borderRadius: radius.pill,
   },
   inlineLabel: {

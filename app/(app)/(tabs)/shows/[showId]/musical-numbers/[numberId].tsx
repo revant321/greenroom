@@ -51,6 +51,7 @@ import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { Harmony } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
@@ -313,7 +314,7 @@ export default function MusicalNumberDetail() {
               {!readOnly && (
                 <Pressable
                   onPress={() => deleteVideo.mutate(v)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
+                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
                 >
                   <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
                 </Pressable>
@@ -359,7 +360,7 @@ export default function MusicalNumberDetail() {
               {!readOnly && (
                 <Pressable
                   onPress={() => deletePdf.mutate(p)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
+                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
                 >
                   <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
                 </Pressable>
@@ -470,7 +471,7 @@ function HarmonyRow({
       {!readOnly && (
         <Pressable
           onPress={() => del.mutate(item)}
-          style={{ alignSelf: "flex-end", padding: 4 }}
+          style={{ alignSelf: "flex-end", padding: spacing.xs }}
         >
           <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
         </Pressable>
@@ -495,13 +496,13 @@ function makeStyles(c: ColorTokens) {
       fontSize: 12,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -515,17 +516,16 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.sm,
     },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
     harmonyFields: { flexDirection: "row", gap: spacing.sm },
     smallInput: {
-      padding: spacing.sm + 1,
+      padding: spacing.sm,
       fontSize: 14,
       fontFamily: fonts.regular,
-      borderRadius: radius.sm + 2,
+      borderRadius: radius.sm,
       backgroundColor: c.accentSoft,
       color: c.text,
     },
@@ -534,7 +534,7 @@ function makeStyles(c: ColorTokens) {
     pdfBadge: {
       width: 34,
       height: 34,
-      borderRadius: 9,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },

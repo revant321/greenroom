@@ -137,7 +137,7 @@ export default function Login() {
                       ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
                       : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
                   }
-                  cornerRadius={radius.md}
+                  cornerRadius={radius.lg}
                   style={styles.appleButton}
                   onPress={onApple}
                 />
@@ -251,7 +251,7 @@ function makeStyles(c: ColorTokens) {
       maxWidth: 360,
       alignItems: "center",
     },
-    title: { ...type.title, color: c.text, marginBottom: 4 },
+    title: { ...type.title, color: c.text, marginBottom: spacing.xs },
     subtitle: {
       ...type.body,
       color: c.textMuted,
@@ -266,7 +266,7 @@ function makeStyles(c: ColorTokens) {
     googleButton: {
       width: "100%",
       height: 50,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       backgroundColor: c.bgElevated,
       borderWidth: 1,
       borderColor: c.border,
@@ -300,7 +300,7 @@ function makeStyles(c: ColorTokens) {
     passwordLabel: { marginTop: spacing.lg },
     input: {
       height: 50,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: c.border,
       paddingHorizontal: spacing.md,

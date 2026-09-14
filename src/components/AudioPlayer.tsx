@@ -9,6 +9,7 @@ import {
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useMedia } from "@/services/mediaService";
 import { useTheme } from "@/theme/useTheme";
+import { spacing } from "@/theme/tokens";
 import { Gradient, gradientShadow } from "./Gradient";
 import { Icon } from "./Icon";
 
@@ -84,7 +85,7 @@ export function AudioPlayer({ storagePath, label }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", gap: 12, padding: 4 },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.xs },
   btn: {
     width: 38,
     height: 38,
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  barArea: { flex: 1, gap: 7 },
+  barArea: { flex: 1, gap: spacing.sm },
   label: { fontSize: 15, fontWeight: "500" },
   track: { height: 3, borderRadius: 2, overflow: "hidden" },
   fill: { height: "100%", borderRadius: 2 },

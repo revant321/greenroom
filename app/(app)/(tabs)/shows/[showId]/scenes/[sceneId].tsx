@@ -32,6 +32,7 @@ import { Icon } from "@/components/Icon";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
@@ -249,7 +250,7 @@ export default function SceneDetail() {
               {!readOnly && (
                 <Pressable
                   onPress={() => deleteRec.mutate(r)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
+                  style={{ alignSelf: "flex-end", padding: spacing.xs }}
                 >
                   <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
                 </Pressable>
@@ -287,25 +288,24 @@ function makeStyles(c: ColorTokens) {
       fontSize: 12,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     card: {
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      ...cardSurface(c),
       paddingHorizontal: spacing.lg,
     },
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 13,
+      paddingVertical: spacing.md,
     },
     toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -319,10 +319,9 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.sm,
     },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
   });
 }

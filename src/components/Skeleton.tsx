@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, ViewStyle } from "react-native";
 import { useTheme } from "@/theme/useTheme";
+import { radius } from "@/theme/tokens";
 
 export function Skeleton({ style }: { style?: ViewStyle }) {
   const { colors } = useTheme();
@@ -33,5 +34,5 @@ export function Skeleton({ style }: { style?: ViewStyle }) {
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: 8, height: 16 },
+  base: { borderRadius: radius.sm, height: 16 },
 });

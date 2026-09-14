@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Gradient, gradientShadow } from "./Gradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
 
 /**
  * Filter / category chip. Active = signature gradient with a slight lift
@@ -59,13 +59,13 @@ export function Chip({
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
-  small: { paddingHorizontal: 12, paddingVertical: 5 },
+  small: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
   label: {
     fontSize: 14,
     fontFamily: fonts.semibold,

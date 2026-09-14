@@ -5,7 +5,7 @@ import { useCreateScene, useScenes } from "@/services/sceneService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewScene() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -73,14 +73,14 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -88,16 +88,15 @@ function makeStyles(c: ColorTokens) {
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
+      ...cardSurface(c),
       justifyContent: "space-between",
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      padding: spacing.lg,
     },
     toggleLabel: {
       fontSize: 16,
       fontFamily: fonts.regular,
       color: c.text,
     },
-    row: { flexDirection: "row", gap: spacing.sm + 2, marginTop: spacing.sm },
+    row: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm },
   });
 }

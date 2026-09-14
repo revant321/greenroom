@@ -22,6 +22,7 @@ import { Gradient, gradientShadow } from "@/components/Gradient";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
   fonts,
@@ -198,7 +199,7 @@ export default function Songs() {
                     {catResults.map((p) => (
                       <Pressable
                         key={p.label}
-                        style={[styles.catRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+                        style={styles.catRow}
                         onPress={() => applyCategory(p.label)}
                       >
                         <Gradient style={styles.catBadge}>
@@ -302,8 +303,8 @@ function StatusPill({ done, colors }: { done: boolean; colors: ColorTokens }) {
 
 const tagStyles = StyleSheet.create({
   tag: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
     borderRadius: radius.pill,
   },
   tagText: { fontSize: 12, fontFamily: fonts.medium, fontWeight: "500" },
@@ -314,12 +315,12 @@ function makeStyles(c: ColorTokens) {
     search: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 9,
+      gap: spacing.sm,
       marginHorizontal: spacing.lg,
-      marginTop: 14,
-      borderRadius: 12,
-      paddingHorizontal: 13,
-      paddingVertical: 10,
+      marginTop: spacing.md,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
     },
     searchInput: {
       flex: 1,
@@ -332,15 +333,15 @@ function makeStyles(c: ColorTokens) {
       alignItems: "center",
       gap: spacing.sm,
       paddingHorizontal: spacing.lg,
-      paddingTop: 14,
+      paddingTop: spacing.md,
     },
     showingLabel: { fontSize: 13, fontFamily: fonts.regular },
     showingChip: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 7,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
       borderRadius: radius.pill,
     },
     showingChipText: {
@@ -359,20 +360,15 @@ function makeStyles(c: ColorTokens) {
       fontFamily: fonts.bold,
       fontWeight: "700",
       letterSpacing: 0.9,
-      marginBottom: 9,
-      paddingHorizontal: 2,
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.xxs,
     },
     card: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.md,
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      shadowColor: "#000",
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      shadowOffset: { width: 0, height: 1 },
+      padding: spacing.lg,
     },
     title: {
       fontSize: 17,
@@ -384,22 +380,21 @@ function makeStyles(c: ColorTokens) {
     tagRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      marginTop: 8,
+      gap: spacing.sm,
+      marginTop: spacing.sm,
     },
     catRow: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
-      gap: 13,
-      padding: 11,
-      paddingHorizontal: 14,
-      borderRadius: radius.lg,
-      borderWidth: 1,
+      gap: spacing.md,
+      padding: spacing.md,
+      paddingHorizontal: spacing.lg,
     },
     catBadge: {
       width: 42,
       height: 42,
-      borderRadius: 12,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -409,6 +404,6 @@ function makeStyles(c: ColorTokens) {
       fontWeight: "700",
       letterSpacing: -0.2,
     },
-    catSub: { fontSize: 13, fontFamily: fonts.regular, marginTop: 1 },
+    catSub: { fontSize: 13, fontFamily: fonts.regular, marginTop: spacing.xxs },
   });
 }

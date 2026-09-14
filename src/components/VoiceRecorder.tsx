@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -29,6 +29,7 @@ import { fonts } from "@/theme/tokens";
  */
 const BAR_COUNT = 44;
 const REC_RED = "#FF5C7A";
+const STOP_SIZE = 74;
 
 // Gradient across the bar row: warm → pink → violet.
 function barColor(i: number): string {
@@ -220,10 +221,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: spacing.xxs,
     height: 76,
-    marginTop: 14,
-    marginBottom: 6,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   timer: {
     fontSize: 42,
@@ -236,23 +237,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 48,
-    marginTop: 22,
+    gap: spacing.xxl,
+    marginTop: spacing.xl,
   },
   sideBtn: { width: 60, alignItems: "center" },
   sideLabel: { fontSize: 16, fontFamily: fonts.medium, fontWeight: "500" },
-  stopWrap: { width: 74, height: 74, alignItems: "center", justifyContent: "center" },
+  stopWrap: { width: STOP_SIZE, height: STOP_SIZE, alignItems: "center", justifyContent: "center" },
   stopRing: {
     position: "absolute",
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: STOP_SIZE,
+    height: STOP_SIZE,
+    borderRadius: STOP_SIZE / 2,
     backgroundColor: REC_RED,
   },
   stopBg: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: STOP_SIZE,
+    height: STOP_SIZE,
+    borderRadius: STOP_SIZE / 2,
     backgroundColor: "rgba(255,92,122,0.14)",
     alignItems: "center",
     justifyContent: "center",
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   stopSquare: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     backgroundColor: REC_RED,
     shadowColor: REC_RED,
     shadowOpacity: 0.6,

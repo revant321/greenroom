@@ -64,15 +64,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     fontFamily: fonts.regular,
-    marginTop: 2,
+    marginTop: spacing.xxs,
   },
   sectionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 4,
-    paddingBottom: 8,
-    marginTop: spacing.xl - 2,
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.sm,
+    marginTop: spacing.xl,
   },
   section: {
     fontSize: 13,

@@ -6,7 +6,7 @@ import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { SectionLabel } from "@/components/ScreenTitle";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 const SPEED_HINTS: Record<AnimSpeed, string> = {
   slower: "A more relaxed, unhurried pace.",
@@ -82,11 +82,10 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       padding: spacing.lg,
-      paddingBottom: spacing.xxl * 2,
+      paddingBottom: spacing.xxl,
     },
     card: {
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      ...cardSurface(c),
       padding: spacing.md,
     },
     rowBetween: {
@@ -101,19 +100,19 @@ function makeStyles(c: ColorTokens) {
       fontFamily: fonts.semibold,
       fontWeight: "600",
       color: c.text,
-      marginTop: 2,
+      marginTop: spacing.xxs,
     },
     hint: {
       fontSize: 13,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      paddingTop: 10,
-      paddingHorizontal: 6,
-      paddingBottom: 2,
+      paddingTop: spacing.md,
+      paddingHorizontal: spacing.sm,
+      paddingBottom: spacing.xxs,
     },
     signOut: {
       marginTop: spacing.xl,
-      padding: spacing.md + 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.danger,
       alignItems: "center",

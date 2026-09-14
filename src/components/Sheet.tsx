@@ -20,7 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/useTheme";
-import { fonts } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
 
 /**
  * Prototype bottom sheet: dimmed + blurred backdrop, card slides up with
@@ -102,7 +102,7 @@ export function Sheet({
               styles.card,
               {
                 backgroundColor: colors.card,
-                paddingBottom: Math.max(insets.bottom, 16) + 24,
+                paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.xl,
               },
               cardStyle,
             ]}
@@ -128,10 +128,10 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   card: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 20,
-    paddingTop: 14,
+    borderTopLeftRadius: radius.sheet,
+    borderTopRightRadius: radius.sheet,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
     shadowColor: "#000",
     shadowOpacity: 0.5,
     shadowRadius: 40,
@@ -141,9 +141,9 @@ const styles = StyleSheet.create({
   grabber: {
     width: 38,
     height: 5,
-    borderRadius: 99,
+    borderRadius: radius.pill,
     alignSelf: "center",
-    marginBottom: 12,
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: 22,
@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.4,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: spacing.lg,
   },
 });

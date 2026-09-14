@@ -13,9 +13,9 @@ import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
 import { EmptyState } from "@/components/EmptyState";
 import {
+  cardSurface,
   ColorTokens,
   FAB_CLEARANCE,
-  radius,
   spacing,
   type,
 } from "@/theme/tokens";
@@ -109,11 +109,8 @@ function makeStyles(c: ColorTokens) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      ...cardSurface(c),
       padding: spacing.lg,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
     },
     nameLink: { flex: 1 },
     name: { ...type.bodyStrong, color: c.text },

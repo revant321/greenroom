@@ -17,7 +17,7 @@ export function AddUrlForm({
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   return (
-    <View style={{ gap: spacing.sm + 2 }}>
+    <View style={{ gap: spacing.md }}>
       <TextInput
         value={title}
         onChangeText={setTitle}
@@ -54,14 +54,14 @@ function makeStyles(c: ColorTokens) {
     input: {
       fontSize: 16,
       fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.accentSoft,
       color: c.text,
     },
     row: {
       flexDirection: "row",
-      gap: spacing.sm + 2,
+      gap: spacing.md,
       marginTop: spacing.sm,
     },
   });

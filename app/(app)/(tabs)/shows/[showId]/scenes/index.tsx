@@ -15,7 +15,13 @@ import { ArchivedBanner } from "@/components/ArchivedBanner";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
 import { GradientFab } from "@/components/GradientFab";
-import { ColorTokens, FAB_CLEARANCE, fonts, radius, spacing } from "@/theme/tokens";
+import {
+  cardSurface,
+  ColorTokens,
+  FAB_CLEARANCE,
+  fonts,
+  spacing,
+} from "@/theme/tokens";
 
 export default function Scenes() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -59,7 +65,7 @@ export default function Scenes() {
         onRefresh={refetch}
         contentContainerStyle={{
           padding: spacing.lg,
-          gap: spacing.sm + 2,
+          gap: spacing.md,
           paddingBottom: FAB_CLEARANCE + spacing.lg,
         }}
         ListEmptyComponent={
@@ -129,15 +135,14 @@ function makeStyles(c: ColorTokens) {
       fontFamily: fonts.regular,
       color: c.textMuted,
       paddingHorizontal: spacing.lg,
-      marginTop: 3,
+      marginTop: spacing.xxs,
     },
     card: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.md,
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      padding: spacing.lg,
     },
     name: {
       fontSize: 17,
@@ -149,7 +154,7 @@ function makeStyles(c: ColorTokens) {
       fontSize: 13,
       fontFamily: fonts.regular,
       color: c.textMuted,
-      marginTop: 2,
+      marginTop: spacing.xxs,
     },
   });
 }

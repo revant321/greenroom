@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, radius, spacing } from "@/theme/tokens";
 
 /**
  * Segmented control with a sliding thumb (prototype's appearance /
@@ -33,7 +33,7 @@ export function SegmentedControl<T extends string>({
   const index = Math.max(options.indexOf(value), 0);
   const x = useSharedValue(0);
 
-  const segW = width > 0 ? (width - 4) / options.length : 0;
+  const segW = width > 0 ? (width - spacing.xxs * 2) / options.length : 0;
 
   useEffect(() => {
     x.value = withTiming(index * segW, { duration: 320 * speed, easing: EASE });
@@ -85,15 +85,15 @@ export function SegmentedControl<T extends string>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: "row",
-    borderRadius: radius.md + 2,
-    padding: 2,
+    borderRadius: radius.md,
+    padding: spacing.xxs,
     position: "relative",
   },
   thumb: {
     position: "absolute",
-    top: 2,
-    bottom: 2,
-    left: 2,
+    top: spacing.xxs,
+    bottom: spacing.xxs,
+    left: spacing.xxs,
     borderRadius: radius.md,
     shadowColor: "#000",
     shadowOpacity: 0.15,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   seg: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     zIndex: 1,
   },
   label: {

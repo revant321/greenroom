@@ -17,7 +17,7 @@ import {
 import { MediaKind } from "@/services/cascadeDelete";
 import { Skeleton } from "@/components/Skeleton";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 const KIND_LABELS: Record<MediaKind, string> = {
   audio: "Audio recordings",
@@ -140,11 +140,8 @@ function makeStyles(c: ColorTokens) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      ...cardSurface(c),
       padding: spacing.lg,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
     },
     rowLabel: { ...type.body, color: c.text },
     rowCount: { color: c.textMuted },
