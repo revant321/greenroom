@@ -3,7 +3,6 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import {
   AudioModule,
   RecordingPresets,
-  setAudioModeAsync,
   useAudioRecorder,
   useAudioRecorderState,
 } from "expo-audio";
@@ -17,6 +16,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { fonts } from "@/theme/tokens";
+import { enterRecordingMode, exitRecordingMode } from "@/lib/audioSession";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -64,11 +64,24 @@ export function VoiceRecorder({
   const [started, setStarted] = useState(false);
   const phase = useRef(0);
 
+  // Stop the recorder and take the audio session back out of record mode.
+  // The finally guarantees the session is restored even if stop() throws.
+  async function release() {
+    try {
+      await recorder.stop();
+    } catch {
+      /* already stopped */
+    } finally {
+      await exitRecordingMode();
+    }
+  }
+
   // Start recording as soon as the sheet opens.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (cancelled) return;
       if (!perm.granted) {
         Alert.alert(
           "Microphone permission needed",
@@ -77,14 +90,25 @@ export function VoiceRecorder({
         onCancel();
         return;
       }
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await enterRecordingMode();
+      if (cancelled) {
+        // Unmounted while we were switching modes: undo it, since the
+        // cleanup below already ran before record mode was entered.
+        await exitRecordingMode();
+        return;
+      }
       await recorder.prepareToRecordAsync();
-      if (cancelled) return;
+      if (cancelled) {
+        await exitRecordingMode();
+        return;
+      }
       recorder.record();
       setStarted(true);
     })();
     return () => {
       cancelled = true;
+      // Covers the sheet being swiped away mid-recording.
+      void release();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -107,11 +131,7 @@ export function VoiceRecorder({
   }, [state.metering, state.durationMillis, started, state.isRecording]);
 
   async function stopAndSave() {
-    try {
-      await recorder.stop();
-    } catch {
-      /* already stopped */
-    }
+    await release();
     const uri = recorder.uri;
     if (uri) onFinish(uri);
     else {
@@ -121,11 +141,7 @@ export function VoiceRecorder({
   }
 
   async function cancel() {
-    try {
-      await recorder.stop();
-    } catch {
-      /* noop */
-    }
+    await release();
     onCancel();
   }
 
