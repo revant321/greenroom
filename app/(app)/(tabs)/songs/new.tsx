@@ -5,6 +5,7 @@ import { useCreateSong } from "@/services/songService";
 import { SongCategory } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { Chip } from "@/components/Chip";
 import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
@@ -28,6 +29,7 @@ export default function NewSong() {
         is_audition_song: isAudition,
         category,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't save", e?.message ?? String(e));

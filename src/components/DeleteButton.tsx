@@ -1,6 +1,7 @@
 import { StyleProp, ViewStyle } from "react-native";
 import { IconButton } from "./IconButton";
 import { confirm } from "@/utils/confirm";
+import { haptics } from "@/utils/haptics";
 import { useTheme } from "@/theme/useTheme";
 
 /**
@@ -35,7 +36,17 @@ export function DeleteButton({
       size={size}
       color={colors.danger}
       label={label}
-      onPress={() => confirm(title, message, onConfirm, confirmLabel)}
+      onPress={() =>
+        confirm(
+          title,
+          message,
+          () => {
+            haptics.warning();
+            onConfirm();
+          },
+          confirmLabel,
+        )
+      }
       style={style}
     />
   );

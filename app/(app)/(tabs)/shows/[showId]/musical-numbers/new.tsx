@@ -7,6 +7,7 @@ import {
 } from "@/services/musicalNumberService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewMusicalNumber() {
@@ -28,6 +29,7 @@ export default function NewMusicalNumber() {
         name: trimmed,
         order: nextOrder,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add", e?.message ?? String(e));

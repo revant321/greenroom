@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCreateScene, useScenes } from "@/services/sceneService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { cardSurface, ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
@@ -28,6 +29,7 @@ export default function NewScene() {
         order: nextOrder,
         is_user_in_scene: inScene,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add", e?.message ?? String(e));

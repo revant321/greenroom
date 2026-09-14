@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { press } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Prototype toggle: 51×31 pill, knob glides with a gentle overshoot while
@@ -57,7 +58,11 @@ export function AnimatedToggle({
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       accessibilityLabel={accessibilityLabel}
-      onPress={() => !disabled && onValueChange(!value)}
+      onPress={() => {
+        if (disabled) return;
+        haptics.select();
+        onValueChange(!value);
+      }}
       hitSlop={8}
       style={({ pressed }) => [disabled ? styles.disabled : pressed && press.scale]}
     >

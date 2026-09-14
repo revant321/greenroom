@@ -8,6 +8,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Segmented control with a sliding thumb (prototype's appearance /
@@ -71,7 +72,10 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             style={({ pressed }) => [styles.seg, pressed && press.dim]}
-            onPress={() => onChange(opt)}
+            onPress={() => {
+              if (!active) haptics.select();
+              onChange(opt);
+            }}
           >
             <Text
               style={[

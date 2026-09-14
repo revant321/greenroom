@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { Icon } from "./Icon";
+import { haptics } from "@/utils/haptics";
 import { FAB_CLEARANCE, FAB_SIZE, spacing } from "@/theme/tokens";
 
 /**
@@ -17,7 +18,11 @@ export function GradientFab({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        haptics.tap();
+        onPress();
+      }}
+      accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.wrap,

@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useCreateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
 
 export default function NewShow() {
@@ -18,6 +19,7 @@ export default function NewShow() {
     if (!trimmed) return;
     try {
       await create.mutateAsync({ name: trimmed, roles: [] });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add show", e?.message ?? String(e));

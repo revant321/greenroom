@@ -14,6 +14,7 @@ import {
   TOGGLE_WIDTH,
 } from "@/components/AnimatedToggle";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { useTheme } from "@/theme/useTheme";
 import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
@@ -47,6 +48,7 @@ export default function CompleteShow() {
     if (!showId) return;
     try {
       await archive.mutateAsync({ id: showId, keep });
+      haptics.success();
       router.back();
       router.replace("/shows/completed");
     } catch (e: any) {

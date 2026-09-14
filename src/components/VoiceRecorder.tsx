@@ -17,6 +17,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
 import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -82,6 +83,7 @@ export function VoiceRecorder({
       await recorder.prepareToRecordAsync();
       if (cancelled) return;
       recorder.record();
+      haptics.tap();
       setStarted(true);
     })();
     return () => {
@@ -114,7 +116,10 @@ export function VoiceRecorder({
       /* already stopped */
     }
     const uri = recorder.uri;
-    if (uri) onFinish(uri);
+    if (uri) {
+      haptics.tap();
+      onFinish(uri);
+    }
     else {
       Alert.alert("Recording failed", "No file was produced.");
       onCancel();

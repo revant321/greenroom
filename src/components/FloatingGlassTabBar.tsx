@@ -10,6 +10,7 @@ import { BlurView } from "expo-blur";
 import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/useTheme";
+import { haptics } from "@/utils/haptics";
 import {
   TAB_BAR_BOTTOM_INSET,
   TAB_BAR_HEIGHT,
@@ -96,6 +97,7 @@ export function FloatingGlassTabBar({
               canPreventDefault: true,
             });
             if (!focused && !event.defaultPrevented) {
+              haptics.select();
               (navigation as any).navigate(route.name, route.params);
             }
           };

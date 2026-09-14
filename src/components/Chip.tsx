@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { Gradient, gradientShadow } from "./Gradient";
 import { useTheme } from "@/theme/useTheme";
 import { fonts, fontScale, press, radius, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Filter / category chip. Active = signature gradient with a slight lift
@@ -23,7 +24,10 @@ export function Chip({
   if (active) {
     return (
       <Pressable
-        onPress={onPress}
+        onPress={() => {
+          haptics.select();
+          onPress?.();
+        }}
         accessibilityRole="button"
         accessibilityState={{ selected: true }}
         style={({ pressed }) => [
@@ -46,7 +50,10 @@ export function Chip({
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        haptics.select();
+        onPress?.();
+      }}
       accessibilityRole="button"
       accessibilityState={{ selected: false }}
       style={({ pressed }) => [
