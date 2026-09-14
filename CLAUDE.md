@@ -170,11 +170,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** GitHub issue #65 — recorder edge cases in `src/components/VoiceRecorder.tsx`.
+**Completed this session:** Cancelled or abandoned takes now delete their temp `.m4a` (Cancel, sheet unmount, and unmount-during-prepare all go through one guarded `doneRef` path so a take is never both saved and deleted). Cancelling a take longer than 3 seconds confirms via `confirm.ts`. A permanently denied mic permission alerts with an Open Settings button (`Linking.openSettings`). Recording is capped at a configurable `maxDurationSeconds` (default 10 min) using expo-audio's native `forDuration`, auto-saves what was captured when the recorder stops, and shows a red countdown in the last 30 seconds. A 50 MB free-space check runs before preparing. `Sheet` gained a `dismissable` prop and the three recorder sheets pass `dismissable={false}` so the only exits are Cancel/Save. Added `__tests__/VoiceRecorder.test.tsx` (12 tests). All 86 tests pass. `tsc` errors are pre-existing and come from packages missing in this worktree's `node_modules`.
+**Next steps:** Device-test the recorder: cancel short and long takes, deny mic permission then use Open Settings, and let a take hit the cap (set `maxDurationSeconds` low temporarily). Consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds — the saved path still leaves the original behind.
+**Blockers:** None.
 
 ## Session Rules
 
