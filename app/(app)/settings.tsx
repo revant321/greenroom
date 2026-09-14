@@ -1,6 +1,6 @@
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { signOut } from "@/services/authService";
+import { signOutAndReset } from "@/services/authService";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
@@ -22,7 +22,7 @@ export default function Settings() {
 
   async function onSignOut() {
     try {
-      await signOut();
+      await signOutAndReset();
       router.replace("/login");
     } catch (e: any) {
       Alert.alert("Sign out failed", e?.message ?? String(e));
