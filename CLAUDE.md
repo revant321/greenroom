@@ -170,11 +170,11 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 > Update this section at the END of every coding session.
 
-**Last session:** 2026-08-07
-**Currently working on:** Production email/password sign-in on the existing Supabase Auth login screen.
-**Completed this session:** Made the existing `signInWithPassword` flow visible in all builds instead of only `__DEV__`. Restyled the full login screen to match the aubergine/Poppins design, added light/dark Apple button styling, keyboard-safe scrolling, labeled autofill-ready email/password fields, submit-key behavior, and shared busy-state protection. Merged the latest `main` Apple/Google auth fixes and resolved the login conflict by preserving its asynchronous Google ID-token handling, Google request readiness state, and Apple enablement flag. Updated the project spec. TypeScript is clean and all 74 tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
-**Next steps:** Device-test Apple, Google, and email/password sign-in with a new native build and an existing Supabase email user. If public account creation is wanted, add a separate sign-up and email-confirmation flow rather than changing the sign-in action.
-**Blockers:** None in code. Email authentication must remain enabled in Supabase Dashboard → Authentication → Sign In / Providers.
+**Last session:** 2026-09-14
+**Currently working on:** Issue #61 — pause and resume in the voice recorder.
+**Completed this session:** `VoiceRecorder` now has a pause/resume center button and a separate Done control. Confirmed against the installed `expo-audio` 1.1.1 that the native recorder's `pause()` / `record()` continue into one file and that `durationMillis` is the accumulated recording time, so no file stitching was needed. The waveform freezes and the pulsing ring fades out while paused. Added `__tests__/VoiceRecorder.test.tsx` (4 tests). All 78 tests pass.
+**Next steps:** Device-test pause/resume on a real iPhone: confirm the saved clip is one continuous file and the timer matches. Consider mirroring native interruptions (a phone call pauses the recorder on its own) into the paused UI state. Open a PR for the `claude/review-github-issue-61-b80775` branch.
+**Blockers:** This worktree's `node_modules` is missing `@react-navigation/material-top-tabs`, `expo-linear-gradient`, and `@shopify/react-native-skia`, so `tsc` reports 10 unrelated errors until `npm install` is run here.
 
 ## Session Rules
 
