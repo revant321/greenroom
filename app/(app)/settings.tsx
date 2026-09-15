@@ -6,6 +6,7 @@ import { useTheme } from "@/theme/useTheme";
 import { AnimSpeed, ThemeMode } from "@/theme/ThemeProvider";
 import { SegmentedControl } from "@/components/SegmentedControl";
 import { SectionLabel } from "@/components/ScreenTitle";
+import { GradientButton } from "@/components/GradientButton";
 import { cardSurface, ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 const SPEED_HINTS: Record<AnimSpeed, string> = {
@@ -15,18 +16,36 @@ const SPEED_HINTS: Record<AnimSpeed, string> = {
 };
 
 export default function Settings() {
-  const { session } = useAuth();
+  const { session, isGuest } = useAuth();
   const { colors, mode, setMode, animSpeed, setAnimSpeed } = useTheme();
   const router = useRouter();
   const styles = makeStyles(colors);
 
-  async function onSignOut() {
+  async function doSignOut() {
     try {
       await signOut();
       router.replace("/login");
     } catch (e: any) {
       Alert.alert("Sign out failed", e?.message ?? String(e));
     }
+  }
+
+  function onSignOut() {
+    if (!isGuest) {
+      void doSignOut();
+      return;
+    }
+    // A guest user has no way back in: once signed out, that anonymous user
+    // and everything attached to it is unreachable.
+    Alert.alert(
+      "Sign out of guest mode?",
+      "You're using greenroom without an account. Signing out will permanently lose every show, song and recording you've made unless you create an account first.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Create an account", onPress: () => router.push("/upgrade") },
+        { text: "Sign out and lose my work", style: "destructive", onPress: () => void doSignOut() },
+      ],
+    );
   }
 
   return (
@@ -36,14 +55,30 @@ export default function Settings() {
     >
       <SectionLabel>Account</SectionLabel>
       <View style={styles.card}>
-        <View style={styles.rowBetween}>
-          <View>
+        {isGuest ? (
+          <View style={styles.guestBlock}>
             <Text style={styles.rowLabel}>Signed in as</Text>
-            <Text style={styles.email} numberOfLines={1}>
-              {session?.user.email ?? "(unknown)"}
+            <Text style={styles.email}>Guest</Text>
+            <Text style={styles.hint}>
+              Your work is saved to this device's guest account only. Create an
+              account to keep it if you switch phones or reinstall.
             </Text>
+            <GradientButton
+              label="Create an account"
+              onPress={() => router.push("/upgrade")}
+              style={styles.upgradeButton}
+            />
           </View>
-        </View>
+        ) : (
+          <View style={styles.rowBetween}>
+            <View>
+              <Text style={styles.rowLabel}>Signed in as</Text>
+              <Text style={styles.email} numberOfLines={1}>
+                {session?.user.email ?? "(unknown)"}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
 
       <SectionLabel>Appearance</SectionLabel>
@@ -96,8 +131,10 @@ function makeStyles(c: ColorTokens) {
       justifyContent: "space-between",
       padding: spacing.xs,
     },
+    guestBlock: { padding: spacing.xs },
     rowLabel: { ...type.caption, color: c.textMuted },
     email: { ...type.bodyStrong, color: c.text, marginTop: spacing.xxs },
+    upgradeButton: { marginTop: spacing.md, alignSelf: "stretch" },
     hint: {
       ...type.caption,
       color: c.textMuted,

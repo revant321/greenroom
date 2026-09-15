@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -7,14 +6,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  View,
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
-import { Gradient } from "@/components/Gradient";
+import { AuthOptions } from "@/components/AuthOptions";
 import {
+  signInAsGuest,
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
@@ -22,94 +18,9 @@ import {
 import { useTheme } from "@/theme/useTheme";
 import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
-WebBrowser.maybeCompleteAuthSession();
-
 export default function Login() {
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const styles = makeStyles(colors);
-  const [busy, setBusy] = useState<"apple" | "google" | "email" | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const passwordInput = useRef<TextInput>(null);
-  const handledGoogleToken = useRef<string | null>(null);
-  const canSubmitEmail =
-    busy === null && email.trim().length > 0 && password.length > 0;
-  const appleSignInEnabled =
-    process.env.EXPO_PUBLIC_APPLE_AUTH_ENABLED !== "false";
-
-  const [googleRequest, googleResponse, promptGoogle] =
-    Google.useIdTokenAuthRequest({
-      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    });
-
-  // On native platforms the prompt first returns an authorization code. Expo
-  // exchanges it for an ID token asynchronously and publishes the completed
-  // response through this hook value.
-  useEffect(() => {
-    if (googleResponse?.type !== "success") return;
-
-    const idToken =
-      googleResponse.authentication?.idToken ?? googleResponse.params.id_token;
-    if (!idToken) {
-      Alert.alert(
-        "Sign in failed",
-        "Google completed sign-in but did not return an ID token.",
-      );
-      setBusy(null);
-      return;
-    }
-    if (handledGoogleToken.current === idToken) return;
-    handledGoogleToken.current = idToken;
-
-    void signInWithGoogle(idToken)
-      .catch((e: any) => {
-        handledGoogleToken.current = null;
-        Alert.alert("Sign in failed", e?.message ?? String(e));
-      })
-      .finally(() => setBusy(null));
-  }, [googleResponse]);
-
-  async function onApple() {
-    if (busy !== null) return;
-
-    try {
-      setBusy("apple");
-      await signInWithApple();
-    } catch (e: any) {
-      if (e?.code !== "ERR_REQUEST_CANCELED") {
-        Alert.alert("Sign in failed", e?.message ?? String(e));
-      }
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onEmail() {
-    if (!canSubmitEmail) return;
-
-    try {
-      setBusy("email");
-      await signInWithEmail(email.trim(), password);
-    } catch (e: any) {
-      Alert.alert("Sign in failed", e?.message ?? String(e));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  async function onGoogle() {
-    if (busy !== null || !googleRequest) return;
-
-    try {
-      setBusy("google");
-      const result = await promptGoogle();
-      if (result?.type !== "success") setBusy(null);
-    } catch (e: any) {
-      Alert.alert("Sign in failed", e?.message ?? String(e));
-      setBusy(null);
-    }
-  }
 
   return (
     <KeyboardAvoidingView
@@ -120,114 +31,52 @@ export default function Login() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>greenroom</Text>
-          <Text style={styles.subtitle}>Sign in to sync your shows.</Text>
+        <Text style={styles.title}>greenroom</Text>
+        <Text style={styles.subtitle}>Sign in to sync your shows.</Text>
 
-          <View style={styles.socialButtons}>
-            {Platform.OS === "ios" && appleSignInEnabled && (
-              <View
-                pointerEvents={busy === null ? "auto" : "none"}
-                style={busy !== null && styles.disabled}
-              >
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                  buttonStyle={
-                    scheme === "dark"
-                      ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                      : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                  }
-                  cornerRadius={radius.lg}
-                  style={styles.appleButton}
-                  onPress={onApple}
-                />
-              </View>
-            )}
-
+        <AuthOptions
+          onApple={signInWithApple}
+          onGoogle={signInWithGoogle}
+          onEmail={signInWithEmail}
+          appleButtonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+          googleLabel="Continue with Google"
+          emailLabel="Sign in with email"
+          busyLabel="Signing in…"
+          errorTitle="Sign in failed"
+          passwordAutoComplete="current-password"
+          footer={({ busy, setBusy }) => (
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{
-                disabled: busy !== null || !googleRequest,
-                busy: busy === "google",
+              accessibilityState={{ disabled: busy !== null, busy: busy === "other" }}
+              disabled={busy !== null}
+              onPress={async () => {
+                try {
+                  setBusy("other");
+                  await signInAsGuest();
+                } catch (e: any) {
+                  Alert.alert(
+                    "Couldn't start guest mode",
+                    `${e?.message ?? String(e)}\n\nGuest mode needs an internet connection the first time it is used.`,
+                  );
+                } finally {
+                  setBusy(null);
+                }
               }}
-              disabled={busy !== null || !googleRequest}
-              onPress={onGoogle}
               style={({ pressed }) => [
-                styles.googleButton,
-                (busy !== null || !googleRequest) && styles.disabled,
+                styles.guestButton,
+                busy !== null && styles.disabled,
                 pressed && press.scale,
               ]}
             >
-              <Text style={styles.googleButtonText}>
-                {busy === "google" ? "Signing in…" : "Continue with Google"}
+              <Text style={styles.guestButtonText}>
+                {busy === "other" ? "Starting…" : "Continue without an account"}
+              </Text>
+              <Text style={styles.guestHint}>
+                Try greenroom now. You can create an account later and keep everything.
               </Text>
             </Pressable>
-          </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or use email</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.emailForm}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              accessibilityLabel="Email"
-              placeholder="you@example.com"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect={false}
-              keyboardType="email-address"
-              returnKeyType="next"
-              textContentType="emailAddress"
-              value={email}
-              onChangeText={setEmail}
-              onSubmitEditing={() => passwordInput.current?.focus()}
-            />
-
-            <Text style={[styles.label, styles.passwordLabel]}>Password</Text>
-            <TextInput
-              ref={passwordInput}
-              style={styles.input}
-              accessibilityLabel="Password"
-              placeholder="Your password"
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              autoComplete="current-password"
-              autoCorrect={false}
-              returnKeyType="go"
-              secureTextEntry
-              textContentType="password"
-              value={password}
-              onChangeText={setPassword}
-              onSubmitEditing={onEmail}
-            />
-
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{
-                disabled: !canSubmitEmail,
-                busy: busy === "email",
-              }}
-              disabled={!canSubmitEmail}
-              onPress={onEmail}
-              style={({ pressed }) => [
-                styles.emailButton,
-                !canSubmitEmail && styles.disabled,
-                pressed && press.scale,
-              ]}
-            >
-              <Gradient style={styles.emailButtonFill}>
-                <Text style={styles.emailButtonText}>
-                  {busy === "email" ? "Signing in…" : "Sign in with email"}
-                </Text>
-              </Gradient>
-            </Pressable>
-          </View>
-        </View>
+          )}
+        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -246,11 +95,6 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.xl,
       backgroundColor: c.bg,
     },
-    content: {
-      width: "100%",
-      maxWidth: 360,
-      alignItems: "center",
-    },
     title: { ...type.title, color: c.text, marginBottom: spacing.xs },
     subtitle: {
       ...type.body,
@@ -258,71 +102,17 @@ function makeStyles(c: ColorTokens) {
       marginBottom: spacing.xxl,
       textAlign: "center",
     },
-    socialButtons: {
+    guestButton: {
       width: "100%",
-      gap: spacing.md,
-    },
-    appleButton: { width: "100%", height: 50 },
-    googleButton: {
-      width: "100%",
-      height: 50,
-      borderRadius: radius.lg,
-      backgroundColor: c.bgElevated,
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    googleButtonText: { ...type.bodyStrong, color: c.text },
-    divider: {
-      width: "100%",
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md,
-      marginVertical: spacing.xl,
-    },
-    dividerLine: {
-      flex: 1,
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: c.border,
-    },
-    dividerText: {
-      ...type.caption,
-      color: c.textMuted,
-      textAlign: "center",
-    },
-    emailForm: { width: "100%" },
-    label: {
-      ...type.label,
-      color: c.text,
-      marginBottom: spacing.sm,
-    },
-    passwordLabel: { marginTop: spacing.lg },
-    input: {
-      height: 50,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      paddingHorizontal: spacing.md,
-      backgroundColor: c.card,
-      ...type.body,
-      color: c.text,
-    },
-    emailButton: {
-      width: "100%",
-      borderRadius: radius.lg,
       marginTop: spacing.xl,
-      overflow: "hidden",
-    },
-    emailButtonFill: {
-      height: 50,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.lg,
       alignItems: "center",
-      justifyContent: "center",
+      gap: spacing.xs,
     },
-    emailButtonText: {
-      ...type.bodyStrong,
-      color: "#FFFFFF",
-    },
+    guestButtonText: { ...type.bodyStrong, color: c.accent },
+    guestHint: { ...type.caption, color: c.textMuted, textAlign: "center" },
     disabled: { opacity: 0.5 },
   });
 }

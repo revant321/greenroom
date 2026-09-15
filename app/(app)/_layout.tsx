@@ -35,6 +35,22 @@ export default function AppLayout() {
           },
         }}
       />
+      <Stack.Screen
+        name="upgrade"
+        options={{
+          presentation: "modal",
+          headerShown: true,
+          title: "Create an account",
+          headerStyle: { backgroundColor: colors.bg },
+          headerShadowVisible: false,
+          headerTintColor: colors.accent,
+          headerTitleStyle: {
+            color: colors.text,
+            fontFamily: fonts.semibold,
+            fontWeight: "600" as const,
+          },
+        }}
+      />
     </Stack>
   );
 }

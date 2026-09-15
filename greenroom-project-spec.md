@@ -102,7 +102,7 @@ Cloud sync via Supabase IS the backup. There is no manual export/import file for
 
 - **Database:** Supabase Postgres (cloud); local SQLite cache via expo-sqlite + TanStack Query persister for offline reads (added in Phase N2)
 - **Media storage:** Supabase Storage; cached locally via expo-file-system after first load
-- **Authentication:** Supabase Auth with Apple, Google, and email/password sign-in
+- **Authentication:** Supabase Auth with Apple, Google, and email/password sign-in. **Guest mode:** a fresh install is signed in as an anonymous Supabase user with no sign-in screen; every feature works for a guest. "Create an account" links Apple / Google / email to that same user id so all data carries over. See `docs/guest-mode.md`.
 - **Offline reads:** Any data/media previously loaded is available without a network connection. Writes require network.
 
 ---
@@ -213,9 +213,9 @@ Each table has a `user_id` column (UUID, references `auth.users`) and RLS polici
 greenroom/
 ├── app/
 │   ├── _layout.tsx                # Root: AuthProvider (+ QueryClient, Theme in later phases)
-│   ├── index.tsx                  # Redirect based on auth state
+│   ├── index.tsx                  # Auto guest sign-in on fresh install, else redirect based on auth state
 │   ├── (auth)/
-│   │   └── login.tsx              # Apple + Google + email/password sign-in screen
+│   │   └── login.tsx              # Apple + Google + email/password sign-in + "Continue without an account"
 │   └── (app)/
 │       ├── _layout.tsx            # Session gate; redirects to /login if unauthenticated
 │       ├── index.tsx              # Home screen (shows list)
@@ -227,7 +227,7 @@ greenroom/
 │   ├── hooks/
 │   │   └── useAuth.tsx            # AuthProvider + useAuth hook
 │   └── services/
-│       └── authService.ts         # Apple / Google / email sign-in + sign-out
+│       └── authService.ts         # Apple / Google / email / guest sign-in, sign-out, guest → account linking
 ├── __tests__/                     # Jest unit tests
 ├── supabase/
 │   └── migrations/                # SQL migration files (added in Phase N2)

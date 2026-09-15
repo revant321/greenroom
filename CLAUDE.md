@@ -72,12 +72,13 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 ```
 app/
 ├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
-├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
+├── index.tsx                  # Entry: fresh install → auto guest sign-in → /shows; else /login
 ├── (auth)/
-│   └── login.tsx              # Apple + Google + email/password sign-in (themed)
+│   └── login.tsx              # Apple + Google + email/password sign-in + "Continue without an account"
 └── (app)/
-    ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings modal
-    ├── settings.tsx           # Settings sheet (modal route): theme picker + Completed shows link + Sign out
+    ├── _layout.tsx            # Auth gate + Stack registering (tabs) + settings + upgrade modals
+    ├── settings.tsx           # Settings sheet (modal): account (guest → "Create an account"), theme, sign out
+    ├── upgrade.tsx            # "Create an account" for guests: links Apple/Google/email to the same user
     └── (tabs)/
         ├── _layout.tsx        # 2-tab swipeable pager (material-top-tabs, bar pinned bottom, FloatingGlassTabBar): Shows + Songs
         ├── shows/             # Shows tab — a Stack
@@ -112,7 +113,7 @@ src/
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
 ├── hooks/
-│   ├── useAuth.tsx            # AuthProvider + useAuth
+│   ├── useAuth.tsx            # AuthProvider + useAuth (session, isGuest, guest banner state, cache clear on user change)
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
 │   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
@@ -122,6 +123,8 @@ src/
 │   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
 │   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
+│   ├── AuthOptions.tsx        # Shared Apple / Google / email controls used by login + upgrade
+│   ├── GuestBanner.tsx        # "You're using greenroom without an account" banner on Shows + Songs lists
 │   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
@@ -136,7 +139,7 @@ src/
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
-    ├── authService.ts         # Apple / Google / email sign-in + sign-out
+    ├── authService.ts         # Apple / Google / email / guest sign-in, sign-out, linkApple/linkGoogle/linkEmail (guest → account)
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
     ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
@@ -152,7 +155,10 @@ src/
     └── cascadeDelete.ts       # collectShowStoragePaths / collectSongStoragePaths / deleteShowWithMedia / deleteSongWithMedia
 supabase/
 └── migrations/
-    └── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
+    ├── 20260419000001_init_schema.sql  # All 11 tables + RLS + media bucket
+    └── 20260914000001_anonymous_user_cleanup.sql  # delete_abandoned_anonymous_users() + pg_cron schedule
+docs/
+└── guest-mode.md              # Guest mode: dashboard toggles, RLS check, App Store review notes
 __tests__/                     # Jest unit tests
 ```
 
@@ -170,16 +176,19 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 | N6    | Standalone songs (parts, tracks, sheet music, filters)    | DONE        |
 | N7    | Completed shows archive + cascading storage cleanup       | DONE        |
 | N8    | Theme, skeletons, toasts, SF Symbols, EAS → TestFlight    | PENDING     |
+| G1    | Guest mode: anonymous auth, upgrade-to-account, cleanup (issue #51) | CODE DONE, device test pending |
 
 ## Current Session State
 
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #66 — the UI consistency / interaction polish / accessibility pass.
-**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. Merged `main` (the #59 audio-session and #65 recorder-edge-case work) into the branch, keeping the recorder’s new lifecycle and adding haptics + Dynamic Type caps on top. TypeScript clean, 97 tests pass. PR #78 is open and the audit checklist is posted on #66.
-**Next steps:** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
-**Blockers:** None in code. Haptics and Dynamic Type can only be verified on hardware.
+**Currently working on:** Guest mode (GitHub issue #51) — using the app without an account, via anonymous Supabase auth (Option A from the issue).
+**Completed this session:** A fresh install now signs in as a guest automatically and opens Shows; the login screen (reached after a sign-out, or if guest sign-in fails offline) has "Continue without an account". `useAuth` exposes `isGuest` and clears the persisted query cache when the user id changes. New "Create an account" modal (`app/(app)/upgrade.tsx`) links Apple / Google / email to the *same* guest user so nothing migrates; when the identity already belongs to another account the app offers "keep guest work" vs "switch" instead of overwriting. Guest banner on Shows + Songs (dismissible per launch), Settings shows Guest + upgrade button, and guest sign-out warns that data is lost forever. Added a cleanup migration for empty anonymous users older than 30 days and verified RLS isolation between two guests against a local Postgres. Docs in `docs/guest-mode.md`. TypeScript clean; 94 tests pass.
+**Next steps:** (1) In Supabase dashboard turn on "Anonymous sign-ins" and "Allow manual linking" (Authentication → Sign In / Providers), and enable pg_cron (Database → Extensions), then apply the new migration. (2) Device-test on a new native build: fresh install → record a harmony with no sign-in; Create an account via Apple, Google and email; the conflict path with an identity that already has an account; guest sign-out warning. (3) Paste the App Store review notes from `docs/guest-mode.md` into App Store Connect.
+**Still pending from the recorder work (issue #65, merged from main):** device-test cancel of short and long takes, deny mic permission then use Open Settings, let a take hit the duration cap, and re-verify #59 (video volume after recording).
+**Still pending from the UI consistency pass (issue #66, merged from main):** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
+**Blockers:** The two dashboard toggles above must be on before guest mode works on a device.
 
 ## Session Rules
 

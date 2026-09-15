@@ -20,6 +20,7 @@ import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
+import { GuestBanner } from "@/components/GuestBanner";
 import {
   cardSurface,
   ColorTokens,
@@ -55,6 +56,7 @@ export default function ShowsList() {
       <RiseIn index={0} refreshKey={focusTick}>
         <ScreenTitle title="Shows" subtitle={subtitle} right={<SettingsButton />} />
       </RiseIn>
+      <GuestBanner />
       {loading ? (
         <ListSkeleton badge />
       ) : error && !data ? (

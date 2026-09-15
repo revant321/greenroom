@@ -22,6 +22,7 @@ import { GradientFab } from "@/components/GradientFab";
 import { Gradient, gradientShadow } from "@/components/Gradient";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
+import { GuestBanner } from "@/components/GuestBanner";
 import {
   cardSurface,
   ColorTokens,
@@ -167,6 +168,7 @@ export default function Songs() {
           )}
         </View>
       </RiseIn>
+      <GuestBanner />
 
       {/* Active filter indicator (replaces the old chip row) */}
       {!searching && preset !== 0 && (
