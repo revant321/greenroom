@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -171,10 +172,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** Issue #61 — pause and resume in the voice recorder.
-**Completed this session:** `VoiceRecorder` now has a pause/resume center button and a separate Done control. Confirmed against the installed `expo-audio` 1.1.1 that the native recorder's `pause()` / `record()` continue into one file and that `durationMillis` is the accumulated recording time, so no file stitching was needed. The waveform freezes and the pulsing ring fades out while paused. Added `__tests__/VoiceRecorder.test.tsx` (4 tests). All 78 tests pass.
-**Next steps:** Device-test pause/resume on a real iPhone: confirm the saved clip is one continuous file and the timer matches. Consider mirroring native interruptions (a phone call pauses the recorder on its own) into the paused UI state. Open a PR for the `claude/review-github-issue-61-b80775` branch.
-**Blockers:** This worktree's `node_modules` is missing `@react-navigation/material-top-tabs`, `expo-linear-gradient`, and `@shopify/react-native-skia`, so `tsc` reports 10 unrelated errors until `npm install` is run here.
+**Currently working on:** GitHub issue #61 — pause and resume in `src/components/VoiceRecorder.tsx`, merged on top of the #59 / #65 recorder work.
+**Completed this session:** `VoiceRecorder` now has a pause/resume center button (two bars while recording, a dot while paused) and a separate Done control that stops and saves. Confirmed against the installed `expo-audio` 1.1.1 that the native recorder's `pause()` / `record()` continue into one file and that `durationMillis` is the accumulated recording time, so no file stitching was needed. Resume calls `record({ forDuration: remaining })` so the #65 duration cap still holds across pauses. The #65 auto-save effect is skipped while paused and re-armed on resume (a pause also reports `isRecording=false`, so without that guard every pause would save). The waveform freezes and the pulsing ring fades out while paused. `__tests__/VoiceRecorder.test.tsx` holds 20 tests (16 from #59/#65 plus 4 for pause/resume).
+**Next steps:** Device-test pause/resume on a real iPhone: pause a few times, tap Done, confirm the clip plays as one continuous file and its length matches the timer. Also check the countdown eyebrow after a resume near the cap. Still open from #65: consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds.
+**Blockers:** None in code. `tsc` in this worktree reports 10 pre-existing errors from packages missing in its `node_modules`.
 
 ## Session Rules
 
