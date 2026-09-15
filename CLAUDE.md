@@ -107,6 +107,7 @@ src/
 │   └── mediaCache.ts          # storage_path → local file:// URI map
 ├── lib/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
+│   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
 │   ├── queryClient.ts         # TanStack QueryClient + persister
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
@@ -176,8 +177,8 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 
 **Last session:** 2026-09-14
 **Currently working on:** GitHub issue #66 — the UI consistency / interaction polish / accessibility pass.
-**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. TypeScript clean, 74 tests pass.
-**Next steps:** Post the audit checklist to issue #66 and open the PR. Then a device pass: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
+**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. Merged `main` (the #59 audio-session and #65 recorder-edge-case work) into the branch, keeping the recorder’s new lifecycle and adding haptics + Dynamic Type caps on top. TypeScript clean, 97 tests pass. PR #78 is open and the audit checklist is posted on #66.
+**Next steps:** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
 **Blockers:** None in code. Haptics and Dynamic Type can only be verified on hardware.
 
 ## Session Rules

@@ -53,6 +53,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => sub.remove();
   }, []);
 
+  useEffect(() => {
+    // Tell iOS which appearance the app wants. This flips the native window's
+    // override, so the keyboard, alerts, and share sheets match the picker
+    // instead of only our styled screens. null hands control back to the
+    // phone's own setting.
+    Appearance.setColorScheme(mode === "auto" ? null : mode);
+    if (mode === "auto") {
+      setSystemScheme(Appearance.getColorScheme());
+    }
+  }, [mode]);
+
   const scheme: "light" | "dark" =
     mode === "auto" ? (systemScheme === "dark" ? "dark" : "light") : mode;
 

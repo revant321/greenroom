@@ -273,7 +273,7 @@ export default function SceneDetail() {
         </View>
       </RiseIn>
 
-      <Sheet open={recOpen} onClose={() => setRecOpen(false)}>
+      <Sheet open={recOpen} onClose={() => setRecOpen(false)} dismissable={false}>
         {recOpen && (
           <VoiceRecorder
             onFinish={handleRecordedAudio}

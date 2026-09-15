@@ -38,11 +38,14 @@ export function Sheet({
   onClose,
   title,
   children,
+  dismissable = true,
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  /** When false, tapping the backdrop does nothing; the content must call onClose itself. */
+  dismissable?: boolean;
 }) {
   const { colors, speed } = useTheme();
   const insets = useSafeAreaInsets();
@@ -77,7 +80,9 @@ export function Sheet({
     transform: [{ translateY: (1 - progress.value) * height * 0.6 }],
   }));
 
-  const requestClose = useCallback(() => onClose(), [onClose]);
+  const requestClose = useCallback(() => {
+    if (dismissable) onClose();
+  }, [dismissable, onClose]);
 
   if (!mounted) return null;
 

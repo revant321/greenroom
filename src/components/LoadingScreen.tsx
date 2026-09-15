@@ -9,7 +9,7 @@ export function LoadingScreen() {
   const { colors } = useTheme();
   return (
     <View style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <ActivityIndicator color={colors.textMuted} />
+      <ActivityIndicator color={colors.accent} />
     </View>
   );
 }
