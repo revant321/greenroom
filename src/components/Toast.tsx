@@ -8,7 +8,7 @@ import {
 } from "react";
 import { Animated, StyleSheet, Text } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { spacing, type } from "@/theme/tokens";
+import { contentInset, radius, spacing, type } from "@/theme/tokens";
 
 type ToastKind = "info" | "error" | "success";
 type Toast = { id: number; message: string; kind: ToastKind };
@@ -86,11 +86,11 @@ function ToastView({
 const styles = StyleSheet.create({
   wrap: {
     position: "absolute",
-    bottom: 120,
+    bottom: contentInset.tabBar,
     left: spacing.xl,
     right: spacing.xl,
-    padding: spacing.md + 2,
-    borderRadius: 12,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowRadius: 8,

@@ -115,20 +115,24 @@ src/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
-│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
 │   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
 │   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
-│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
-│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
 │   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
 │   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
 │   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
 │   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
-│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── Skeleton.tsx           # Skeleton + ListSkeleton + DetailSkeleton loading placeholders
+│   ├── IconButton.tsx         # icon-only Pressable: required VoiceOver label, 44pt target, pressed state
+│   ├── DeleteButton.tsx       # trash IconButton that always confirms first — the only way to delete
+│   ├── LoadingScreen.tsx      # themed full-screen spinner for the auth gate
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
@@ -172,10 +176,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #61 — pause and resume in `src/components/VoiceRecorder.tsx`, merged on top of the #59 / #65 recorder work.
-**Completed this session:** `VoiceRecorder` now has a pause/resume center button (two bars while recording, a dot while paused) and a separate Done control that stops and saves. Confirmed against the installed `expo-audio` 1.1.1 that the native recorder's `pause()` / `record()` continue into one file and that `durationMillis` is the accumulated recording time, so no file stitching was needed. Resume calls `record({ forDuration: remaining })` so the #65 duration cap still holds across pauses. The #65 auto-save effect is skipped while paused and re-armed on resume (a pause also reports `isRecording=false`, so without that guard every pause would save). The waveform freezes and the pulsing ring fades out while paused. `__tests__/VoiceRecorder.test.tsx` holds 20 tests (16 from #59/#65 plus 4 for pause/resume).
-**Next steps:** Device-test pause/resume on a real iPhone: pause a few times, tap Done, confirm the clip plays as one continuous file and its length matches the timer. Also check the countdown eyebrow after a resume near the cap. Still open from #65: consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds.
-**Blockers:** None in code. `tsc` in this worktree reports 10 pre-existing errors from packages missing in its `node_modules`.
+**Currently working on:** GitHub issue #61 — pause and resume in `src/components/VoiceRecorder.tsx`, merged on top of the #59 / #65 recorder work and the #66 UI pass.
+**Completed this session:** `VoiceRecorder` now has a pause/resume center button (two bars while recording, a dot while paused) and a separate Done control that stops and saves. Confirmed against the installed `expo-audio` 1.1.1 that the native recorder's `pause()` / `record()` continue into one file and that `durationMillis` is the accumulated recording time, so no file stitching was needed. Resume calls `record({ forDuration: remaining })` so the #65 duration cap still holds across pauses. The #65 auto-save effect is skipped while paused and re-armed on resume (a pause also reports `isRecording=false`, so without that guard every pause would save). The waveform freezes and the pulsing ring fades out while paused; pause/resume fire `haptics.select()`. `__tests__/VoiceRecorder.test.tsx` holds 20 tests (16 from #59/#65 plus 4 for pause/resume).
+**Next steps:** Device-test pause/resume on a real iPhone: pause a few times, tap Done, confirm the clip plays as one continuous file and its length matches the timer. Also check the countdown eyebrow after a resume near the cap. Still open from #66: the hardware pass on Dynamic Type, VoiceOver, and haptics.
+**Blockers:** None in code. `tsc` in this worktree reports pre-existing errors from packages missing in its `node_modules`.
 
 ## Session Rules
 

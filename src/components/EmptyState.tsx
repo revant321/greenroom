@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { radius, spacing, type } from "@/theme/tokens";
 import { GradientButton } from "./GradientButton";
 
 type Props = {
@@ -35,23 +35,13 @@ export function EmptyState({ icon, title, body, actionLabel, onAction }: Props) 
 const styles = StyleSheet.create({
   wrap: {
     alignItems: "center",
-    padding: spacing.xl + 6,
+    padding: spacing.xxl,
     gap: spacing.sm,
     borderWidth: 1.5,
     borderStyle: "dashed",
     borderRadius: radius.lg,
   },
   icon: { fontSize: 36 },
-  title: {
-    fontSize: 17,
-    fontFamily: fonts.bold,
-    fontWeight: "700",
-    letterSpacing: -0.2,
-  },
-  body: {
-    fontSize: 14,
-    fontFamily: fonts.regular,
-    textAlign: "center",
-    lineHeight: 20,
-  },
+  title: { ...type.subheading, textAlign: "center" },
+  body: { ...type.body, textAlign: "center", lineHeight: 22 },
 });

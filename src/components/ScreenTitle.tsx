@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, spacing } from "@/theme/tokens";
+import { fontScale, spacing, type } from "@/theme/tokens";
 
 /** Large screen title + optional subtitle (prototype header). */
 export function ScreenTitle({
@@ -17,9 +17,14 @@ export function ScreenTitle({
   return (
     <View style={styles.wrap}>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.title, { color: colors.text }]} maxFontSizeMultiplier={fontScale.display}>
+          {title}
+        </Text>
         {subtitle ? (
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+          <Text
+            style={[styles.subtitle, { color: colors.textMuted }]}
+            numberOfLines={1}
+          >
             {subtitle}
           </Text>
         ) : null}
@@ -40,7 +45,10 @@ export function SectionLabel({
   const { colors } = useTheme();
   return (
     <View style={styles.sectionRow}>
-      <Text style={[styles.section, { color: colors.textMuted }]}>
+      <Text
+        style={[styles.section, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
         {children.toUpperCase()}
       </Text>
       {action}
@@ -55,29 +63,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
   },
-  title: {
-    fontSize: 34,
-    fontFamily: fonts.extrabold,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: fonts.regular,
-    marginTop: 2,
-  },
+  title: { ...type.title },
+  subtitle: { ...type.label, marginTop: spacing.xxs },
   sectionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 4,
-    paddingBottom: 8,
-    marginTop: spacing.xl - 2,
+    paddingHorizontal: spacing.xs,
+    paddingBottom: spacing.sm,
+    marginTop: spacing.xl,
   },
-  section: {
-    fontSize: 13,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-    letterSpacing: 0.8,
-  },
+  section: { ...type.eyebrow },
 });

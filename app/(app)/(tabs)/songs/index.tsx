@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -11,22 +10,29 @@ import {
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SongFilter, useDeleteSong, useSongs } from "@/services/songService";
-import { confirm } from "@/utils/confirm";
 import { useFocusRefresh } from "@/hooks/useFocusRefresh";
 import { useTheme } from "@/theme/useTheme";
 import { Icon } from "@/components/Icon";
+import { IconButton } from "@/components/IconButton";
+import { DeleteButton } from "@/components/DeleteButton";
 import { EmptyState } from "@/components/EmptyState";
 import { RiseIn } from "@/components/RiseIn";
+import { ListSkeleton } from "@/components/Skeleton";
 import { GradientFab } from "@/components/GradientFab";
 import { Gradient, gradientShadow } from "@/components/Gradient";
 import { ScreenTitle } from "@/components/ScreenTitle";
 import { SettingsButton } from "@/components/SettingsButton";
 import {
+  cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
+  contentInset,
   fonts,
+  fontScale,
+  press,
+  pressedCard,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 /**
@@ -53,7 +59,7 @@ export default function Songs() {
   const styles = makeStyles(colors);
   const [preset, setPreset] = useState(0);
   const [search, setSearch] = useState("");
-  const { data, isLoading } = useSongs(PRESETS[preset].filter);
+  const { data, isLoading, error, refetch } = useSongs(PRESETS[preset].filter);
   const { data: allSongs } = useSongs({});
   const del = useDeleteSong();
   const focusTick = useFocusRefresh();
@@ -79,6 +85,10 @@ export default function Songs() {
   );
 
   const totalCount = allSongs?.length ?? 0;
+  const loading = isLoading && !data;
+  const subtitle = allSongs
+    ? `${totalCount} song${totalCount === 1 ? "" : "s"} in your library`
+    : "Loading your library…";
 
   function applyCategory(label: string) {
     const i = PRESETS.findIndex((p) => p.label === label);
@@ -94,8 +104,9 @@ export default function Songs() {
       refreshKey={`${focusTick}-${searching ? "search" : preset}`}
     >
       <Pressable
-        style={styles.card}
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         onPress={() => router.push(`/songs/${item.id}`)}
+        accessibilityRole="button"
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.title} numberOfLines={1}>
@@ -115,18 +126,12 @@ export default function Songs() {
             />
           </View>
         </View>
-        <Pressable
-          onPress={() =>
-            confirm(
-              "Delete forever?",
-              `Removes “${item.title}” and every part, track, and PDF inside it.`,
-              () => del.mutate(item.id),
-            )
-          }
-          hitSlop={8}
-        >
-          <Icon sf="trash" ion="trash-outline" size={20} color={colors.danger} />
-        </Pressable>
+        <DeleteButton
+          title="Delete forever?"
+          message={`Removes “${item.title}” and every part, track, and PDF inside it.`}
+          onConfirm={() => del.mutate(item.id)}
+          label="Delete song"
+        />
       </Pressable>
     </RiseIn>
   );
@@ -136,7 +141,7 @@ export default function Songs() {
       <RiseIn index={0} refreshKey={focusTick}>
         <ScreenTitle
           title="Songs"
-          subtitle={`${totalCount} song${totalCount === 1 ? "" : "s"} in your library`}
+          subtitle={subtitle}
           right={<SettingsButton />}
         />
         <View style={[styles.search, { backgroundColor: colors.accentSoft }]}>
@@ -144,20 +149,21 @@ export default function Songs() {
           <TextInput
             value={search}
             onChangeText={setSearch}
+            accessibilityLabel="Search songs and categories"
             placeholder="Search songs & categories"
             placeholderTextColor={colors.textMuted}
             style={[styles.searchInput, { color: colors.text }]}
             autoCorrect={false}
           />
           {searching && (
-            <Pressable onPress={() => setSearch("")} hitSlop={8}>
-              <Icon
-                sf="xmark.circle.fill"
-                ion="close-circle"
-                size={18}
-                color={colors.textMuted}
-              />
-            </Pressable>
+            <IconButton
+              sf="xmark.circle.fill"
+              ion="close-circle"
+              size={18}
+              color={colors.textMuted}
+              label="Clear search"
+              onPress={() => setSearch("")}
+            />
           )}
         </View>
       </RiseIn>
@@ -170,11 +176,14 @@ export default function Songs() {
           </Text>
           <Pressable
             onPress={() => setPreset(0)}
-            style={[gradientShadow.glowSm]}
+            style={({ pressed }) => [gradientShadow.glowSm, pressed && press.scale]}
+            accessibilityRole="button"
             accessibilityLabel={`Clear ${PRESETS[preset].label} filter`}
           >
             <Gradient style={styles.showingChip}>
-              <Text style={styles.showingChipText}>{PRESETS[preset].label}</Text>
+              <Text style={styles.showingChipText} maxFontSizeMultiplier={fontScale.compact}>
+                {PRESETS[preset].label}
+              </Text>
               <Icon sf="xmark" ion="close" size={11} color="#fff" />
             </Gradient>
           </Pressable>
@@ -186,6 +195,7 @@ export default function Songs() {
           data={songResults}
           keyExtractor={(s) => s.id}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={styles.listPad}
           ListHeaderComponent={
             <>
@@ -198,8 +208,9 @@ export default function Songs() {
                     {catResults.map((p) => (
                       <Pressable
                         key={p.label}
-                        style={[styles.catRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+                        style={({ pressed }) => [styles.catRow, pressed && styles.cardPressed]}
                         onPress={() => applyCategory(p.label)}
+                        accessibilityRole="button"
                       >
                         <Gradient style={styles.catBadge}>
                           <Icon sf="folder.fill" ion="folder" size={18} color="#fff" />
@@ -239,8 +250,18 @@ export default function Songs() {
           renderItem={({ item, index }) => songCard(item, index)}
           ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
         />
-      ) : isLoading && !data ? (
-        <ActivityIndicator style={{ marginTop: spacing.xl }} color={colors.text} />
+      ) : loading ? (
+        <ListSkeleton twoLine style={{ paddingTop: spacing.md }} />
+      ) : error && !data ? (
+        <View style={styles.listPad}>
+          <EmptyState
+            icon="⚠️"
+            title="Couldn't load songs"
+            body="Check your connection and try again."
+            actionLabel="Retry"
+            onAction={() => refetch()}
+          />
+        </View>
       ) : (
         <FlatList
           data={data ?? []}
@@ -275,7 +296,12 @@ export default function Songs() {
 function Tag({ label, colors }: { label: string; colors: ColorTokens }) {
   return (
     <View style={[tagStyles.tag, { backgroundColor: colors.accentSoft }]}>
-      <Text style={[tagStyles.tagText, { color: colors.textMuted }]}>{label}</Text>
+      <Text
+        style={[tagStyles.tagText, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -293,6 +319,7 @@ function StatusPill({ done, colors }: { done: boolean; colors: ColorTokens }) {
           tagStyles.tagText,
           { color: done ? colors.accent : colors.textMuted },
         ]}
+        maxFontSizeMultiplier={fontScale.compact}
       >
         {done ? "Completed" : "In progress"}
       </Text>
@@ -302,11 +329,11 @@ function StatusPill({ done, colors }: { done: boolean; colors: ColorTokens }) {
 
 const tagStyles = StyleSheet.create({
   tag: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
     borderRadius: radius.pill,
   },
-  tagText: { fontSize: 12, fontFamily: fonts.medium, fontWeight: "500" },
+  tagText: { ...type.caption, fontFamily: fonts.medium, fontWeight: "500" },
 });
 
 function makeStyles(c: ColorTokens) {
@@ -314,101 +341,77 @@ function makeStyles(c: ColorTokens) {
     search: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 9,
+      gap: spacing.sm,
       marginHorizontal: spacing.lg,
-      marginTop: 14,
-      borderRadius: 12,
-      paddingHorizontal: 13,
-      paddingVertical: 10,
+      marginTop: spacing.md,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
     },
-    searchInput: {
-      flex: 1,
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: 0,
-    },
+    searchInput: { ...type.body, flex: 1, padding: 0 },
     showingRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
       paddingHorizontal: spacing.lg,
-      paddingTop: 14,
+      paddingTop: spacing.md,
     },
-    showingLabel: { fontSize: 13, fontFamily: fonts.regular },
+    showingLabel: { ...type.caption },
     showingChip: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 7,
-      paddingHorizontal: 12,
-      paddingVertical: 6,
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
       borderRadius: radius.pill,
     },
     showingChipText: {
-      color: "#fff",
-      fontSize: 13,
+      ...type.caption,
       fontFamily: fonts.bold,
       fontWeight: "700",
+      color: "#fff",
     },
     listPad: {
       padding: spacing.lg,
       paddingTop: spacing.md,
-      paddingBottom: FAB_CLEARANCE + spacing.lg,
+      paddingBottom: contentInset.fab,
     },
     resultHead: {
-      fontSize: 12,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: 0.9,
-      marginBottom: 9,
-      paddingHorizontal: 2,
+      ...type.eyebrow,
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.xxs,
     },
     card: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.md,
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      shadowColor: "#000",
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
-      shadowOffset: { width: 0, height: 1 },
+      padding: spacing.lg,
     },
-    title: {
-      fontSize: 17,
-      fontFamily: fonts.semibold,
-      fontWeight: "600",
-      letterSpacing: -0.2,
-      color: c.text,
-    },
+    cardPressed: pressedCard(c),
+    title: { ...type.bodyStrong, color: c.text },
     tagRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      marginTop: 8,
+      gap: spacing.sm,
+      marginTop: spacing.sm,
     },
     catRow: {
+      ...cardSurface(c),
       flexDirection: "row",
       alignItems: "center",
-      gap: 13,
-      padding: 11,
-      paddingHorizontal: 14,
-      borderRadius: radius.lg,
-      borderWidth: 1,
+      gap: spacing.md,
+      padding: spacing.md,
+      paddingHorizontal: spacing.lg,
     },
     catBadge: {
       width: 42,
       height: 42,
-      borderRadius: 12,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },
-    catName: {
-      fontSize: 16,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: -0.2,
-    },
-    catSub: { fontSize: 13, fontFamily: fonts.regular, marginTop: 1 },
+    catName: { ...type.bodyStrong, fontFamily: fonts.bold, fontWeight: "700" },
+    catSub: { ...type.caption, marginTop: spacing.xxs },
   });
 }
