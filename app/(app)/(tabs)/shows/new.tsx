@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, StyleSheet, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useCreateShow } from "@/services/showService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewShow() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function NewShow() {
     if (!trimmed) return;
     try {
       await create.mutateAsync({ name: trimmed, roles: [] });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add show", e?.message ?? String(e));
@@ -29,6 +31,7 @@ export default function NewShow() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Show title"
         placeholder="Show title"
         placeholderTextColor={colors.textMuted}
         autoFocus
@@ -59,21 +62,20 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
     row: {
       flexDirection: "row",
-      gap: spacing.sm + 2,
+      gap: spacing.md,
       marginTop: spacing.sm,
     },
   });

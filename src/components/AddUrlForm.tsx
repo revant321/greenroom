@@ -2,7 +2,7 @@ import { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { GradientButton } from "./GradientButton";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 /** "Add Link" form used inside a <Sheet> on song / musical-number details. */
 export function AddUrlForm({
@@ -17,10 +17,11 @@ export function AddUrlForm({
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   return (
-    <View style={{ gap: spacing.sm + 2 }}>
+    <View style={{ gap: spacing.md }}>
       <TextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Link title"
         placeholder="Title"
         placeholderTextColor={colors.textMuted}
         style={styles.input}
@@ -28,6 +29,7 @@ export function AddUrlForm({
       <TextInput
         value={url}
         onChangeText={setUrl}
+        accessibilityLabel="Link URL"
         placeholder="https://youtu.be/…"
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
@@ -52,16 +54,15 @@ export function AddUrlForm({
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.accentSoft,
       color: c.text,
     },
     row: {
       flexDirection: "row",
-      gap: spacing.sm + 2,
+      gap: spacing.md,
       marginTop: spacing.sm,
     },
   });

@@ -117,20 +117,24 @@ src/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
-│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
 │   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
 │   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
-│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
-│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
 │   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
 │   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
 │   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
 │   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
-│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── Skeleton.tsx           # Skeleton + ListSkeleton + DetailSkeleton loading placeholders
+│   ├── IconButton.tsx         # icon-only Pressable: required VoiceOver label, 44pt target, pressed state
+│   ├── DeleteButton.tsx       # trash IconButton that always confirms first — the only way to delete
+│   ├── LoadingScreen.tsx      # themed full-screen spinner for the auth gate
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/

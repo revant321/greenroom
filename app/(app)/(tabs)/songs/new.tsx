@@ -5,8 +5,9 @@ import { useCreateSong } from "@/services/songService";
 import { SongCategory } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { Chip } from "@/components/Chip";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewSong() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function NewSong() {
         is_audition_song: isAudition,
         category,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't save", e?.message ?? String(e));
@@ -39,6 +41,7 @@ export default function NewSong() {
       <TextInput
         value={title}
         onChangeText={setTitle}
+        accessibilityLabel="Song title"
         placeholder="Song title"
         placeholderTextColor={colors.textMuted}
         autoFocus
@@ -85,30 +88,22 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    sectionLabel: {
-      fontSize: 12,
-      fontFamily: fonts.bold,
-      fontWeight: "700",
-      letterSpacing: 0.9,
-      color: c.textMuted,
-      marginTop: spacing.xs,
-    },
+    sectionLabel: { ...type.eyebrow, color: c.textMuted, marginTop: spacing.xs },
     chipRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
     footer: {
       flexDirection: "row",
-      gap: spacing.sm + 2,
+      gap: spacing.md,
       marginTop: spacing.lg,
     },
   });

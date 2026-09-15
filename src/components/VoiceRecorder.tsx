@@ -17,9 +17,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 import { enterRecordingMode, exitRecordingMode } from "@/lib/audioSession";
 import { confirm } from "@/utils/confirm";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Voice Memos–style recorder (prototype port).
@@ -41,6 +42,7 @@ import { confirm } from "@/utils/confirm";
  */
 const BAR_COUNT = 44;
 const REC_RED = "#FF5C7A";
+const STOP_SIZE = 74;
 
 export const DEFAULT_MAX_DURATION_SECONDS = 10 * 60;
 const WARN_BEFORE_END_SECONDS = 30;
@@ -179,6 +181,7 @@ export function VoiceRecorder({
       }
       uriRef.current = uri;
       recorder.record({ forDuration: maxDurationSeconds });
+      haptics.tap();
       setStarted(true);
     })();
     return () => {
@@ -235,8 +238,10 @@ export function VoiceRecorder({
     doneRef.current = true;
     await release();
     const uri = uriRef.current ?? recorder.uri;
-    if (uri) onFinish(uri);
-    else {
+    if (uri) {
+      haptics.tap();
+      onFinish(uri);
+    } else {
       Alert.alert("Recording failed", "No file was produced.");
       onCancel();
     }
@@ -270,7 +275,10 @@ export function VoiceRecorder({
 
   return (
     <View>
-      <Text style={[styles.eyebrow, { color: nearEnd ? REC_RED : colors.textMuted }]}>
+      <Text
+        style={[styles.eyebrow, { color: nearEnd ? REC_RED : colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
+      >
         {nearEnd ? `RECORDING · ${formatTimer(remaining)} LEFT` : "RECORDING"}
       </Text>
       <View style={styles.wave}>
@@ -286,17 +294,30 @@ export function VoiceRecorder({
           />
         ))}
       </View>
-      <Text style={[styles.timer, { color: colors.text }]}>
+      <Text
+        style={[styles.timer, { color: colors.text }]}
+        maxFontSizeMultiplier={fontScale.display}
+      >
         {formatTimer(seconds)}
       </Text>
       <View style={styles.controls}>
-        <Pressable onPress={cancel} hitSlop={12} style={styles.sideBtn}>
+        <Pressable
+          onPress={cancel}
+          hitSlop={12}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.sideBtn, pressed && press.dim]}
+        >
           <Text style={[styles.sideLabel, { color: colors.textMuted }]}>
             Cancel
           </Text>
         </Pressable>
         <PulsingStop onPress={stopAndSave} />
-        <Pressable onPress={stopAndSave} hitSlop={12} style={styles.sideBtn}>
+        <Pressable
+          onPress={stopAndSave}
+          hitSlop={12}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.sideBtn, pressed && press.dim]}
+        >
           <Text
             style={[styles.sideLabel, { color: colors.accent, fontFamily: fonts.semibold }]}
           >
@@ -326,7 +347,7 @@ function PulsingStop({ onPress }: { onPress: () => void }) {
   }));
 
   return (
-    <Pressable onPress={onPress} accessibilityLabel="Stop and save">
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel="Stop and save">
       {({ pressed }) => (
         <View style={[styles.stopWrap, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Animated.View style={[styles.stopRing, ring]} />
@@ -346,21 +367,15 @@ function formatTimer(s: number) {
 }
 
 const styles = StyleSheet.create({
-  eyebrow: {
-    fontSize: 13,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-    letterSpacing: 1,
-    textAlign: "center",
-  },
+  eyebrow: { ...type.eyebrow, letterSpacing: 1, textAlign: "center" },
   wave: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: spacing.xxs,
     height: 76,
-    marginTop: 14,
-    marginBottom: 6,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   timer: {
     fontSize: 42,
@@ -373,23 +388,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 48,
-    marginTop: 22,
+    gap: spacing.xxl,
+    marginTop: spacing.xl,
   },
   sideBtn: { width: 60, alignItems: "center" },
-  sideLabel: { fontSize: 16, fontFamily: fonts.medium, fontWeight: "500" },
-  stopWrap: { width: 74, height: 74, alignItems: "center", justifyContent: "center" },
+  sideLabel: { ...type.body, fontFamily: fonts.medium, fontWeight: "500" },
+  stopWrap: { width: STOP_SIZE, height: STOP_SIZE, alignItems: "center", justifyContent: "center" },
   stopRing: {
     position: "absolute",
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: STOP_SIZE,
+    height: STOP_SIZE,
+    borderRadius: STOP_SIZE / 2,
     backgroundColor: REC_RED,
   },
   stopBg: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
+    width: STOP_SIZE,
+    height: STOP_SIZE,
+    borderRadius: STOP_SIZE / 2,
     backgroundColor: "rgba(255,92,122,0.14)",
     alignItems: "center",
     justifyContent: "center",
@@ -397,7 +412,7 @@ const styles = StyleSheet.create({
   stopSquare: {
     width: 30,
     height: 30,
-    borderRadius: 8,
+    borderRadius: radius.sm,
     backgroundColor: REC_RED,
     shadowColor: REC_RED,
     shadowOpacity: 0.6,
