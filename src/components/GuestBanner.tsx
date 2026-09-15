@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius, spacing } from "@/theme/tokens";
+import { press, radius, spacing, type } from "@/theme/tokens";
 import { Icon } from "./Icon";
 
 /**
@@ -36,7 +36,7 @@ export function GuestBanner() {
           accessibilityRole="button"
           onPress={() => router.push("/upgrade")}
           hitSlop={6}
-          style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [pressed && press.dim]}
         >
           <Text style={[styles.action, { color: colors.accent }]}>Create an account</Text>
         </Pressable>
@@ -46,7 +46,7 @@ export function GuestBanner() {
         accessibilityLabel="Dismiss"
         onPress={dismissGuestBanner}
         hitSlop={10}
-        style={({ pressed }) => [styles.close, pressed && { opacity: 0.6 }]}
+        style={({ pressed }) => [styles.close, pressed && press.icon]}
       >
         <Icon sf="xmark" ion="close" size={16} color={colors.textMuted} />
       </Pressable>
@@ -65,14 +65,14 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     gap: spacing.sm,
   },
-  textCol: { flex: 1, gap: 2 },
-  title: { fontSize: 14, fontFamily: fonts.semibold, fontWeight: "600" },
-  body: { fontSize: 13, fontFamily: fonts.regular, lineHeight: 18 },
+  textCol: { flex: 1, gap: spacing.xxs },
+  title: { ...type.label, fontFamily: type.bodyStrong.fontFamily, fontWeight: "600" },
+  body: { ...type.caption, lineHeight: 18 },
   action: {
-    fontSize: 14,
-    fontFamily: fonts.semibold,
+    ...type.label,
+    fontFamily: type.bodyStrong.fontFamily,
     fontWeight: "600",
     marginTop: spacing.xs,
   },
-  close: { padding: 2 },
+  close: { padding: spacing.xxs },
 });

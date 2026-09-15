@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,15 +26,20 @@ import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { Icon } from "@/components/Icon";
+import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
-  fonts,
+  contentInset,
+  fontScale,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function SceneDetail() {
@@ -135,15 +138,19 @@ export default function SceneDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎬"
+          title="Scene not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -153,9 +160,11 @@ export default function SceneDetail() {
       style={{ backgroundColor: colors.bg }}
       contentContainerStyle={[
         styles.container,
-        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+        { paddingBottom: contentInset.tabBar },
       ]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
     >
       <Stack.Screen options={{ title: "" }} />
       {readOnly && showId && <ArchivedBanner showId={showId} />}
@@ -163,9 +172,11 @@ export default function SceneDetail() {
         <TextInput
           value={name}
           onChangeText={setName}
+          accessibilityLabel="Scene name"
           placeholder="Scene name"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
           editable={!readOnly}
         />
         {!readOnly && (
@@ -187,6 +198,7 @@ export default function SceneDetail() {
               value={inScene}
               onValueChange={setInScene}
               disabled={readOnly}
+              accessibilityLabel="I'm in this scene"
             />
           </View>
         </View>
@@ -198,6 +210,7 @@ export default function SceneDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Blocking, cues, costume change…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}
@@ -247,12 +260,13 @@ export default function SceneDetail() {
                 <VideoPlayer storagePath={r.storage_path} />
               )}
               {!readOnly && (
-                <Pressable
-                  onPress={() => deleteRec.mutate(r)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this recording?"
+                  message="The recording will be removed for good."
+                  onConfirm={() => deleteRec.mutate(r)}
+                  label="Delete recording"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -274,55 +288,40 @@ export default function SceneDetail() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    titleInput: {
-      fontSize: 26,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      padding: 0,
-    },
+    fill: { flex: 1, backgroundColor: c.bg },
+    titleInput: { ...type.heading, color: c.text, padding: 0 },
     saved: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     card: {
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      ...cardSurface(c),
       paddingHorizontal: spacing.lg,
     },
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 13,
+      paddingVertical: spacing.md,
     },
-    toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
+    toggleLabel: { ...type.body, color: c.text },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
     btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
-    empty: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      padding: spacing.sm,
-    },
+    empty: { ...type.caption, color: c.textMuted, padding: spacing.sm },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
+    deleteBtn: { alignSelf: "flex-end" },
   });
 }

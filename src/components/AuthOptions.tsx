@@ -13,7 +13,7 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { Gradient } from "@/components/Gradient";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, fonts, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -157,7 +157,7 @@ export function AuthOptions({
                   ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
                   : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
               }
-              cornerRadius={radius.md}
+              cornerRadius={radius.lg}
               style={styles.appleButton}
               onPress={handleApple}
             />
@@ -175,7 +175,7 @@ export function AuthOptions({
           style={({ pressed }) => [
             styles.googleButton,
             (busy !== null || !googleRequest) && styles.disabled,
-            pressed && styles.pressed,
+            pressed && press.scale,
           ]}
         >
           <Text style={styles.googleButtonText}>
@@ -243,7 +243,7 @@ export function AuthOptions({
           style={({ pressed }) => [
             styles.emailButton,
             !canSubmitEmail && styles.disabled,
-            pressed && styles.pressed,
+            pressed && press.scale,
           ]}
         >
           <Gradient style={styles.emailButtonFill}>
@@ -274,7 +274,7 @@ function makeStyles(c: ColorTokens) {
     googleButton: {
       width: "100%",
       height: 50,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       backgroundColor: c.bgElevated,
       borderWidth: 1,
       borderColor: c.border,
@@ -308,13 +308,12 @@ function makeStyles(c: ColorTokens) {
     passwordLabel: { marginTop: spacing.lg },
     input: {
       height: 50,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       borderWidth: 1,
       borderColor: c.border,
       paddingHorizontal: spacing.md,
       backgroundColor: c.card,
-      fontSize: 15,
-      fontFamily: fonts.regular,
+      ...type.body,
       color: c.text,
     },
     emailButton: {
@@ -332,7 +331,6 @@ function makeStyles(c: ColorTokens) {
       ...type.bodyStrong,
       color: "#FFFFFF",
     },
-    pressed: { transform: [{ scale: 0.98 }] },
     disabled: { opacity: 0.5 },
   });
 }

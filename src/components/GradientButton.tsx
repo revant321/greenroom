@@ -11,7 +11,7 @@ import {
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
 
 /**
  * Primary action button — gradient fill, white 700 text, presses with a
@@ -39,15 +39,19 @@ export function GradientButton({
       <Pressable
         onPress={onPress}
         disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading, busy: loading }}
         style={({ pressed }) => [
           styles.base,
           { backgroundColor: colors.accentSoft },
-          pressed && styles.pressed,
+          pressed && press.scale,
           (disabled || loading) && styles.disabled,
           style,
         ]}
       >
-        <Text style={[styles.label, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.label, { color: colors.text }]} maxFontSizeMultiplier={fontScale.display}>
+          {label}
+        </Text>
       </Pressable>
     );
   }
@@ -56,9 +60,12 @@ export function GradientButton({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       style={({ pressed }) => [
         gradientShadow.glowSm,
-        pressed && styles.pressed,
+        pressed && press.scale,
         (disabled || loading) && styles.disabled,
         style,
       ]}
@@ -68,7 +75,9 @@ export function GradientButton({
         {loading ? (
           <ActivityIndicator color="#fff" size="small" />
         ) : (
-          <Text style={[styles.label, { color: "#fff" }]}>{label}</Text>
+          <Text style={[styles.label, { color: "#fff" }]} maxFontSizeMultiplier={fontScale.display}>
+            {label}
+          </Text>
         )}
       </View>
     </Pressable>
@@ -93,15 +102,19 @@ export function InlineAction({
       onPress={onPress}
       disabled={disabled}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.inline,
         { backgroundColor: colors.accentSoft },
-        pressed && { transform: [{ scale: 0.95 }] },
+        pressed && press.scale,
         disabled && styles.disabled,
       ]}
     >
       {children}
-      <Text style={[styles.inlineLabel, { color: colors.accent }]}>{label}</Text>
+      <Text style={[styles.inlineLabel, { color: colors.accent }]} maxFontSizeMultiplier={fontScale.compact}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -109,27 +122,22 @@ export function InlineAction({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radius.lg,
-    paddingVertical: 14,
+    paddingVertical: spacing.lg,
     alignItems: "center",
     justifyContent: "center",
   },
-  label: {
-    fontSize: 16,
-    fontFamily: fonts.bold,
-    fontWeight: "700",
-  },
-  pressed: { transform: [{ scale: 0.97 }] },
+  label: { ...type.button },
   disabled: { opacity: 0.5 },
   inline: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
     borderRadius: radius.pill,
   },
   inlineLabel: {
-    fontSize: 13,
+    ...type.caption,
     fontFamily: fonts.semibold,
     fontWeight: "600",
   },

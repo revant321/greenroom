@@ -10,12 +10,15 @@ import Animated, {
 } from "react-native-reanimated";
 import { Icon } from "./Icon";
 import { useTheme } from "@/theme/useTheme";
+import { press } from "@/theme/tokens";
 
 /**
  * Omnipresent settings gear — 42px frosted glass circle, top-right.
  * Rotates 60° (one cog-tooth realignment) while the Settings screen is
  * open; tapping it again closes Settings.
  */
+const SIZE = 42;
+
 export function SettingsButton() {
   const router = useRouter();
   const pathname = usePathname();
@@ -43,8 +46,9 @@ export function SettingsButton() {
     <Pressable
       onPress={onPress}
       hitSlop={10}
+      accessibilityRole="button"
       accessibilityLabel="Settings"
-      style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+      style={({ pressed }) => [pressed && press.icon]}
     >
       <BlurView
         intensity={80}
@@ -72,9 +76,9 @@ export function SettingsButton() {
 
 const styles = StyleSheet.create({
   circle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: SIZE,
+    height: SIZE,
+    borderRadius: SIZE / 2,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: "center",
     justifyContent: "center",

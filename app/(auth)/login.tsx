@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  View,
 } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { AuthOptions } from "@/components/AuthOptions";
@@ -17,7 +16,7 @@ import {
   signInWithGoogle,
 } from "@/services/authService";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { ColorTokens, press, radius, spacing, type } from "@/theme/tokens";
 
 export default function Login() {
   const { colors } = useTheme();
@@ -66,7 +65,7 @@ export default function Login() {
               style={({ pressed }) => [
                 styles.guestButton,
                 busy !== null && styles.disabled,
-                pressed && styles.pressed,
+                pressed && press.scale,
               ]}
             >
               <Text style={styles.guestButtonText}>
@@ -96,7 +95,7 @@ function makeStyles(c: ColorTokens) {
       padding: spacing.xl,
       backgroundColor: c.bg,
     },
-    title: { ...type.title, color: c.text, marginBottom: 4 },
+    title: { ...type.title, color: c.text, marginBottom: spacing.xs },
     subtitle: {
       ...type.body,
       color: c.textMuted,
@@ -108,13 +107,12 @@ function makeStyles(c: ColorTokens) {
       marginTop: spacing.xl,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.md,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       alignItems: "center",
       gap: spacing.xs,
     },
     guestButtonText: { ...type.bodyStrong, color: c.accent },
     guestHint: { ...type.caption, color: c.textMuted, textAlign: "center" },
-    pressed: { transform: [{ scale: 0.98 }] },
     disabled: { opacity: 0.5 },
   });
 }

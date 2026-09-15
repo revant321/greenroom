@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -38,18 +37,24 @@ import { PdfViewer } from "@/components/PdfViewer";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { AddUrlForm } from "@/components/AddUrlForm";
+import { DeleteButton } from "@/components/DeleteButton";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
 import { GradientButton, InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
-  fonts,
+  contentInset,
+  fontScale,
+  press,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function SongDetail() {
@@ -217,15 +222,19 @@ export default function SongDetail() {
 
   if (isLoading && !song) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!song) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎵"
+          title="Song not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -235,18 +244,22 @@ export default function SongDetail() {
       style={{ backgroundColor: colors.bg }}
       contentContainerStyle={[
         styles.container,
-        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+        { paddingBottom: contentInset.tabBar },
       ]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
     >
       <Stack.Screen options={{ title: "" }} />
       <RiseIn index={0}>
         <TextInput
           value={title}
           onChangeText={setTitle}
+          accessibilityLabel="Song title"
           placeholder="Song title"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
         />
         <Text style={styles.saved}>
           {updateSong.isPending
@@ -261,7 +274,11 @@ export default function SongDetail() {
         <View style={styles.card}>
           <View style={styles.toggleRow}>
             <Text style={styles.toggleLabel}>Audition song</Text>
-            <AnimatedToggle value={audition} onValueChange={setAudition} />
+            <AnimatedToggle
+              value={audition}
+              onValueChange={setAudition}
+              accessibilityLabel="Audition song"
+            />
           </View>
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
           <View style={styles.toggleRow}>
@@ -269,6 +286,7 @@ export default function SongDetail() {
             <AnimatedToggle
               value={status === "completed"}
               onValueChange={(v) => setStatus(v ? "completed" : "in-progress")}
+              accessibilityLabel="Completed"
             />
           </View>
         </View>
@@ -280,6 +298,7 @@ export default function SongDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Practice notes, tempo, lyrics tips…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}
@@ -307,9 +326,13 @@ export default function SongDetail() {
           {(parts ?? []).map((p) => (
             <View key={p.id} style={styles.mediaCard}>
               <AudioPlayer storagePath={p.storage_path} />
-              <Pressable onPress={() => deletePart.mutate(p)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this part?"
+                message="The recording will be removed for good."
+                onConfirm={() => deletePart.mutate(p)}
+                label="Delete part"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -343,7 +366,8 @@ export default function SongDetail() {
               {t.kind === "link" && t.external_url && (
                 <Pressable
                   onPress={() => t.external_url && Linking.openURL(t.external_url)}
-                  style={styles.urlLine}
+                  style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                  accessibilityRole="link"
                 >
                   <Icon sf="arrow.up.right.square" ion="open-outline" size={18} color={colors.accent} />
                   <Text style={styles.urlText} numberOfLines={1}>
@@ -351,9 +375,12 @@ export default function SongDetail() {
                   </Text>
                 </Pressable>
               )}
-              <Pressable onPress={() => deleteTrack.mutate(t)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this track?"
+                onConfirm={() => deleteTrack.mutate(t)}
+                label="Delete track"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -377,7 +404,8 @@ export default function SongDetail() {
             <View key={s.id} style={styles.mediaCard}>
               <Pressable
                 onPress={() => setPdfViewerPath(s.storage_path)}
-                style={styles.urlLine}
+                style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                accessibilityRole="button"
               >
                 <View style={[styles.pdfBadge, { backgroundColor: "rgba(255,92,122,0.12)" }]}>
                   <Icon sf="doc.fill" ion="document" size={16} color="#FF5C7A" />
@@ -386,9 +414,12 @@ export default function SongDetail() {
                   {s.title || "Sheet music"}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => deleteSheet.mutate(s)} style={styles.deleteBtn}>
-                <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-              </Pressable>
+              <DeleteButton
+                title="Delete this PDF?"
+                onConfirm={() => deleteSheet.mutate(s)}
+                label="Delete sheet music"
+                style={styles.deleteBtn}
+              />
             </View>
           ))}
         </View>
@@ -429,9 +460,15 @@ export default function SongDetail() {
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
-            style={[styles.pdfDoneBar, { backgroundColor: colors.bgElevated }]}
+            style={({ pressed }) => [
+              styles.pdfDoneBar,
+              { backgroundColor: colors.bgElevated },
+              pressed && press.dim,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Done"
           >
-            <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.semibold }}>
+            <Text style={{ ...type.bodyStrong, color: colors.accent }}>
               Done
             </Text>
           </Pressable>
@@ -445,76 +482,52 @@ export default function SongDetail() {
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    titleInput: {
-      fontSize: 26,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      padding: 0,
-    },
+    fill: { flex: 1, backgroundColor: c.bg },
+    titleInput: { ...type.heading, color: c.text, padding: 0 },
     saved: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     card: {
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      ...cardSurface(c),
       paddingHorizontal: spacing.lg,
     },
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 13,
+      paddingVertical: spacing.md,
     },
-    toggleLabel: { fontSize: 16, fontFamily: fonts.regular, color: c.text },
+    toggleLabel: { ...type.body, color: c.text },
     divider: { height: StyleSheet.hairlineWidth },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
-      color: c.text,
-    },
-    sheetInput: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
-      borderRadius: radius.lg,
-      backgroundColor: c.accentSoft,
       color: c.text,
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
     btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
-    empty: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      padding: spacing.sm,
-    },
+    empty: { ...type.caption, color: c.textMuted, padding: spacing.sm },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
     urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.xs },
-    urlText: { color: c.accent, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    urlText: { ...type.bodyStrong, color: c.accent, flex: 1 },
     pdfBadge: {
       width: 34,
       height: 34,
-      borderRadius: 9,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },
-    pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
-    deleteBtn: { alignSelf: "flex-end", padding: 4 },
+    pdfLink: { ...type.bodyStrong, color: c.text, flex: 1 },
+    deleteBtn: { alignSelf: "flex-end" },
     pdfDoneBar: { padding: spacing.lg },
   });
 }

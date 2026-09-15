@@ -116,22 +116,26 @@ src/
 │   ├── useAuth.tsx            # AuthProvider + useAuth (session, isGuest, guest banner state, cache clear on user change)
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
-│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
 │   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
 │   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
-│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
 │   ├── AuthOptions.tsx        # Shared Apple / Google / email controls used by login + upgrade
 │   ├── GuestBanner.tsx        # "You're using greenroom without an account" banner on Shows + Songs lists
-│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
 │   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
 │   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
 │   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
 │   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
-│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── Skeleton.tsx           # Skeleton + ListSkeleton + DetailSkeleton loading placeholders
+│   ├── IconButton.tsx         # icon-only Pressable: required VoiceOver label, 44pt target, pressed state
+│   ├── DeleteButton.tsx       # trash IconButton that always confirms first — the only way to delete
+│   ├── LoadingScreen.tsx      # themed full-screen spinner for the auth gate
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
@@ -183,6 +187,7 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 **Completed this session:** A fresh install now signs in as a guest automatically and opens Shows; the login screen (reached after a sign-out, or if guest sign-in fails offline) has "Continue without an account". `useAuth` exposes `isGuest` and clears the persisted query cache when the user id changes. New "Create an account" modal (`app/(app)/upgrade.tsx`) links Apple / Google / email to the *same* guest user so nothing migrates; when the identity already belongs to another account the app offers "keep guest work" vs "switch" instead of overwriting. Guest banner on Shows + Songs (dismissible per launch), Settings shows Guest + upgrade button, and guest sign-out warns that data is lost forever. Added a cleanup migration for empty anonymous users older than 30 days and verified RLS isolation between two guests against a local Postgres. Docs in `docs/guest-mode.md`. TypeScript clean; 94 tests pass.
 **Next steps:** (1) In Supabase dashboard turn on "Anonymous sign-ins" and "Allow manual linking" (Authentication → Sign In / Providers), and enable pg_cron (Database → Extensions), then apply the new migration. (2) Device-test on a new native build: fresh install → record a harmony with no sign-in; Create an account via Apple, Google and email; the conflict path with an identity that already has an account; guest sign-out warning. (3) Paste the App Store review notes from `docs/guest-mode.md` into App Store Connect.
 **Still pending from the recorder work (issue #65, merged from main):** device-test cancel of short and long takes, deny mic permission then use Open Settings, let a take hit the duration cap, and re-verify #59 (video volume after recording).
+**Still pending from the UI consistency pass (issue #66, merged from main):** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
 **Blockers:** The two dashboard toggles above must be on before guest mode works on a device.
 
 ## Session Rules

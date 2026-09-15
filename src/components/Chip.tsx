@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Gradient, gradientShadow } from "./Gradient";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Filter / category chip. Active = signature gradient with a slight lift
@@ -23,11 +24,23 @@ export function Chip({
   if (active) {
     return (
       <Pressable
-        onPress={onPress}
-        style={[gradientShadow.glowSm, { transform: [{ translateY: -1 }] }]}
+        onPress={() => {
+          haptics.select();
+          onPress?.();
+        }}
+        accessibilityRole="button"
+        accessibilityState={{ selected: true }}
+        style={({ pressed }) => [
+          gradientShadow.glowSm,
+          { transform: [{ translateY: -1 }] },
+          pressed && press.scale,
+        ]}
       >
         <Gradient style={[styles.chip, small && styles.small]}>
-          <Text style={[styles.label, small && styles.labelSmall, { color: "#fff" }]}>
+          <Text
+            style={[styles.label, small && styles.labelSmall, { color: "#fff" }]}
+            maxFontSizeMultiplier={fontScale.compact}
+          >
             {label}
           </Text>
         </Gradient>
@@ -37,8 +50,13 @@ export function Chip({
 
   return (
     <Pressable
-      onPress={onPress}
-      style={[
+      onPress={() => {
+        haptics.select();
+        onPress?.();
+      }}
+      accessibilityRole="button"
+      accessibilityState={{ selected: false }}
+      style={({ pressed }) => [
         styles.chip,
         small && styles.small,
         {
@@ -46,10 +64,12 @@ export function Chip({
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: colors.border,
         },
+        pressed && press.scale,
       ]}
     >
       <Text
         style={[styles.label, small && styles.labelSmall, { color: colors.textMuted }]}
+        maxFontSizeMultiplier={fontScale.compact}
       >
         {label}
       </Text>
@@ -59,17 +79,13 @@ export function Chip({
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
   },
-  small: { paddingHorizontal: 12, paddingVertical: 5 },
-  label: {
-    fontSize: 14,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-  },
-  labelSmall: { fontSize: 12 },
+  small: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+  label: { ...type.label, fontFamily: fonts.semibold, fontWeight: "600" },
+  labelSmall: { fontSize: type.caption.fontSize },
 });
