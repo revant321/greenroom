@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Pressable,
@@ -46,16 +45,22 @@ import { Sheet } from "@/components/Sheet";
 import { InlineAction } from "@/components/GradientButton";
 import { SectionLabel } from "@/components/ScreenTitle";
 import { RiseIn } from "@/components/RiseIn";
+import { EmptyState } from "@/components/EmptyState";
+import { DetailSkeleton } from "@/components/Skeleton";
 import { AddUrlForm } from "@/components/AddUrlForm";
+import { DeleteButton } from "@/components/DeleteButton";
 import { useDebouncedSave } from "@/hooks/useDebouncedSave";
 import { Harmony } from "@/lib/types";
 import { useTheme } from "@/theme/useTheme";
 import {
+  cardSurface,
   ColorTokens,
-  FAB_CLEARANCE,
-  fonts,
+  contentInset,
+  fontScale,
+  press,
   radius,
   spacing,
+  type,
 } from "@/theme/tokens";
 
 export default function MusicalNumberDetail() {
@@ -185,15 +190,19 @@ export default function MusicalNumberDetail() {
 
   if (isLoading && !data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <ActivityIndicator color={colors.text} />
+      <View style={styles.fill}>
+        <DetailSkeleton />
       </View>
     );
   }
   if (!data) {
     return (
-      <View style={[styles.center, { backgroundColor: colors.bg }]}>
-        <Text style={{ color: colors.text }}>Not found.</Text>
+      <View style={[styles.fill, styles.container]}>
+        <EmptyState
+          icon="🎵"
+          title="Musical number not found"
+          body="It may have been deleted on another device."
+        />
       </View>
     );
   }
@@ -203,9 +212,11 @@ export default function MusicalNumberDetail() {
       style={{ backgroundColor: colors.bg }}
       contentContainerStyle={[
         styles.container,
-        { paddingBottom: FAB_CLEARANCE + spacing.lg },
+        { paddingBottom: contentInset.tabBar },
       ]}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      automaticallyAdjustKeyboardInsets
     >
       <Stack.Screen options={{ title: "" }} />
       {readOnly && showId && <ArchivedBanner showId={showId} />}
@@ -213,9 +224,11 @@ export default function MusicalNumberDetail() {
         <TextInput
           value={name}
           onChangeText={setName}
+          accessibilityLabel="Number title"
           placeholder="Number title"
           placeholderTextColor={colors.textMuted}
           style={styles.titleInput}
+          maxFontSizeMultiplier={fontScale.display}
           editable={!readOnly}
         />
         {!readOnly && (
@@ -235,6 +248,7 @@ export default function MusicalNumberDetail() {
           value={notes}
           onChangeText={setNotes}
           multiline
+          accessibilityLabel="Notes"
           placeholder="Tempo, cues, reminders…"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, styles.notes]}
@@ -302,7 +316,8 @@ export default function MusicalNumberDetail() {
               ) : (
                 <Pressable
                   onPress={() => v.external_url && Linking.openURL(v.external_url)}
-                  style={styles.urlLine}
+                  style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                  accessibilityRole="link"
                 >
                   <Icon sf="arrow.up.right.square" ion="open-outline" size={18} color={colors.accent} />
                   <Text style={styles.urlText} numberOfLines={1}>
@@ -311,12 +326,12 @@ export default function MusicalNumberDetail() {
                 </Pressable>
               )}
               {!readOnly && (
-                <Pressable
-                  onPress={() => deleteVideo.mutate(v)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this video?"
+                  onConfirm={() => deleteVideo.mutate(v)}
+                  label="Delete video"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -347,7 +362,8 @@ export default function MusicalNumberDetail() {
             <View key={p.id} style={styles.mediaCard}>
               <Pressable
                 onPress={() => setPdfViewerPath(p.storage_path)}
-                style={styles.urlLine}
+                style={({ pressed }) => [styles.urlLine, pressed && press.dim]}
+                accessibilityRole="button"
               >
                 <View style={[styles.pdfBadge, { backgroundColor: "rgba(255,92,122,0.12)" }]}>
                   <Icon sf="doc.fill" ion="document" size={16} color="#FF5C7A" />
@@ -357,12 +373,12 @@ export default function MusicalNumberDetail() {
                 </Text>
               </Pressable>
               {!readOnly && (
-                <Pressable
-                  onPress={() => deletePdf.mutate(p)}
-                  style={{ alignSelf: "flex-end", padding: 4 }}
-                >
-                  <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-                </Pressable>
+                <DeleteButton
+                  title="Delete this PDF?"
+                  onConfirm={() => deletePdf.mutate(p)}
+                  label="Delete sheet music"
+                  style={styles.deleteBtn}
+                />
               )}
             </View>
           ))}
@@ -406,9 +422,15 @@ export default function MusicalNumberDetail() {
         <View style={{ flex: 1, backgroundColor: colors.bg }}>
           <Pressable
             onPress={() => setPdfViewerPath(null)}
-            style={[styles.pdfDoneBar, { backgroundColor: colors.bgElevated }]}
+            style={({ pressed }) => [
+              styles.pdfDoneBar,
+              { backgroundColor: colors.bgElevated },
+              pressed && press.dim,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel="Done"
           >
-            <Text style={{ color: colors.accent, fontSize: 16, fontFamily: fonts.semibold }}>
+            <Text style={{ ...type.bodyStrong, color: colors.accent }}>
               Done
             </Text>
           </Pressable>
@@ -452,6 +474,7 @@ function HarmonyRow({
         <TextInput
           value={measure}
           onChangeText={setMeasure}
+          accessibilityLabel="Measure number"
           placeholder="Measure #"
           placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
@@ -461,6 +484,7 @@ function HarmonyRow({
         <TextInput
           value={caption}
           onChangeText={setCaption}
+          accessibilityLabel="Caption"
           placeholder="Caption"
           placeholderTextColor={colors.textMuted}
           style={[styles.smallInput, { flex: 1 }]}
@@ -468,12 +492,13 @@ function HarmonyRow({
         />
       </View>
       {!readOnly && (
-        <Pressable
-          onPress={() => del.mutate(item)}
-          style={{ alignSelf: "flex-end", padding: 4 }}
-        >
-          <Text style={{ color: colors.danger, fontSize: 13 }}>Delete</Text>
-        </Pressable>
+        <DeleteButton
+          title="Delete this harmony?"
+          message="The recording will be removed for good."
+          onConfirm={() => del.mutate(item)}
+          label="Delete harmony"
+          style={styles.deleteBtn}
+        />
       )}
     </View>
   );
@@ -482,63 +507,48 @@ function HarmonyRow({
 function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: { padding: spacing.lg, gap: spacing.xs },
-    center: { flex: 1, alignItems: "center", justifyContent: "center" },
-    titleInput: {
-      fontSize: 26,
-      fontFamily: fonts.extrabold,
-      fontWeight: "800",
-      letterSpacing: -0.4,
-      color: c.text,
-      padding: 0,
-    },
+    fill: { flex: 1, backgroundColor: c.bg },
+    titleInput: { ...type.heading, color: c.text, padding: 0 },
     saved: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
+      ...type.caption,
       color: c.textMuted,
-      marginTop: 4,
+      marginTop: spacing.xs,
       marginBottom: spacing.md,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
     notes: { minHeight: 120, textAlignVertical: "top" },
     btnRow: { flexDirection: "row", gap: spacing.sm, flexWrap: "wrap", marginBottom: spacing.sm },
-    empty: {
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      color: c.textMuted,
-      padding: spacing.sm,
-    },
+    empty: { ...type.caption, color: c.textMuted, padding: spacing.sm },
     mediaCard: {
+      ...cardSurface(c),
       padding: spacing.md,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      gap: 6,
+      gap: spacing.sm,
     },
+    deleteBtn: { alignSelf: "flex-end" },
     harmonyFields: { flexDirection: "row", gap: spacing.sm },
     smallInput: {
-      padding: spacing.sm + 1,
-      fontSize: 14,
-      fontFamily: fonts.regular,
-      borderRadius: radius.sm + 2,
+      ...type.label,
+      padding: spacing.sm,
+      borderRadius: radius.sm,
       backgroundColor: c.accentSoft,
       color: c.text,
     },
     urlLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, padding: spacing.xs },
-    urlText: { color: c.accent, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    urlText: { ...type.bodyStrong, color: c.accent, flex: 1 },
     pdfBadge: {
       width: 34,
       height: 34,
-      borderRadius: 9,
+      borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
     },
-    pdfLink: { color: c.text, fontSize: 15, fontFamily: fonts.medium, flex: 1 },
+    pdfLink: { ...type.bodyStrong, color: c.text, flex: 1 },
     pdfDoneBar: { padding: spacing.lg },
   });
 }

@@ -1,16 +1,12 @@
 import { Redirect, Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthLayout() {
   const { session, loading } = useAuth();
 
   if (loading) {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (session) {

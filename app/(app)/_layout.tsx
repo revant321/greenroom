@@ -1,5 +1,5 @@
 import { Redirect, Stack } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/theme/useTheme";
 import { fonts } from "@/theme/tokens";
@@ -9,18 +9,7 @@ export default function AppLayout() {
   const { colors } = useTheme();
 
   if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: colors.bg,
-        }}
-      >
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (!session) {

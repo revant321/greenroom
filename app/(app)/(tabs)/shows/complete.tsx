@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import {
   useArchiveShowWithSelection,
@@ -16,8 +8,15 @@ import {
 } from "@/services/showService";
 import { MediaKind } from "@/services/cascadeDelete";
 import { Skeleton } from "@/components/Skeleton";
+import {
+  AnimatedToggle,
+  TOGGLE_HEIGHT,
+  TOGGLE_WIDTH,
+} from "@/components/AnimatedToggle";
+import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { useTheme } from "@/theme/useTheme";
-import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
+import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 const KIND_LABELS: Record<MediaKind, string> = {
   audio: "Audio recordings",
@@ -49,6 +48,7 @@ export default function CompleteShow() {
     if (!showId) return;
     try {
       await archive.mutateAsync({ id: showId, keep });
+      haptics.success();
       router.back();
       router.replace("/shows/completed");
     } catch (e: any) {
@@ -68,10 +68,13 @@ export default function CompleteShow() {
       <Text style={styles.subhead}>Keep these in your Trophy Case:</Text>
 
       {isLoading ? (
-        <View style={{ gap: spacing.sm }}>
-          <Skeleton style={{ height: 40 }} />
-          <Skeleton style={{ height: 40 }} />
-          <Skeleton style={{ height: 40 }} />
+        <View style={styles.list}>
+          {[0, 1, 2].map((i) => (
+            <View key={i} style={styles.row}>
+              <Skeleton style={{ width: "50%", height: 20 }} />
+              <Skeleton style={styles.toggleGhost} />
+            </View>
+          ))}
         </View>
       ) : visibleKinds.length === 0 ? (
         <Text style={styles.emptyNote}>
@@ -85,11 +88,12 @@ export default function CompleteShow() {
                 {KIND_LABELS[kind]}{" "}
                 <Text style={styles.rowCount}>({counts?.[kind] ?? 0})</Text>
               </Text>
-              <Switch
+              <AnimatedToggle
                 value={keep[kind]}
                 onValueChange={(v) =>
                   setKeep((prev) => ({ ...prev, [kind]: v }))
                 }
+                accessibilityLabel={`Keep ${KIND_LABELS[kind].toLowerCase()}`}
               />
             </View>
           ))}
@@ -100,27 +104,20 @@ export default function CompleteShow() {
       )}
 
       <View style={styles.actions}>
-        <Pressable
+        <GradientButton
+          label="Cancel"
+          variant="quiet"
           onPress={() => router.back()}
-          style={styles.cancel}
           disabled={archive.isPending}
-        >
-          <Text style={{ color: colors.text }}>Cancel</Text>
-        </Pressable>
-        <Pressable
+          style={{ flex: 1 }}
+        />
+        <GradientButton
+          label="Complete & Archive"
           onPress={onConfirm}
-          style={styles.confirm}
-          disabled={archive.isPending || isLoading}
-        >
-          {archive.isPending ? (
-            <View style={styles.confirmInner}>
-              <ActivityIndicator color="#fff" size="small" />
-              <Text style={styles.confirmText}>Archiving…</Text>
-            </View>
-          ) : (
-            <Text style={styles.confirmText}>Complete & Archive</Text>
-          )}
-        </Pressable>
+          loading={archive.isPending}
+          disabled={isLoading}
+          style={{ flex: 1.4 }}
+        />
       </View>
     </View>
   );
@@ -140,11 +137,13 @@ function makeStyles(c: ColorTokens) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      ...cardSurface(c),
       padding: spacing.lg,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: c.border,
+    },
+    toggleGhost: {
+      width: TOGGLE_WIDTH,
+      height: TOGGLE_HEIGHT,
+      borderRadius: radius.pill,
     },
     rowLabel: { ...type.body, color: c.text },
     rowCount: { color: c.textMuted },
@@ -152,22 +151,8 @@ function makeStyles(c: ColorTokens) {
     emptyNote: { ...type.body, color: c.textMuted },
     actions: {
       flexDirection: "row",
-      justifyContent: "flex-end",
       gap: spacing.md,
       marginTop: "auto",
     },
-    cancel: { padding: spacing.md },
-    confirm: {
-      padding: spacing.md,
-      paddingHorizontal: spacing.xl,
-      backgroundColor: c.accent,
-      borderRadius: radius.md,
-    },
-    confirmInner: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-    },
-    confirmText: { color: "#fff", fontWeight: "600" },
   });
 }

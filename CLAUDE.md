@@ -115,20 +115,24 @@ src/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
 │   └── useDebouncedSave.ts    # generic debounce-then-save hook used by detail screens
 ├── theme/
-│   ├── tokens.ts              # light/dark palettes + spacing/radius/type + tab-bar layout constants
+│   ├── tokens.ts              # palettes, spacing/radius/type scales, cardSurface(), press feedback, contentInset
 │   ├── ThemeProvider.tsx      # auto/light/dark, persisted in SecureStore, subscribes to Appearance
 │   └── useTheme.ts            # hook returning { mode, setMode, scheme, colors }
 ├── utils/
-│   └── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   ├── confirm.ts             # Alert.alert wrapper with Cancel + destructive Delete buttons
+│   └── haptics.ts             # expo-haptics wrapper: tap / select / success / warning
 ├── components/
-│   ├── AudioRecorder.tsx      # expo-audio recorder (mic permission + start/stop)
+│   ├── VoiceRecorder.tsx      # expo-audio recorder with live waveform, presented inside <Sheet>
 │   ├── AudioPlayer.tsx        # cached playback via useMedia + useAudioPlayer (SF Symbol play/pause)
 │   ├── VideoPlayer.tsx        # expo-video with native iOS controls
 │   ├── PdfViewer.tsx          # WebView pointed at the cached PDF
 │   ├── FloatingGlassTabBar.tsx # BlurView capsule + reanimated lozenge for the 2-tab nav
 │   ├── SettingsButton.tsx     # gearshape top-right button → /settings modal
 │   ├── Icon.tsx               # SF Symbols (expo-symbols) on iOS, Ionicons fallback
-│   ├── Skeleton.tsx           # animated translucent block for loading states
+│   ├── Skeleton.tsx           # Skeleton + ListSkeleton + DetailSkeleton loading placeholders
+│   ├── IconButton.tsx         # icon-only Pressable: required VoiceOver label, 44pt target, pressed state
+│   ├── DeleteButton.tsx       # trash IconButton that always confirms first — the only way to delete
+│   ├── LoadingScreen.tsx      # themed full-screen spinner for the auth gate
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
@@ -172,10 +176,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #65 — recorder edge cases in `src/components/VoiceRecorder.tsx` (merged on top of the #59 audio-session fix).
-**Completed this session:** Cancelled or abandoned takes now delete their temp `.m4a` (Cancel, sheet unmount, and unmount-during-prepare all go through one guarded `doneRef` path so a take is never both saved and deleted). Every exit path also restores the iOS audio session via `exitRecordingMode()` from `src/lib/audioSession.ts`, inside a `finally` so a failed `stop()` still restores it. Cancelling a take longer than 3 seconds confirms via `confirm.ts`. A permanently denied mic permission alerts with an Open Settings button (`Linking.openSettings`). Recording is capped at a configurable `maxDurationSeconds` (default 10 min) using expo-audio's native `forDuration`, auto-saves what was captured when the recorder stops, and shows a red countdown in the last 30 seconds. A 50 MB free-space check runs before preparing. `Sheet` gained a `dismissable` prop and the three recorder sheets pass `dismissable={false}` so the only exits are Cancel/Save. `__tests__/VoiceRecorder.test.tsx` now holds 16 tests (12 for #65 plus the 4 audio-session ones from #59). `tsc` errors in this worktree are pre-existing and come from packages missing in its `node_modules`.
-**Next steps:** Device-test the recorder: cancel short and long takes, deny mic permission then use Open Settings, and let a take hit the cap (set `maxDurationSeconds` low temporarily). Also re-verify #59 on device: play a video, record a harmony, play the video again at the same volume. Consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds — the saved path still leaves the original behind.
-**Blockers:** None.
+**Currently working on:** GitHub issue #66 — the UI consistency / interaction polish / accessibility pass.
+**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. Merged `main` (the #59 audio-session and #65 recorder-edge-case work) into the branch, keeping the recorder’s new lifecycle and adding haptics + Dynamic Type caps on top. TypeScript clean, 97 tests pass. PR #78 is open and the audit checklist is posted on #66.
+**Next steps:** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
+**Blockers:** None in code. Haptics and Dynamic Type can only be verified on hardware.
 
 ## Session Rules
 

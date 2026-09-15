@@ -4,8 +4,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCreateScene, useScenes } from "@/services/sceneService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
+import { haptics } from "@/utils/haptics";
 import { AnimatedToggle } from "@/components/AnimatedToggle";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { cardSurface, ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewScene() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -28,6 +29,7 @@ export default function NewScene() {
         order: nextOrder,
         is_user_in_scene: inScene,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add", e?.message ?? String(e));
@@ -39,6 +41,7 @@ export default function NewScene() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Scene name"
         placeholder="Scene name"
         placeholderTextColor={colors.textMuted}
         autoFocus
@@ -48,7 +51,11 @@ export default function NewScene() {
       />
       <View style={styles.toggleRow}>
         <Text style={styles.toggleLabel}>I'm in this scene</Text>
-        <AnimatedToggle value={inScene} onValueChange={setInScene} />
+        <AnimatedToggle
+          value={inScene}
+          onValueChange={setInScene}
+          accessibilityLabel="I'm in this scene"
+        />
       </View>
       <View style={styles.row}>
         <GradientButton
@@ -73,14 +80,13 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
@@ -88,16 +94,11 @@ function makeStyles(c: ColorTokens) {
     toggleRow: {
       flexDirection: "row",
       alignItems: "center",
+      ...cardSurface(c),
       justifyContent: "space-between",
-      padding: spacing.lg - 2,
-      backgroundColor: c.card,
-      borderRadius: radius.lg,
+      padding: spacing.lg,
     },
-    toggleLabel: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      color: c.text,
-    },
-    row: { flexDirection: "row", gap: spacing.sm + 2, marginTop: spacing.sm },
+    toggleLabel: { ...type.body, color: c.text },
+    row: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm },
   });
 }

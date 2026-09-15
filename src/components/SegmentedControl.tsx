@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useTheme } from "@/theme/useTheme";
-import { fonts, radius } from "@/theme/tokens";
+import { fonts, fontScale, press, radius, spacing, type } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
 
 /**
  * Segmented control with a sliding thumb (prototype's appearance /
@@ -33,7 +34,7 @@ export function SegmentedControl<T extends string>({
   const index = Math.max(options.indexOf(value), 0);
   const x = useSharedValue(0);
 
-  const segW = width > 0 ? (width - 4) / options.length : 0;
+  const segW = width > 0 ? (width - spacing.xxs * 2) / options.length : 0;
 
   useEffect(() => {
     x.value = withTiming(index * segW, { duration: 320 * speed, easing: EASE });
@@ -66,12 +67,22 @@ export function SegmentedControl<T extends string>({
         const label =
           labels?.[opt] ?? opt.charAt(0).toUpperCase() + opt.slice(1);
         return (
-          <Pressable key={opt} style={styles.seg} onPress={() => onChange(opt)}>
+          <Pressable
+            key={opt}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            style={({ pressed }) => [styles.seg, pressed && press.dim]}
+            onPress={() => {
+              if (!active) haptics.select();
+              onChange(opt);
+            }}
+          >
             <Text
               style={[
                 styles.label,
                 { color: active ? colors.text : colors.textMuted },
               ]}
+              maxFontSizeMultiplier={fontScale.compact}
             >
               {label}
             </Text>
@@ -85,15 +96,15 @@ export function SegmentedControl<T extends string>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: "row",
-    borderRadius: radius.md + 2,
-    padding: 2,
+    borderRadius: radius.md,
+    padding: spacing.xxs,
     position: "relative",
   },
   thumb: {
     position: "absolute",
-    top: 2,
-    bottom: 2,
-    left: 2,
+    top: spacing.xxs,
+    bottom: spacing.xxs,
+    left: spacing.xxs,
     borderRadius: radius.md,
     shadowColor: "#000",
     shadowOpacity: 0.15,
@@ -104,12 +115,8 @@ const styles = StyleSheet.create({
   seg: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
     zIndex: 1,
   },
-  label: {
-    fontSize: 14,
-    fontFamily: fonts.semibold,
-    fontWeight: "600",
-  },
+  label: { ...type.label, fontFamily: fonts.semibold, fontWeight: "600" },
 });

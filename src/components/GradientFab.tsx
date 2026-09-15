@@ -2,7 +2,8 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { gradientShadow } from "./Gradient";
 import { LiquidGradient } from "./LiquidGradient";
 import { Icon } from "./Icon";
-import { FAB_CLEARANCE, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
+import { FAB_CLEARANCE, FAB_SIZE, spacing } from "@/theme/tokens";
 
 /**
  * Floating action button — 54px gradient circle with the prototype's pink
@@ -17,7 +18,11 @@ export function GradientFab({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        haptics.tap();
+        onPress();
+      }}
+      accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.wrap,
@@ -26,7 +31,7 @@ export function GradientFab({
       ]}
     >
       <View style={styles.circle}>
-        <LiquidGradient variant="fab" borderRadius={27} />
+        <LiquidGradient variant="fab" borderRadius={FAB_SIZE / 2} />
         <Icon sf="plus" ion="add" size={26} color="#fff" />
       </View>
     </Pressable>
@@ -36,13 +41,13 @@ export function GradientFab({
 const styles = StyleSheet.create({
   wrap: {
     position: "absolute",
-    right: spacing.lg + 2,
+    right: spacing.lg,
     bottom: FAB_CLEARANCE,
   },
   circle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -10,14 +10,21 @@ import { BlurView } from "expo-blur";
 import { MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "@/theme/useTheme";
+import { haptics } from "@/utils/haptics";
 import {
   TAB_BAR_BOTTOM_INSET,
   TAB_BAR_HEIGHT,
   TAB_BAR_HORIZONTAL_MARGIN,
   TAB_BAR_WIDTH_FRACTION,
+  fontScale,
+  press,
   radius,
+  spacing,
   type,
 } from "@/theme/tokens";
+
+/** Inset between the pill edge and the first/last tab. */
+const SIDE_PADDING = 5;
 
 export function FloatingGlassTabBar({
   state,
@@ -29,7 +36,7 @@ export function FloatingGlassTabBar({
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
 
-  const sidePadding = 5;
+  const sidePadding = SIDE_PADDING;
   const pillWidth =
     (screenWidth - TAB_BAR_HORIZONTAL_MARGIN * 2) * TAB_BAR_WIDTH_FRACTION;
   const innerWidth = pillWidth - sidePadding * 2;
@@ -90,6 +97,7 @@ export function FloatingGlassTabBar({
               canPreventDefault: true,
             });
             if (!focused && !event.defaultPrevented) {
+              haptics.select();
               (navigation as any).navigate(route.name, route.params);
             }
           };
@@ -110,7 +118,7 @@ export function FloatingGlassTabBar({
               style={({ pressed }) => [
                 styles.tab,
                 { width: tabWidth },
-                pressed && { opacity: 0.85 },
+                pressed && press.dim,
               ]}
             >
               {options.tabBarIcon?.({ focused, color: tintColor })}
@@ -121,6 +129,7 @@ export function FloatingGlassTabBar({
                   { color: tintColor, opacity: focused ? 1 : 0.7 },
                 ]}
                 numberOfLines={1}
+                maxFontSizeMultiplier={fontScale.fixed}
               >
                 {label}
               </Text>
@@ -144,16 +153,16 @@ const styles = StyleSheet.create({
     height: TAB_BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: SIDE_PADDING,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: "hidden",
   },
   activePill: {
     position: "absolute",
-    top: 4,
-    bottom: 4,
-    left: 5,
+    top: spacing.xs,
+    bottom: spacing.xs,
+    left: SIDE_PADDING,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
   },
@@ -161,11 +170,11 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    gap: 2,
+    gap: spacing.xxs,
     zIndex: 1,
   },
   label: {
-    marginTop: -2,
+    marginTop: -spacing.xxs,
     letterSpacing: 0.2,
   },
 });

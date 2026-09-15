@@ -7,7 +7,8 @@ import {
 } from "@/services/musicalNumberService";
 import { useTheme } from "@/theme/useTheme";
 import { GradientButton } from "@/components/GradientButton";
-import { ColorTokens, fonts, radius, spacing } from "@/theme/tokens";
+import { haptics } from "@/utils/haptics";
+import { ColorTokens, radius, spacing, type } from "@/theme/tokens";
 
 export default function NewMusicalNumber() {
   const { showId } = useLocalSearchParams<{ showId: string }>();
@@ -28,6 +29,7 @@ export default function NewMusicalNumber() {
         name: trimmed,
         order: nextOrder,
       });
+      haptics.success();
       router.back();
     } catch (e: any) {
       Alert.alert("Couldn't add", e?.message ?? String(e));
@@ -39,6 +41,7 @@ export default function NewMusicalNumber() {
       <TextInput
         value={name}
         onChangeText={setName}
+        accessibilityLabel="Number title"
         placeholder="Number title"
         placeholderTextColor={colors.textMuted}
         autoFocus
@@ -69,18 +72,17 @@ function makeStyles(c: ColorTokens) {
   return StyleSheet.create({
     container: {
       flex: 1,
-      padding: spacing.lg + 4,
+      padding: spacing.xl,
       gap: spacing.md,
       backgroundColor: c.bg,
     },
     input: {
-      fontSize: 16,
-      fontFamily: fonts.regular,
-      padding: spacing.lg - 2,
+      ...type.body,
+      padding: spacing.lg,
       borderRadius: radius.lg,
       backgroundColor: c.card,
       color: c.text,
     },
-    row: { flexDirection: "row", gap: spacing.sm + 2, marginTop: spacing.sm },
+    row: { flexDirection: "row", gap: spacing.md, marginTop: spacing.sm },
   });
 }
