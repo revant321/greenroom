@@ -12,6 +12,7 @@ const mockRecorder = {
   uri: TAKE_URI,
   prepareToRecordAsync: jest.fn().mockResolvedValue(undefined),
   record: jest.fn(),
+  pause: jest.fn(),
   stop: jest.fn().mockResolvedValue(undefined),
 };
 const mockState = {
@@ -133,7 +134,7 @@ describe("VoiceRecorder", () => {
 
   test("saving hands the file to onFinish and keeps it", async () => {
     const { onFinish, onCancel, getByText } = await startRecording();
-    fireEvent.press(getByText("Save"));
+    fireEvent.press(getByText("Done"));
     await waitFor(() => expect(onFinish).toHaveBeenCalledWith(TAKE_URI));
     expect(deleteAsync).not.toHaveBeenCalled();
     expect(onCancel).not.toHaveBeenCalled();
@@ -167,7 +168,7 @@ describe("VoiceRecorder", () => {
 
   test("unmounting after Save does not delete the file", async () => {
     const { unmount, onFinish, getByText } = await startRecording();
-    fireEvent.press(getByText("Save"));
+    fireEvent.press(getByText("Done"));
     await waitFor(() => expect(onFinish).toHaveBeenCalled());
     unmount();
     expect(deleteAsync).not.toHaveBeenCalled();
@@ -215,7 +216,7 @@ describe("VoiceRecorder audio session", () => {
   test("restores the session after Save", async () => {
     const { getByText, onFinish } = await startRecording();
     await act(async () => {
-      fireEvent.press(getByText("Save"));
+      fireEvent.press(getByText("Done"));
     });
     await waitFor(() => expect(onFinish).toHaveBeenCalledWith(TAKE_URI));
     expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
@@ -242,9 +243,87 @@ describe("VoiceRecorder audio session", () => {
     const { getByText, onFinish } = await startRecording();
     mockRecorder.stop.mockRejectedValueOnce(new Error("already stopped"));
     await act(async () => {
-      fireEvent.press(getByText("Save"));
+      fireEvent.press(getByText("Done"));
     });
     await waitFor(() => expect(onFinish).toHaveBeenCalled());
     expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
+  });
+});
+
+describe("VoiceRecorder pause / resume", () => {
+  test("pause and resume continue the same take with the remaining cap", async () => {
+    const { getByText, getByLabelText, rerender } = await startRecording(60);
+    expect(getByText("RECORDING")).toBeTruthy();
+
+    mockState.durationMillis = 15_000;
+    rerender();
+    await act(async () => {
+      fireEvent.press(getByLabelText("Pause recording"));
+    });
+    expect(mockRecorder.pause).toHaveBeenCalledTimes(1);
+    expect(getByText("PAUSED")).toBeTruthy();
+
+    // Native reports isRecording=false while paused; that must NOT auto-save.
+    mockState.isRecording = false;
+    rerender();
+    expect(mockRecorder.stop).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(getByLabelText("Resume recording"));
+    });
+    // Same file: no re-prepare, and the cap is re-armed with what's left.
+    expect(mockRecorder.prepareToRecordAsync).toHaveBeenCalledTimes(1);
+    expect(mockRecorder.record).toHaveBeenLastCalledWith({ forDuration: 45 });
+    expect(getByText("RECORDING")).toBeTruthy();
+
+    // Still "stopped" per the last poll: resume must not be mistaken for the cap.
+    rerender();
+    expect(mockRecorder.stop).not.toHaveBeenCalled();
+
+    mockState.isRecording = true;
+    rerender();
+    expect(mockRecorder.stop).not.toHaveBeenCalled();
+  });
+
+  test("pausing and immediately tapping Done saves the take", async () => {
+    const { getByLabelText, onFinish, onCancel } = await startRecording();
+    await act(async () => {
+      fireEvent.press(getByLabelText("Pause recording"));
+    });
+    mockState.isRecording = false;
+    await act(async () => {
+      fireEvent.press(getByLabelText("Done"));
+    });
+    await waitFor(() => expect(onFinish).toHaveBeenCalledWith(TAKE_URI));
+    expect(mockRecorder.stop).toHaveBeenCalledTimes(1);
+    expect(deleteAsync).not.toHaveBeenCalled();
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(mockSetMode).toHaveBeenLastCalledWith(RECORD_OFF);
+  });
+
+  test("the cap still auto-saves after a resume", async () => {
+    const { getByLabelText, onFinish, rerender } = await startRecording(5);
+    await act(async () => {
+      fireEvent.press(getByLabelText("Pause recording"));
+    });
+    mockState.isRecording = false;
+    rerender();
+    await act(async () => {
+      fireEvent.press(getByLabelText("Resume recording"));
+    });
+    mockState.isRecording = true;
+    rerender();
+    expect(onFinish).not.toHaveBeenCalled();
+
+    mockState.isRecording = false;
+    rerender();
+    await waitFor(() => expect(onFinish).toHaveBeenCalledWith(TAKE_URI));
+  });
+
+  test("timer shows the recorder's accumulated duration", async () => {
+    const { getByText, rerender } = await startRecording();
+    mockState.durationMillis = 65_000;
+    rerender();
+    expect(getByText("1:05")).toBeTruthy();
   });
 });
