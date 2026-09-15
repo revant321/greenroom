@@ -10,7 +10,14 @@ jest.mock("@/db/sqlite", () => {
       },
       runSync: (sql: string, ...params: any[]) => {
         if (sql.startsWith("INSERT")) rows.set(params[0], params[1]);
-        if (sql.startsWith("DELETE")) rows.delete(params[0]);
+        if (sql.includes("LIKE")) {
+          const prefix = params[0].replace(/%$/, "");
+          for (const key of [...rows.keys()]) {
+            if (key.startsWith(prefix)) rows.delete(key);
+          }
+        } else if (sql.startsWith("DELETE")) {
+          rows.delete(params[0]);
+        }
       },
     }),
   };
@@ -30,5 +37,15 @@ describe("kvStore", () => {
     await kvStore.setItem("b", "2");
     await kvStore.removeItem("b");
     await expect(kvStore.getItem("b")).resolves.toBeNull();
+  });
+
+  test("removeByPrefix deletes only matching keys", async () => {
+    await kvStore.setItem("cache-u1", "1");
+    await kvStore.setItem("cache-u2", "2");
+    await kvStore.setItem("theme", "dark");
+    await kvStore.removeByPrefix("cache-");
+    await expect(kvStore.getItem("cache-u1")).resolves.toBeNull();
+    await expect(kvStore.getItem("cache-u2")).resolves.toBeNull();
+    await expect(kvStore.getItem("theme")).resolves.toBe("dark");
   });
 });

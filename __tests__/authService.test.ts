@@ -2,9 +2,10 @@ import {
   signInWithApple,
   signInWithEmail,
   signInWithGoogle,
-  signOut,
+  signOutAndReset,
 } from "@/services/authService";
 import { supabase } from "@/lib/supabase";
+import { clearLocalData } from "@/lib/localData";
 import * as AppleAuth from "expo-apple-authentication";
 
 jest.mock("@/lib/supabase", () => ({
@@ -17,6 +18,7 @@ jest.mock("@/lib/supabase", () => ({
   },
 }));
 jest.mock("expo-apple-authentication");
+jest.mock("@/lib/localData", () => ({ clearLocalData: jest.fn() }));
 
 describe("authService", () => {
   beforeEach(() => jest.resetAllMocks());
@@ -86,9 +88,27 @@ describe("authService", () => {
     await expect(signInWithEmail("a@b.com", "wrong")).rejects.toThrow(/invalid/i);
   });
 
-  test("signOut delegates to supabase.auth.signOut", async () => {
-    (supabase.auth.signOut as jest.Mock).mockResolvedValue({ error: null });
-    await signOut();
-    expect(supabase.auth.signOut).toHaveBeenCalled();
+  test("signOutAndReset signs out, then clears local data", async () => {
+    const order: string[] = [];
+    (supabase.auth.signOut as jest.Mock).mockImplementation(async () => {
+      order.push("signOut");
+      return { error: null };
+    });
+    (clearLocalData as jest.Mock).mockImplementation(async () => {
+      order.push("clearLocalData");
+    });
+
+    await signOutAndReset();
+
+    expect(order).toEqual(["signOut", "clearLocalData"]);
+  });
+
+  test("signOutAndReset keeps local data when sign-out fails", async () => {
+    (supabase.auth.signOut as jest.Mock).mockResolvedValue({
+      error: new Error("Network request failed"),
+    });
+
+    await expect(signOutAndReset()).rejects.toThrow(/network/i);
+    expect(clearLocalData).not.toHaveBeenCalled();
   });
 });

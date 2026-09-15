@@ -28,4 +28,7 @@ export const mediaCache = {
   remove(storagePath: string): void {
     getDb().runSync("DELETE FROM media_cache WHERE storage_path = ?", storagePath);
   },
+  clear(): void {
+    getDb().runSync("DELETE FROM media_cache");
+  },
 };

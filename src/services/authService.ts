@@ -1,5 +1,6 @@
 import * as AppleAuthentication from "expo-apple-authentication";
 import { supabase } from "@/lib/supabase";
+import { clearLocalData } from "@/lib/localData";
 
 export async function signInWithApple(): Promise<void> {
   const credential = await AppleAuthentication.signInAsync({
@@ -39,7 +40,10 @@ export async function signInWithEmail(email: string, password: string): Promise<
   if (error) throw error;
 }
 
-export async function signOut(): Promise<void> {
+// Sign out first: Supabase talks to the server before dropping the session, so
+// if that fails the user stays signed in and should keep their offline data.
+export async function signOutAndReset(): Promise<void> {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
+  await clearLocalData();
 }

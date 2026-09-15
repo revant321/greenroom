@@ -20,4 +20,7 @@ export const kvStore = {
   async removeItem(key: string): Promise<void> {
     getDb().runSync("DELETE FROM kv_store WHERE key = ?", key);
   },
+  async removeByPrefix(prefix: string): Promise<void> {
+    getDb().runSync("DELETE FROM kv_store WHERE key LIKE ?", `${prefix}%`);
+  },
 };

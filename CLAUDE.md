@@ -71,7 +71,7 @@ Schema mirrors the conceptual model from the original PWA but is now stored in S
 
 ```
 app/
-├── _layout.tsx                # Root: GestureHandlerRoot + PersistQueryClient + Auth + Theme + Toast
+├── _layout.tsx                # Root: GestureHandlerRoot + Auth + UserQueryCache + Theme + Toast
 ├── index.tsx                  # Redirect: /shows if signed in, /login otherwise
 ├── (auth)/
 │   └── login.tsx              # Apple + Google + email/password sign-in (themed)
@@ -109,7 +109,9 @@ src/
 │   ├── secureStoreAdapter.ts  # Supabase session storage (Expo SecureStore)
 │   ├── audioSession.ts        # enterRecordingMode / exitRecordingMode — the only place that sets the iOS audio mode
 │   ├── supabase.ts            # Supabase client
-│   ├── queryClient.ts         # TanStack QueryClient + persister
+│   ├── queryClient.ts         # TanStack QueryClient + per-user persister (cache key includes user id)
+│   ├── localData.ts           # clearLocalData: wipe in-memory queries, persisted cache, and media files
+│   ├── UserQueryCacheProvider.tsx # QueryClientProvider that restores/persists the signed-in user's cache and wipes on user change
 │   └── types.ts               # Row types (Show, MusicalNumber, Scene, Harmony, …)
 ├── hooks/
 │   ├── useAuth.tsx            # AuthProvider + useAuth
@@ -136,11 +138,11 @@ src/
 │   ├── EmptyState.tsx         # icon + title + body + action; used on Shows + Songs lists
 │   └── Toast.tsx              # ToastProvider + useToast (info/error/success)
 └── services/
-    ├── authService.ts         # Apple / Google / email sign-in + sign-out
+    ├── authService.ts         # Apple / Google / email sign-in + signOutAndReset (sign out, then clearLocalData)
     ├── showService.ts         # useShows / useShow / useCreateShow / useUpdateShow / useCompleteShow / useDeleteShow
     ├── musicalNumberService.ts # useMusicalNumbers / useMusicalNumber / useCreate / useUpdate / useDelete
     ├── sceneService.ts        # useScenes / useScene / useCreateScene / useUpdateScene / useDeleteScene
-    ├── mediaService.ts        # uploadMedia / deleteMedia / useMedia (cached signed-URL download)
+    ├── mediaService.ts        # uploadMedia / deleteMedia / deleteAllCachedMedia / useMedia (cached signed-URL download)
     ├── harmonyService.ts      # useHarmonies / useCreateHarmony / useUpdateHarmony / useDeleteHarmony
     ├── sceneRecordingService.ts # useSceneRecordings / useCreate / useDelete (audio + video scene clips)
     ├── danceVideoService.ts   # useDanceVideos / useCreate / useUpdate / useDelete (file OR external URL)
@@ -176,10 +178,10 @@ Note that later phases will add more under `src/` (services, components, etc.) p
 > Update this section at the END of every coding session.
 
 **Last session:** 2026-09-14
-**Currently working on:** GitHub issue #66 — the UI consistency / interaction polish / accessibility pass.
-**Completed this session:** Audited every screen against the issue checklist, then fixed by category in ten commits on `claude/github-issue-66-review-7159f6`: theme tokens (spacing.xxs, 7-size type scale, cardSurface(), press feedback, contentInset, contrast bumps); no magic-number spacing or radii left in `app/`; every delete confirms via DeleteButton (musical numbers and scenes used to cascade-delete silently); a deliberate pressed state on every Pressable; skeletons + error states on every list and detail; keyboard insets and FAB clearance on scroll content; truncation on user text; VoiceOver labels and roles everywhere plus Dynamic Type caps in fixed chrome; haptics (expo-haptics added); and one type scale applied through `type.*`. Merged `main` (the #59 audio-session and #65 recorder-edge-case work) into the branch, keeping the recorder’s new lifecycle and adding haptics + Dynamic Type caps on top. TypeScript clean, 97 tests pass. PR #78 is open and the audit checklist is posted on #66.
-**Next steps:** Device pass on PR #78: Dynamic Type at the largest accessibility size on Shows list, Song detail and the recorder sheet; VoiceOver through add → record → delete; confirm haptics fire on a real iPhone (the simulator has no haptic engine). Watch for the slightly airier lists (card padding 14→16, gaps 10→12) and the darker muted text, which are deliberate.
-**Blockers:** None in code. Haptics and Dynamic Type can only be verified on hardware.
+**Currently working on:** GitHub issue #50 — sign-out left the previous user's cached data on the device (merged on top of the #65 recorder and #59 audio-session work from `main`).
+**Completed this session:** Added `clearLocalData()` (drops in-memory queries, deletes every persisted query-cache row, deletes the `media` directory and empties `media_cache`). Replaced `signOut()` with `signOutAndReset()`, which signs out first and then clears (Supabase contacts the server before dropping the session, so a failed sign-out keeps the user signed in with their offline data intact). Scoped the persisted query cache key by user id and replaced TanStack's `PersistQueryClientProvider` with `UserQueryCacheProvider`, which restores the signed-in user's cache and wipes local data whenever the user id changes, so sign-outs that bypass the Settings button (expired sessions) are covered too. The persister ignores throttled writes that land after sign-out. TypeScript is clean and all tests pass; pre-existing React `act(...)` and Jest open-handle warnings remain.
+**Next steps:** Device-test the acceptance list on issue #50: sign in as A, create a show and add a harmony, sign out, confirm the app's documents directory has no `media` folder, sign in as B, confirm no flash of A's data. Then unblock issue #21 (data isolation testing). Still open from #65/#59: device-test the recorder (cancel short and long takes, deny mic permission then use Open Settings, let a take hit the cap by lowering `maxDurationSeconds`), re-verify video volume after recording a harmony, and consider deleting the cache temp file in the three save handlers after `uploadMedia` succeeds.
+**Blockers:** None in code. Device testing needs two Supabase accounts on one phone.
 
 ## Session Rules
 
